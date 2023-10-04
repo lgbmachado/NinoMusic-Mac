@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22154" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22154"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="MusicLoadingViewController" customModule="NinoMusicServer" customModuleProvider="target">
+            <connections>
+                <outlet property="btnOk" destination="4D1-eu-Krv" id="XTc-MS-reJ"/>
+                <outlet property="imgLoading" destination="jQU-Do-FeD" id="kkz-He-Phw"/>
+                <outlet property="imgOk" destination="bjB-My-Gie" id="NY3-iS-c9C"/>
+                <outlet property="txtMsg" destination="pbT-gb-lSn" id="pUC-dV-YUu"/>
+                <outlet property="view" destination="Hz6-mo-xeY" id="0bl-1N-x8E"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="Hz6-mo-xeY">
+            <rect key="frame" x="0.0" y="0.0" width="321" height="271"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="jQU-Do-FeD">
+                    <rect key="frame" x="96" y="96" width="130" height="130"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="130" id="WVp-uT-0CN"/>
+                        <constraint firstAttribute="height" constant="130" id="qbn-6I-BOZ"/>
+                    </constraints>
+                    <imageCell key="cell" enabled="NO" refusesFirstResponder="YES" alignment="left" animates="YES" imageScaling="proportionallyDown" image="loading" id="DmC-UT-qdu"/>
+                </imageView>
+                <imageView hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="bjB-My-Gie">
+                    <rect key="frame" x="96" y="89.5" width="130" height="143"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="130" id="2Cz-vv-0KC"/>
+                        <constraint firstAttribute="width" constant="130" id="FEc-8D-elJ"/>
+                    </constraints>
+                    <imageCell key="cell" enabled="NO" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" id="HuZ-7a-VHH">
+                        <imageReference key="image" image="checkmark.diamond.fill" catalog="system" symbolScale="large"/>
+                    </imageCell>
+                </imageView>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="4D1-eu-Krv">
+                    <rect key="frame" x="133" y="13" width="55" height="32"/>
+                    <buttonCell key="cell" type="push" title="Ok!" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="4El-Gt-QMx">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="btnOkClick:" target="-2" id="Vk2-Yi-A69"/>
+                    </connections>
+                </button>
+                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pbT-gb-lSn">
+                    <rect key="frame" x="80" y="60" width="161" height="16"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="Carregando as músicas ..." id="uuj-BD-tyW">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+            </subviews>
+            <constraints>
+                <constraint firstItem="4D1-eu-Krv" firstAttribute="centerX" secondItem="Hz6-mo-xeY" secondAttribute="centerX" id="6Sj-qR-hQr"/>
+                <constraint firstItem="pbT-gb-lSn" firstAttribute="centerX" secondItem="Hz6-mo-xeY" secondAttribute="centerX" id="MnC-pp-nAg"/>
+                <constraint firstItem="pbT-gb-lSn" firstAttribute="top" secondItem="jQU-Do-FeD" secondAttribute="bottom" constant="20" id="eTx-gV-lK9"/>
+                <constraint firstItem="bjB-My-Gie" firstAttribute="top" secondItem="Hz6-mo-xeY" secondAttribute="top" constant="45" id="hCa-1p-si0"/>
+                <constraint firstItem="4D1-eu-Krv" firstAttribute="top" secondItem="pbT-gb-lSn" secondAttribute="bottom" constant="20" id="ki8-Rw-9Jz"/>
+                <constraint firstItem="jQU-Do-FeD" firstAttribute="centerX" secondItem="Hz6-mo-xeY" secondAttribute="centerX" id="phT-Ab-ZaR"/>
+                <constraint firstItem="jQU-Do-FeD" firstAttribute="top" secondItem="Hz6-mo-xeY" secondAttribute="top" constant="45" id="t2Y-tB-rwB"/>
+                <constraint firstItem="bjB-My-Gie" firstAttribute="centerX" secondItem="Hz6-mo-xeY" secondAttribute="centerX" id="zOh-o0-Gy6"/>
+            </constraints>
+            <point key="canvasLocation" x="-1376.5" y="152.5"/>
+        </customView>
+    </objects>
+    <resources>
+        <image name="checkmark.diamond.fill" catalog="system" width="22" height="22"/>
+        <image name="loading" width="300" height="300"/>
+    </resources>
+</document>

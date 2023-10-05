@@ -75,6 +75,18 @@ class ListFileMusic {
                 }
             }
             self.musicDb.closeDatabase()
+            
+            if let deviceName = Host.current().localizedName {
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyyMMddHHmmss"
+                let lastUpdate = dateFormatter.string(from: Date())
+                
+                let defaults = UserDefaults.standard
+                defaults.set(deviceName, forKey: "ServerName")
+                defaults.set(count, forKey: "MusicsCount")
+                defaults.set(lastUpdate, forKey: "LastUpdate")
+            }
             completion(count)
         }
         

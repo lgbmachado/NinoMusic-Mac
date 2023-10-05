@@ -13,6 +13,7 @@ enum ServerComand: String {
     case playMusic = "playMusic"
     case listMusic = "listMusic"
     case getCover = "getCover"
+    case serverInfo = "serverInfo"
 }
 
 class MusicServer {
@@ -88,6 +89,23 @@ class MusicServer {
                     result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALTA PARÂMETRO</p></body></html>")!
                 }
                 return result
+            case .serverInfo:
+                var data = Data()
+                
+                let defaults = UserDefaults.standard
+                let serverName = defaults.string(forKey: "ServerName")
+                let musicCount = defaults.string(forKey: "MusicsCount")
+                let lastUpdate = defaults.string(forKey: "LastUpdate")
+                
+                let serverInfo = ServerInfoRemote(server_name: serverName, music_count: musicCount, last_update: lastUpdate)
+                
+                do {
+                    data = try JSONEncoder().encode(serverInfo)
+                } catch {
+                    print(error)
+                }
+                
+                return GCDWebServerDataResponse(data: data, contentType: "application/json")
             default:
                 break
             }

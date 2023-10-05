@@ -7,6 +7,13 @@
 
 import Foundation
 import GCDWebServer
+import ID3TagEditor
+
+enum ServerComand: String {
+    case playMusic = "playMusic"
+    case listMusic = "listMusic"
+    case getCover = "getCover"
+}
 
 class MusicServer {
     private let webServer = GCDWebServer()
@@ -14,10 +21,10 @@ class MusicServer {
     func start() {
         webServer.addDefaultHandler(forMethod: "GET", request: GCDWebServerRequest.self, processBlock: {request in
             let arrayParam = request.path.split(separator: "/")
-            let command = arrayParam.first
+            let command = String(arrayParam.first ?? "")
             var result = GCDWebServerDataResponse()
-            switch command {
-            case "playMusic":
+            switch ServerComand(rawValue: command) {
+            case .playMusic:
                 if arrayParam.count > 1 {
                     let param = arrayParam[1]
                     let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
@@ -39,7 +46,7 @@ class MusicServer {
                     result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALTA PARÂMETRO</p></body></html>")!
                 }
                 return result
-            case "listMusic":
+            case .listMusic:
                 var data = Data()
                 let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
                 musicDb.listMusicsRemote { musicsList in
@@ -53,6 +60,34 @@ class MusicServer {
                 }
                 musicDb.closeDatabase()
                 return GCDWebServerDataResponse(data: data, contentType: "application/json")
+            case .getCover:
+                if arrayParam.count > 1 {
+                    let param = arrayParam[1]
+                    let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
+                    musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
+                        if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
+                            let url = URL(fileURLWithPath: path)
+                            if FileManager.default.fileExists(atPath: url.path) {
+                                let id3TagEditor: ID3TagEditor = ID3TagEditor()
+                                do {
+                                    let id3Tag = try id3TagEditor.read(from: url.path)
+                                    if let coverImage = id3Tag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
+                                        result = GCDWebServerDataResponse(data: coverImage.picture, contentType: "image/jpeg")
+                                    } else {
+                                        result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALHA AO LER ARQUIVO</p></body></html>")!
+                                    }
+                                } catch {
+                                    print(error)
+                                }
+                            } else {
+                                result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: ARQUIVO NÃO ENCONTRADO</p></body></html>")!
+                            }
+                        }
+                    })
+                } else {
+                    result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALTA PARÂMETRO</p></body></html>")!
+                }
+                return result
             default:
                 break
             }

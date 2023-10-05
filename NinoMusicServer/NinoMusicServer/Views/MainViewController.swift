@@ -9,11 +9,6 @@ import AVFAudio
 import Cocoa
 import GCDWebServer
 
-enum ChanelMeter {
-    case right
-    case left
-}
-
 class MainViewController: NSViewController {
     
     var musicsListViewModel: MusicsListViewModel?
@@ -30,6 +25,7 @@ class MainViewController: NSViewController {
     
     var player: AVAudioPlayer?
     private var timer: Timer?
+    let musicServer = MusicServer()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -139,54 +135,7 @@ class MainViewController: NSViewController {
         startServerDlg.addButton(withTitle: "Não")
         startServerDlg.alertStyle = .informational
         if startServerDlg.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-            let webServer = GCDWebServer()
-            webServer.addDefaultHandler(forMethod: "GET", request: GCDWebServerRequest.self, processBlock: {request in
-                let arrayParam = request.path.split(separator: "/")
-                let command = arrayParam.first
-                var result = GCDWebServerDataResponse()
-                switch command {
-                case "playMusic":
-                    if arrayParam.count > 1 {
-                        let param = arrayParam[1]
-                        let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
-                        musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
-                            if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
-                                let url = URL(fileURLWithPath: path)
-                                if FileManager.default.fileExists(atPath: url.path) {
-                                    if let handler = FileHandle.init(forReadingAtPath: url.path) {
-                                        result = GCDWebServerDataResponse(data: (handler.readDataToEndOfFile()), contentType: "audio/mpeg")
-                                    } else {
-                                        result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALHA AO LER ARQUIVO</p></body></html>")!
-                                    }
-                                } else {
-                                    result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: ARQUIVO NÃO ENCONTRADO</p></body></html>")!
-                                }
-                            }
-                        })
-                    } else {
-                        result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALTA PARÂMETRO</p></body></html>")!
-                    }
-                    return result
-                case "listMusic":
-                    var data = Data()
-                    let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
-                    musicDb.listMusicsRemote { musicsList in
-                        if let musicsList = musicsList {
-                            do {
-                                data = try JSONEncoder().encode(musicsList)
-                            } catch {
-                                print(error)
-                            }
-                        }
-                    }
-                    musicDb.closeDatabase()
-                    return GCDWebServerDataResponse(data: data, contentType: "application/json")
-                default:
-                    break
-                }
-                return GCDWebServerDataResponse(html: "<html><body><p>ERRO: COMANDO INVÁLIDO: \"\(request.path)\"</p></body></html>")!
-            })
-            webServer.start(withPort: 8080, bonjourName: "Nino Music Server")
+            musicServer.start()
         }
         
     }

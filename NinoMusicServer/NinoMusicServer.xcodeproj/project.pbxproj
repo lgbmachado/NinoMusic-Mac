@@ -29,6 +29,7 @@
 		3FBCE78228C19B0C00907E83 /* NinoMusicServerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBCE78128C19B0C00907E83 /* NinoMusicServerUITests.swift */; };
 		3FBCE78428C19B0C00907E83 /* NinoMusicServerUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBCE78328C19B0C00907E83 /* NinoMusicServerUITestsLaunchTests.swift */; };
 		3FEEC3D62ACDA10D00D6C535 /* String+DateTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEEC3D52ACDA10D00D6C535 /* String+DateTime.swift */; };
+		3FEEC3DB2ACE04DD00D6C535 /* MusicServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEEC3DA2ACE04DD00D6C535 /* MusicServer.swift */; };
 		3FEF4D592AB7E11600B25F83 /* MusicDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEF4D572AB7E11600B25F83 /* MusicDetailViewController.swift */; };
 		3FEF4D5A2AB7E11600B25F83 /* MusicDetailViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3FEF4D582AB7E11600B25F83 /* MusicDetailViewController.xib */; };
 		5431506E4EA13FAE2BD81795 /* Pods_NinoMusicServer_NinoMusicServerUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81D43F5D41D86B3415800C7C /* Pods_NinoMusicServer_NinoMusicServerUITests.framework */; };
@@ -81,6 +82,7 @@
 		3FBCE78128C19B0C00907E83 /* NinoMusicServerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerUITests.swift; sourceTree = "<group>"; };
 		3FBCE78328C19B0C00907E83 /* NinoMusicServerUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		3FEEC3D52ACDA10D00D6C535 /* String+DateTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+DateTime.swift"; sourceTree = "<group>"; };
+		3FEEC3DA2ACE04DD00D6C535 /* MusicServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicServer.swift; sourceTree = "<group>"; };
 		3FEF4D572AB7E11600B25F83 /* MusicDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicDetailViewController.swift; sourceTree = "<group>"; };
 		3FEF4D582AB7E11600B25F83 /* MusicDetailViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MusicDetailViewController.xib; sourceTree = "<group>"; };
 		62F01B277DD6224745317723 /* Pods-NinoMusicServer-NinoMusicServerUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NinoMusicServer-NinoMusicServerUITests.release.xcconfig"; path = "Target Support Files/Pods-NinoMusicServer-NinoMusicServerUITests/Pods-NinoMusicServer-NinoMusicServerUITests.release.xcconfig"; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 			children = (
 				3F12F62028EA68AC00290F7B /* ListFileMusic.swift */,
 				3FA5368028EDCEA2007DBA43 /* Database.swift */,
+				3FEEC3DA2ACE04DD00D6C535 /* MusicServer.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -502,6 +505,7 @@
 				3FAEBC082AC8C864005DB6A0 /* MusicRemote.swift in Sources */,
 				3F12F61B28EA199600290F7B /* MusicsListViewModel.swift in Sources */,
 				3F12F62128EA68AC00290F7B /* ListFileMusic.swift in Sources */,
+				3FEEC3DB2ACE04DD00D6C535 /* MusicServer.swift in Sources */,
 				3F12F61928EA198600290F7B /* MusicViewModel.swift in Sources */,
 				3F12F61D28EA1A3200290F7B /* Music.swift in Sources */,
 				3FEEC3D62ACDA10D00D6C535 /* String+DateTime.swift in Sources */,

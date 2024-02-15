@@ -18,7 +18,7 @@ class ListFileMusic {
     private var count = 0
     var delegate: ListFileMusicDelegate?
     
-    let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
+    let musicDb = Database()
     
     func loadMusics(path: String, completion: @escaping (Int?) -> ()) {
         let url = URL(fileURLWithPath: path)

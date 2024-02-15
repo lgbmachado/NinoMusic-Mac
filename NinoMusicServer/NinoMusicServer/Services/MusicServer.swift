@@ -28,7 +28,7 @@ class MusicServer {
             case .playMusic:
                 if arrayParam.count > 1 {
                     let param = arrayParam[1]
-                    let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
+                    let musicDb = Database()
                     musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
                         if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                             let url = URL(fileURLWithPath: path)
@@ -49,7 +49,7 @@ class MusicServer {
                 return result
             case .listMusic:
                 var data = Data()
-                let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
+                let musicDb = Database()
                 musicDb.listMusicsRemote { musicsList in
                     if let musicsList = musicsList {
                         do {
@@ -64,7 +64,7 @@ class MusicServer {
             case .getCover:
                 if arrayParam.count > 1 {
                     let param = arrayParam[1]
-                    let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
+                    let musicDb = Database()
                     musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
                         if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                             let url = URL(fileURLWithPath: path)

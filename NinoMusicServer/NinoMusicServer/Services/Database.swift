@@ -12,7 +12,7 @@ class Database {
     
     private let colRowId = "RowId"
     
-    private let databasePath: String?
+    private let databasePath = (Bundle.main.bundlePath as NSString).deletingLastPathComponent + "/MusicDatabase.db"
     private var database: OpaquePointer?
     
     private let tableMusics = "Musics"
@@ -34,8 +34,9 @@ class Database {
     private let tableGenres = "Genres"
     private let colGenre = "Genre"
     
-    init (databasePath: String) {
-        self.databasePath = databasePath
+    init () {
+        print("Path banco de dados: \(self.databasePath)")
+        
         if sqlite3_open(self.databasePath, &database) == SQLITE_OK {
             CreateTableMusics()
             CreateTableArtists()
@@ -88,7 +89,6 @@ class Database {
         
         if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
             while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                let id = String(cString: sqlite3_column_text(queryStatement, 0))
                 let artist = String(cString: sqlite3_column_text(queryStatement, 1))
                 let album = String(cString: sqlite3_column_text(queryStatement, 4))
                 let year = String(cString: sqlite3_column_text(queryStatement, 7))

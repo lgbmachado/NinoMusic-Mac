@@ -38,7 +38,7 @@ class MainViewController: NSViewController {
     }
     
     private func updateTableView() {
-        let musicDb = Database(databasePath: "/Users/nino/MusicDatabase.db")
+        let musicDb = Database()
         musicDb.listMusics { musicsList in
             if let musicsList = musicsList {
                 self.musicsListViewModel = MusicsListViewModel(musics: musicsList)

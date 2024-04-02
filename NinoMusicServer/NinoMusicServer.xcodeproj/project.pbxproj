@@ -28,6 +28,8 @@
 		3FBCE77828C19B0C00907E83 /* NinoMusicServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBCE77728C19B0C00907E83 /* NinoMusicServerTests.swift */; };
 		3FBCE78228C19B0C00907E83 /* NinoMusicServerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBCE78128C19B0C00907E83 /* NinoMusicServerUITests.swift */; };
 		3FBCE78428C19B0C00907E83 /* NinoMusicServerUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBCE78328C19B0C00907E83 /* NinoMusicServerUITestsLaunchTests.swift */; };
+		3FC778FF2BBB569E00AD8E88 /* ArtistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FC778FE2BBB569E00AD8E88 /* ArtistViewModel.swift */; };
+		3FD164312BBB2A1700E065B3 /* ArtistsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD164302BBB2A1700E065B3 /* ArtistsListViewModel.swift */; };
 		3FEEC3D62ACDA10D00D6C535 /* String+DateTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEEC3D52ACDA10D00D6C535 /* String+DateTime.swift */; };
 		3FEEC3DB2ACE04DD00D6C535 /* MusicServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEEC3DA2ACE04DD00D6C535 /* MusicServer.swift */; };
 		3FEEC87B2ACF079600114FE4 /* ServerInfoRemote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEEC87A2ACF079600114FE4 /* ServerInfoRemote.swift */; };
@@ -82,6 +84,8 @@
 		3FBCE77D28C19B0C00907E83 /* NinoMusicServerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NinoMusicServerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FBCE78128C19B0C00907E83 /* NinoMusicServerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerUITests.swift; sourceTree = "<group>"; };
 		3FBCE78328C19B0C00907E83 /* NinoMusicServerUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		3FC778FE2BBB569E00AD8E88 /* ArtistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistViewModel.swift; sourceTree = "<group>"; };
+		3FD164302BBB2A1700E065B3 /* ArtistsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsListViewModel.swift; sourceTree = "<group>"; };
 		3FEEC3D52ACDA10D00D6C535 /* String+DateTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+DateTime.swift"; sourceTree = "<group>"; };
 		3FEEC3DA2ACE04DD00D6C535 /* MusicServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicServer.swift; sourceTree = "<group>"; };
 		3FEEC87A2ACF079600114FE4 /* ServerInfoRemote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerInfoRemote.swift; sourceTree = "<group>"; };
@@ -153,6 +157,8 @@
 			children = (
 				3F12F61828EA198600290F7B /* MusicViewModel.swift */,
 				3F12F61A28EA199600290F7B /* MusicsListViewModel.swift */,
+				3FD164302BBB2A1700E065B3 /* ArtistsListViewModel.swift */,
+				3FC778FE2BBB569E00AD8E88 /* ArtistViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -192,12 +198,12 @@
 		3FBCE75928C19B0900907E83 = {
 			isa = PBXGroup;
 			children = (
+				24A68B139CA7FE8FEB3323E7 /* Frameworks */,
 				3FBCE76428C19B0900907E83 /* NinoMusicServer */,
 				3FBCE77628C19B0C00907E83 /* NinoMusicServerTests */,
 				3FBCE78028C19B0C00907E83 /* NinoMusicServerUITests */,
-				3FBCE76328C19B0900907E83 /* Products */,
 				CD64FA50C3DC9BA8E9A5EB07 /* Pods */,
-				24A68B139CA7FE8FEB3323E7 /* Frameworks */,
+				3FBCE76328C19B0900907E83 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
@@ -513,6 +519,7 @@
 				3F12F61D28EA1A3200290F7B /* Music.swift in Sources */,
 				3FEEC3D62ACDA10D00D6C535 /* String+DateTime.swift in Sources */,
 				3F1C1B0E28F9F4CA00E52238 /* RegularExpression.swift in Sources */,
+				3FC778FF2BBB569E00AD8E88 /* ArtistViewModel.swift in Sources */,
 				3FEEC87B2ACF079600114FE4 /* ServerInfoRemote.swift in Sources */,
 				3FBCE76828C19B0900907E83 /* MainViewController.swift in Sources */,
 				3F1C1B0C28F9F43700E52238 /* String+Html.swift in Sources */,
@@ -521,6 +528,7 @@
 				3FEF4D592AB7E11600B25F83 /* MusicDetailViewController.swift in Sources */,
 				3F1C1B1028F9F5AC00E52238 /* Data+Append.swift in Sources */,
 				3F1C1B0628F9EE6D00E52238 /* Data+Sufix.swift in Sources */,
+				3FD164312BBB2A1700E065B3 /* ArtistsListViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

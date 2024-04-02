@@ -112,6 +112,63 @@ class Database {
         completion(musicList)
     }
     
+    func listArtists(completion: @escaping ([Music]?) -> ()) {
+        let sql = """
+        SELECT
+           \(self.tableArtists).\(self.colArtist),
+           \(self.tableGenres).\(self.colGenre),
+           \(self.tableAlbuns).\(self.colAlbum),
+           \(self.tableAlbuns).\(self.colYear),
+           \(self.tableMusics).\(self.colTrack),
+           \(self.tableMusics).\(self.colTitle),
+           \(self.tableMusics).\(self.colDuration),
+           \(self.tableMusics).\(self.colRowId),
+           \(self.tableMusics).\(self.colFilePath)
+        FROM
+           \(self.tableMusics)
+           INNER JOIN \(self.tableArtists) ON \(self.tableArtists).\(self.colRowId) = \(self.tableMusics).IdArtist
+           INNER JOIN \(self.tableAlbuns) ON \(self.tableAlbuns).\(self.colRowId) = \(self.tableMusics).IdAlbum
+           INNER JOIN \(self.tableGenres) ON \(self.tableGenres).\(self.colRowId) = \(self.tableMusics).IdGenre
+        GROUP BY
+           \(self.tableArtists).\(self.colArtist),
+           \(self.tableAlbuns).\(self.colAlbum),
+           \(self.tableMusics).\(self.colTrack)
+        ORDER BY
+           \(self.tableArtists).\(self.colArtist),
+           \(self.tableAlbuns).\(self.colAlbum),
+           \(self.tableMusics).\(self.colTrack)
+        """
+        
+        print(sql)
+        
+        var queryStatement: OpaquePointer?
+        var musicList = [Music]()
+        
+        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                let artist = String(cString: sqlite3_column_text(queryStatement, 0))
+                let genre = String(cString: sqlite3_column_text(queryStatement, 1))
+                let album = String(cString: sqlite3_column_text(queryStatement, 2))
+                let year = String(cString: sqlite3_column_text(queryStatement, 3))
+                let track = Int(sqlite3_column_int(queryStatement, 4))
+                let musicTitle = String(cString: sqlite3_column_text(queryStatement, 5))
+                let duration = Int(sqlite3_column_int(queryStatement, 6))
+                let filePath = String(cString: sqlite3_column_text(queryStatement, 7))
+                
+                musicList.append(Music(artist: artist,
+                                       album: album,
+                                       year: year,
+                                       track: track,
+                                       musicTitle: musicTitle,
+                                       genre: genre,
+                                       duration: duration,
+                                       filePath: filePath))
+            }
+        }
+        sqlite3_finalize(queryStatement)
+        completion(musicList)
+    }
+    
     func listMusicsRemote(completion: @escaping ([MusicRemote]?) -> ()) {
         let sql = """
         SELECT

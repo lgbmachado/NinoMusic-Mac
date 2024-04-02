@@ -12,9 +12,13 @@ import GCDWebServer
 class MainViewController: NSViewController {
     
     var musicsListViewModel: MusicsListViewModel?
+    var artistsListViewModel: ArtistsListViewModel?
+    
     var musicLoadingViewController: MusicLoadingViewController?
     
-    @IBOutlet weak var tableView: NSTableView!
+    @IBOutlet weak var tbvMusics: NSTableView!
+    @IBOutlet weak var tbvArtists: NSTableView!
+    
     @IBOutlet weak var btnPrevMusic: NSButton!
     @IBOutlet weak var btnPlayPauseMusic: NSButton!
     @IBOutlet weak var btnStopMusic: NSButton!
@@ -30,8 +34,11 @@ class MainViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.delegate = self
-        tableView.dataSource = self
+        tbvMusics.delegate = self
+        tbvMusics.dataSource = self
+        
+        tbvArtists.delegate = self
+        tbvArtists.dataSource = self
         
         updateTableView()
         self.view.window?.center()
@@ -43,9 +50,17 @@ class MainViewController: NSViewController {
             if let musicsList = musicsList {
                 self.musicsListViewModel = MusicsListViewModel(musics: musicsList)
                 self.txtStatus.stringValue = "\(musicsList.count) musica(s) disponíveis"
-                self.tableView.reloadData()
+                self.tbvMusics.reloadData()
             }
         }
+        
+        musicDb.listArtists { artistsList in
+            if let artistsList = artistsList {
+                self.artistsListViewModel = ArtistsListViewModel(musics: artistsList)
+                self.tbvArtists.reloadData()
+            }
+        }
+        
         musicDb.closeDatabase()
     }
     
@@ -87,7 +102,7 @@ class MainViewController: NSViewController {
     }
     
     @IBAction func playPauseMusicClick(_ sender: Any) {
-        if let url = URL(string: self.musicsListViewModel?.musicAtIndex(self.tableView.selectedRow).filePath ?? "") {
+        if let url = URL(string: self.musicsListViewModel?.musicAtIndex(self.tbvMusics.selectedRow).filePath ?? "") {
             do {
                 player = try AVAudioPlayer(contentsOf: url)
                 guard let player = player else { return }
@@ -120,7 +135,7 @@ class MainViewController: NSViewController {
     }
     
     @IBAction func editMusicInfoClick(_ sender: Any) {
-        if let musicPath = self.musicsListViewModel?.musicAtIndex(self.tableView.selectedRow).filePath {
+        if let musicPath = self.musicsListViewModel?.musicAtIndex(self.tbvMusics.selectedRow).filePath {
             lazy var musicDetailViewController = MusicDetailViewController(musicPath: musicPath)
             self.presentAsModalWindow(musicDetailViewController)
         }
@@ -144,60 +159,229 @@ class MainViewController: NSViewController {
 
 extension MainViewController: NSTableViewDelegate {
     
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+    func CellMusicTable(tableView: NSTableView, tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let currentMusic = self.musicsListViewModel?.musicAtIndex(row)
-        if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idColMusic") {
-            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idCelMusic"), owner: self) as? NSTableCellView
+        if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idMusicColMusic") {
+            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idMusicCelMusic"), owner: self) as? NSTableCellView
             else {
                 return nil
             }
             cellView.textField?.stringValue = currentMusic?.title ?? ""
             return cellView
-        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idColArtist") {
-            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idCelArtist"), owner: self) as? NSTableCellView
+        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idMusicColArtist") {
+            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idMusicCelArtist"), owner: self) as? NSTableCellView
             else {
                 return nil
             }
             cellView.textField?.stringValue = currentMusic?.artist ?? ""
             return cellView
-        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idColAlbum") {
-            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idCelAlbum"), owner: self) as? NSTableCellView
+        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idMusicColAlbum") {
+            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idMusicCelAlbum"), owner: self) as? NSTableCellView
             else {
                 return nil
             }
             cellView.textField?.stringValue = currentMusic?.album ?? ""
             return cellView
-        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idColYear") {
-            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idCelYear"), owner: self) as? NSTableCellView
+        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idMusicColYear") {
+            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idMusicCelYear"), owner: self) as? NSTableCellView
             else {
                 return nil
             }
             cellView.textField?.stringValue = String("\(currentMusic?.year ?? "")")
             return cellView
-        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idColTrack") {
-            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idCelTrack"), owner: self) as? NSTableCellView
+        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idMusicColTrack") {
+            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idMusicCelTrack"), owner: self) as? NSTableCellView
             else {
                 return nil
             }
             cellView.textField?.stringValue = String("\(currentMusic?.track ?? 0)")
             return cellView
-        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idColGenre") {
-            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idCelGenre"), owner: self) as? NSTableCellView
+        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idMusicColGenre") {
+            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idMusicCelGenre"), owner: self) as? NSTableCellView
             else {
                 return nil
             }
             cellView.textField?.stringValue = currentMusic?.genre ?? ""
             return cellView
-        }else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idColDuration") {
-            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idCelDuration"), owner: self) as? NSTableCellView
+        }else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idMusicColDuration") {
+            guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idMusicCelDuration"), owner: self) as? NSTableCellView
             else {
                 return nil
             }
-            cellView.textField?.stringValue = String().secondsToTime(seconds: currentMusic?.duration ?? 0) 
+            cellView.textField?.stringValue = String().secondsToTime(seconds: currentMusic?.duration ?? 0)
             return cellView
         } else {
+            return nil
         }
-        return nil
+    }
+    
+    func CellArtistTable(tableView: NSTableView, tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        let currentMusic = self.artistsListViewModel?.artistAtIndex(row)
+        
+        if let isNewArtist = artistsListViewModel?.isNewArtist(row),
+           let isNewAlbum = artistsListViewModel?.isNewAlbum(row) {
+            if isNewArtist {
+                if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColArtist") {
+                    guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelArtist"), owner: self) as? NSTableCellView
+                    else {
+                        return nil
+                    }
+                    cellView.textField?.stringValue = currentMusic?.artist ?? ""
+                    return cellView
+                } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColGenre") {
+                    guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelGenre"), owner: self) as? NSTableCellView
+                    else {
+                        return nil
+                    }
+                    cellView.textField?.stringValue = currentMusic?.genre ?? ""
+                    return cellView
+                } 
+                if isNewAlbum {
+                    if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColAlbum") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelAlbum"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = currentMusic?.album ?? ""
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColYear") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelYear"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String("\(currentMusic?.year ?? "")")
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColTrack") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelTrack"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String("\(currentMusic?.track ?? 0)")
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColMusic") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelMusic"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = currentMusic?.title ?? ""
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColDuration") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelDuration"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String().secondsToTime(seconds: currentMusic?.duration ?? 0)
+                        return cellView
+                    } else {
+                        return nil
+                    }
+                } else {
+                    if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColTrack") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelTrack"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String("\(currentMusic?.track ?? 0)")
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColMusic") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelMusic"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = currentMusic?.title ?? ""
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColDuration") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelDuration"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String().secondsToTime(seconds: currentMusic?.duration ?? 0)
+                        return cellView
+                    } else {
+                        return nil
+                    }
+                }
+            } else {
+                if isNewAlbum {
+                    if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColAlbum") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelAlbum"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = currentMusic?.album ?? ""
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColYear") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelYear"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String("\(currentMusic?.year ?? "")")
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColTrack") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelTrack"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String("\(currentMusic?.track ?? 0)")
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColMusic") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelMusic"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = currentMusic?.title ?? ""
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColDuration") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelDuration"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String().secondsToTime(seconds: currentMusic?.duration ?? 0)
+                        return cellView
+                    } else {
+                        return nil
+                    }
+                } else {
+                    if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColTrack") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelTrack"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String("\(currentMusic?.track ?? 0)")
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColMusic") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelMusic"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = currentMusic?.title ?? ""
+                        return cellView
+                    } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier(rawValue: "idArtistColDuration") {
+                        guard let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "idArtistCelDuration"), owner: self) as? NSTableCellView
+                        else {
+                            return nil
+                        }
+                        cellView.textField?.stringValue = String().secondsToTime(seconds: currentMusic?.duration ?? 0)
+                        return cellView
+                    } else {
+                        return nil
+                    }
+                }
+                
+            }
+        } else {
+            return nil
+        }
+    }
+    
+    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        if tableView.tag == 0 {
+            return CellMusicTable(tableView: tableView, tableColumn: tableColumn, row: row)
+        } else if tableView.tag == 1 {
+            return CellArtistTable(tableView: tableView, tableColumn: tableColumn, row: row)
+        } else {
+            return nil
+        }
     }
     
     func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
@@ -209,6 +393,20 @@ extension MainViewController: NSTableViewDelegate {
         }
         return true
     }
+    
+    //    func tableView(_ tableView: NSTableView, isGroupRow row: Int) -> Bool {
+    //        if tableView.tag == 0 {
+    //            return false
+    //        } else if tableView.tag == 1 {
+    //            if let isNewArtist = artistsListViewModel?.isNewArtist(row) {
+    //                return isNewArtist
+    //            } else {
+    //             return false
+    //            }
+    //        } else {
+    //            return true
+    //        }
+    //    }
     
 }
 
@@ -224,7 +422,14 @@ extension MainViewController: ListFileMusicDelegate {
 extension MainViewController: NSTableViewDataSource {
     
     func numberOfRows(in tableView: NSTableView) -> Int {
-        return self.musicsListViewModel?.numberOfRowsInSection(1) ?? 0
+        if tableView.tag == 0 {
+            return self.musicsListViewModel?.numberOfRowsInSection(1) ?? 0
+        } else if tableView.tag == 1 {
+            return self.musicsListViewModel?.numberOfRowsInSection(1) ?? 0
+        } else {
+            return 0
+        }
+        
     }
 }
 

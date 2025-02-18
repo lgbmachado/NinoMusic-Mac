@@ -2,13 +2,13 @@
 //  NinoMusicServerTests.swift
 //  NinoMusicServerTests
 //
-//  Created by Luiz Guilherme Machado on 05/08/24.
+//  Created by Luiz Guilherme Machado on 01/09/22.
 //
 
 import XCTest
 @testable import NinoMusicServer
 
-final class NinoMusicServerTests: XCTestCase {
+class NinoMusicServerTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

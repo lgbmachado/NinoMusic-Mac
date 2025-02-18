@@ -2,7 +2,7 @@
 //  Database.swift
 //  NinoMusicServer
 //
-//  Created by Luiz Guilherme Machado on 27/08/24.
+//  Created by Luiz Guilherme Machado on 05/10/22.
 //
 
 import Foundation
@@ -63,54 +63,6 @@ class Database {
         return result
     }
     
-    func getMusics() -> [Music] {
-        let sql = """
-        SELECT
-           \(self.tableMusics).\(self.colRowId),
-           \(self.tableArtists).\(self.colArtist),
-           \(self.tableMusics).\(self.colTitle),
-           \(self.tableMusics).\(self.colTrack),
-           \(self.tableAlbuns).\(self.colAlbum),
-           \(self.tableGenres).\(self.colGenre),
-           \(self.tableMusics).\(self.colDuration),
-           \(self.tableAlbuns).\(self.colYear),
-           \(self.tableMusics).\(self.colFilePath)
-        FROM
-           \(self.tableMusics)
-           INNER JOIN \(self.tableArtists) ON \(self.tableArtists).\(self.colRowId) = \(self.tableMusics).IdArtist
-           INNER JOIN \(self.tableAlbuns) ON \(self.tableAlbuns).\(self.colRowId) = \(self.tableMusics).IdAlbum
-           INNER JOIN \(self.tableGenres) ON \(self.tableGenres).\(self.colRowId) = \(self.tableMusics).IdGenre
-        ORDER BY
-           \(self.tableMusics).\(self.colTitle),
-           \(self.tableArtists).\(self.colArtist)
-        """
-        var queryStatement: OpaquePointer?
-        var musicList = [Music]()
-        
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                let artist = String(cString: sqlite3_column_text(queryStatement, 1))
-                let album = String(cString: sqlite3_column_text(queryStatement, 4))
-                let year = String(cString: sqlite3_column_text(queryStatement, 7))
-                let track = Int(sqlite3_column_int(queryStatement, 3))
-                let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
-                let genre = String(cString: sqlite3_column_text(queryStatement, 5))
-                let duration = Int(sqlite3_column_int(queryStatement, 6))
-                let filePath = String(cString: sqlite3_column_text(queryStatement, 8))
-                
-                musicList.append(Music(artist: artist,
-                                       album: album,
-                                       year: year,
-                                       track: track,
-                                       musicTitle: musicTitle,
-                                       genre: genre,
-                                       filePath: filePath))
-            }
-        }
-        sqlite3_finalize(queryStatement)
-        return musicList
-    }
-    
     func listMusics(completion: @escaping ([Music]?) -> ()) {
         let sql = """
         SELECT
@@ -151,7 +103,8 @@ class Database {
                                        year: year,
                                        track: track,
                                        musicTitle: musicTitle,
-                                       genre: genre,
+                                       genre: genre, 
+                                       duration: duration,
                                        filePath: filePath))
             }
         }
@@ -208,6 +161,7 @@ class Database {
                                        track: track,
                                        musicTitle: musicTitle,
                                        genre: genre,
+                                       duration: duration,
                                        filePath: filePath))
             }
         }
@@ -255,7 +209,7 @@ class Database {
                                                    year: year,
                                                    track: track,
                                                    musicTitle: musicTitle,
-                                                   genre: genre,
+                                                   genre: genre, 
                                                    duration: duration))
             }
         }
@@ -396,4 +350,3 @@ class Database {
         }
     }
 }
-

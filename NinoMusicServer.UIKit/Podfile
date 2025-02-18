@@ -6,6 +6,7 @@ target 'NinoMusicServer' do
   use_frameworks!
 
   # Pods for NinoMusicServer
+  pod "GCDWebServer"
 
   target 'NinoMusicServerTests' do
     inherit! :search_paths

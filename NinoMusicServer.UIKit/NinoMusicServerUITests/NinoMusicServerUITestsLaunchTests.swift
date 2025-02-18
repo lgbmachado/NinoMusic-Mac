@@ -2,12 +2,12 @@
 //  NinoMusicServerUITestsLaunchTests.swift
 //  NinoMusicServerUITests
 //
-//  Created by Luiz Guilherme Machado on 05/08/24.
+//  Created by Luiz Guilherme Machado on 01/09/22.
 //
 
 import XCTest
 
-final class NinoMusicServerUITestsLaunchTests: XCTestCase {
+class NinoMusicServerUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

@@ -46,6 +46,21 @@ class Database {
         }
     }
     
+    func cleanTables() {
+        if !DeleteRowsTableAlbuns() {
+            
+        }
+        if !DeleteRowsTableGenres() {
+            
+        }
+        if !DeleteRowsTableArtists() {
+            
+        }
+        if !DeleteRowsTableMusics() {
+            
+        }
+    }
+    
     func AddMusic(filePath: String, musicTitle: String, artist: String, album: String, year: Int, track: Int, duration: Int, genre: String) -> Bool{
         let idArtist = GetRowId(table: self.tableArtists, column1: "Artist", value1: artist)
         let idAlbum = GetRowId(table: self.tableAlbuns, column1: "Album", value1: album, column2: "Year", value2: String(year))
@@ -365,6 +380,19 @@ class Database {
         }
     }
     
+    private func DeleteRowsTableMusics() -> Bool {
+        let sqlDeleteRowsTableMusics = "DELETE FROM \(self.tableMusics);"
+        var deleteRowsTableStatement: OpaquePointer?
+        var result = false
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableMusics, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+            if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
+                result = true
+            }
+        }
+        sqlite3_finalize(deleteRowsTableStatement)
+        return result
+    }
+    
     private func CreateTableArtists() {
         let sqlCreateTableArtists = """
         CREATE TABLE IF NOT EXISTS \(self.tableArtists) (
@@ -373,6 +401,19 @@ class Database {
         if CreateTable(sql: sqlCreateTableArtists) {
             
         }
+    }
+    
+    private func DeleteRowsTableArtists() -> Bool {
+        let sqlDeleteRowsTableMusics = "DELETE FROM \(self.tableArtists);"
+        var deleteRowsTableStatement: OpaquePointer?
+        var result = false
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableMusics, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+            if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
+                result = true
+            }
+        }
+        sqlite3_finalize(deleteRowsTableStatement)
+        return result
     }
     
     private func CreateTableAlbuns() {
@@ -386,6 +427,19 @@ class Database {
         }
     }
     
+    private func DeleteRowsTableAlbuns() -> Bool {
+        let sqlDeleteRowsTableMusics = "DELETE FROM \(self.tableAlbuns);"
+        var deleteRowsTableStatement: OpaquePointer?
+        var result = false
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableMusics, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+            if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
+                result = true
+            }
+        }
+        sqlite3_finalize(deleteRowsTableStatement)
+        return result
+    }
+    
     private func CreateTableGenres() {
         let sqlCreateTableGenres = """
         CREATE TABLE IF NOT EXISTS \(self.tableGenres) (
@@ -394,6 +448,19 @@ class Database {
         if CreateTable(sql: sqlCreateTableGenres) {
             
         }
+    }
+    
+    private func DeleteRowsTableGenres() -> Bool {
+        let sqlDeleteRowsTableMusics = "DELETE FROM \(self.tableGenres);"
+        var deleteRowsTableStatement: OpaquePointer?
+        var result = false
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableMusics, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+            if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
+                result = true
+            }
+        }
+        sqlite3_finalize(deleteRowsTableStatement)
+        return result
     }
 }
 

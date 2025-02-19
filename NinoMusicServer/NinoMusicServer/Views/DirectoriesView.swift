@@ -24,6 +24,8 @@ struct DirectoriesView: View, MusicFilesDelegate {
     }
     @State private var showAlert1 = false
     @State private var showAlert2 = false
+    @State private var showAlert3 = false
+    @State private var showProgress = false
     
     var body: some View {
         VStack {
@@ -36,20 +38,7 @@ struct DirectoriesView: View, MusicFilesDelegate {
                 Button {
                     AddDirectory()
                     Task {
-                        let musicFiles = MusicFiles()
-                        for i in 0..<Directories().dirs.count {
-                            await musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
-                                if let musicsLoaded = musicsLoaded {
-                                    DispatchQueue.main.async {
-                                        print("\(musicsLoaded) musicas lidas.")
-                                        let musicDb = Database()
-                                        let musicsTemp = Musics()
-                                        musicsTemp.musics = musicDb.getMusics()
-                                        musics = musicsTemp
-                                    }
-                                }
-                            }
-                        }
+                        await UpdateMusicsDatabase()
                     }
                     showAlert1 = true
                 } label: {
@@ -62,12 +51,7 @@ struct DirectoriesView: View, MusicFilesDelegate {
                 
                 
                 Button {
-                    if directories.count > 0 {
-                        let modstations = directories.filter{ $0.id != selection}
-                        Directories().dirs = modstations
-                        directories = Directories().dirs
-                        showAlert2 = true
-                    }
+                    showAlert2 = true
                 } label: {
                     Image(systemName: "minus.circle")
                         .resizable()
@@ -80,16 +64,30 @@ struct DirectoriesView: View, MusicFilesDelegate {
             .padding(.leading, 10)
             .padding(.bottom, 5)
         }
+        
         .alert("Diretório incluído com sucesso!", isPresented: $showAlert1) {
             Button("OK", role: .cancel) { }
-            
         }
-        .alert("Diretório excluído com sucesso!", isPresented: $showAlert2) {
+        .dialogIcon(Image(systemName: "info.circle"))
+        
+        .confirmationDialog("Confirma a exclusão do diretório?", isPresented: $showAlert2) {
+            Button("Sim") {
+                DeleteDirectory()
+                Task {
+                    await UpdateMusicsDatabase()
+                }
+                showAlert3 = true
+            }
+            Button("Não", role: .cancel) {
+            }
+        }
+        .dialogIcon(Image(systemName: "exclamationmark.triangle"))
+        
+        .alert("Diretório excluído com sucesso!", isPresented: $showAlert3) {
             Button("OK", role: .cancel) { }
         }
         .dialogIcon(Image(systemName: "info.circle"))
     }
-    
     
     func AddDirectory() {
         let dialog = NSOpenPanel()
@@ -100,14 +98,43 @@ struct DirectoriesView: View, MusicFilesDelegate {
         dialog.canChooseDirectories = true;
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
+            showProgress = true
             if let result = dialog.url {
                 directories.append(Directory(name: "Dir \(directories.count + 1)",
                                              path: result.path))
                 Directories().dirs = directories
-                
+                let musicDb = Database()
+                musicDb.cleanTables()
             }
         } else {
             return
+        }
+    }
+    
+    func DeleteDirectory() {
+        if directories.count > 0 {
+            let modstations = directories.filter{ $0.id != selection}
+            Directories().dirs = modstations
+            directories = Directories().dirs
+            let musicDb = Database()
+            musicDb.cleanTables()
+        }
+    }
+    
+    func UpdateMusicsDatabase() async {
+        let musicFiles = MusicFiles()
+        for i in 0..<Directories().dirs.count {
+            await musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
+                if let musicsLoaded = musicsLoaded {
+                    DispatchQueue.main.async {
+                        print("\(musicsLoaded) musicas lidas.")
+                        let musicDb = Database()
+                        let musicsTemp = Musics()
+                        musicsTemp.musics = musicDb.getMusics()
+                        musics = musicsTemp
+                    }
+                }
+            }
         }
     }
 }
@@ -127,6 +154,26 @@ struct DirectoryView: View {
             .font(.subheadline)
         }
     }
+}
+
+struct ModalView: View {
+  @Binding var show : Bool
+  var body: some View {
+    VStack {
+        Spacer()
+        
+        VStack {
+            Color.white
+        }
+        .frame(height : 400)
+        .cornerRadius(10)
+        .padding(.horizontal)
+    }
+    .background(Color.clear)
+    .onTapGesture {
+        self.show = false
+    }
+  }
 }
 
 #Preview {

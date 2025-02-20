@@ -16,7 +16,7 @@ struct AlbunsView: View {
                 Image(systemName: "opticaldisc")
                     .imageScale(.large)
                     .foregroundStyle(.tint)
-                Text("ALBUNS")
+                Text(String(localized: "text_albuns").uppercased())
             }
         }
     }

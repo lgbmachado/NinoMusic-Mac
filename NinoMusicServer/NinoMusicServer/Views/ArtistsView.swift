@@ -15,7 +15,7 @@ struct ArtistsView: View {
             Image(systemName: "mic")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("ARTISTAS")
+            Text(String(localized: "text_artists").uppercased())
         }
     }
 }

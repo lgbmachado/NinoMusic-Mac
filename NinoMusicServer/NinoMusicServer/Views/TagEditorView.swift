@@ -19,14 +19,14 @@ struct TagEditorView: View {
     
     var body: some View {
         Table(tableData, selection: $selection, sortOrder: $sortOrder) {
-            TableColumn("Título", value: \.musicTitle)
-            TableColumn("Artista", value: \.artist)
-            TableColumn("Álbum", value: \.album)
-            TableColumn("Trilha") { music in
+            TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
+            TableColumn(LocalizedStringKey("text_artist"), value: \.artist)
+            TableColumn(LocalizedStringKey("text_album"), value: \.album)
+            TableColumn(LocalizedStringKey("text_track")) { music in
                 Text("\(music.track)")
             }
-            TableColumn("Ano", value: \.year)
-            TableColumn("Gênero", value: \.genre)
+            TableColumn(LocalizedStringKey("text_year"), value: \.year)
+            TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
         }
         .padding()
         .onChange(of: selection) { selected in

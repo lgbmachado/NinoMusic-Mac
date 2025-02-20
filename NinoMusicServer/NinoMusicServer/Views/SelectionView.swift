@@ -46,7 +46,7 @@ struct SelectionView: View {
                     Button {
                         inspectorIsShown.toggle()
                     } label: {
-                        Label("Exibe Inspector", systemImage: "sidebar.right")
+                        Label(LocalizedStringKey("text_show_details"), systemImage: "sidebar.right")
                     }
                 }
             }

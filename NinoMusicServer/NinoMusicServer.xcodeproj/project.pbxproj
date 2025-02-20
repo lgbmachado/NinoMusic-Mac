@@ -10,8 +10,10 @@
 		3F2297F12C7E5A1600DD7965 /* Artist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2297F02C7E5A1600DD7965 /* Artist.swift */; };
 		3F2297F32C7E5B2B00DD7965 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2297F22C7E5B2B00DD7965 /* Library.swift */; };
 		3F3424CC2C7DFF3A0095F4CE /* Musics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F3424CB2C7DFF3A0095F4CE /* Musics.swift */; };
+		3F4295EE2D67A1FA003356D7 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4295ED2D67A1FA003356D7 /* String.swift */; };
 		3F5AB61B2D47DF2E00D7D446 /* TagEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5AB61A2D47DF2E00D7D446 /* TagEditorView.swift */; };
 		3F5AB61D2D47E27E00D7D446 /* TagFieldsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5AB61C2D47E27E00D7D446 /* TagFieldsView.swift */; };
+		3F88C41B2D662C1900DD25D2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3F88C41A2D662C1900DD25D2 /* Localizable.xcstrings */; };
 		3F9B3B392C6149B6003CDCA1 /* NinoMusicServerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B382C6149B6003CDCA1 /* NinoMusicServerApp.swift */; };
 		3F9B3B3B2C6149B6003CDCA1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B3A2C6149B6003CDCA1 /* ContentView.swift */; };
 		3F9B3B3D2C6149B7003CDCA1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3F9B3B3C2C6149B7003CDCA1 /* Assets.xcassets */; };
@@ -57,8 +59,10 @@
 		3F2297F02C7E5A1600DD7965 /* Artist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artist.swift; sourceTree = "<group>"; };
 		3F2297F22C7E5B2B00DD7965 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
 		3F3424CB2C7DFF3A0095F4CE /* Musics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Musics.swift; sourceTree = "<group>"; };
+		3F4295ED2D67A1FA003356D7 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		3F5AB61A2D47DF2E00D7D446 /* TagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditorView.swift; sourceTree = "<group>"; };
 		3F5AB61C2D47E27E00D7D446 /* TagFieldsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagFieldsView.swift; sourceTree = "<group>"; };
+		3F88C41A2D662C1900DD25D2 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		3F9B3B352C6149B6003CDCA1 /* NinoMusicServer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NinoMusicServer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F9B3B382C6149B6003CDCA1 /* NinoMusicServerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerApp.swift; sourceTree = "<group>"; };
 		3F9B3B3A2C6149B6003CDCA1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -112,6 +116,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3F4295EC2D67A1DC003356D7 /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+				3F4295ED2D67A1FA003356D7 /* String.swift */,
+			);
+			path = Extension;
+			sourceTree = "<group>";
+		};
 		3F9B3B2C2C6149B6003CDCA1 = {
 			isa = PBXGroup;
 			children = (
@@ -135,6 +147,7 @@
 		3F9B3B372C6149B6003CDCA1 /* NinoMusicServer */ = {
 			isa = PBXGroup;
 			children = (
+				3F4295EC2D67A1DC003356D7 /* Extension */,
 				3F9B3B412C6149B7003CDCA1 /* NinoMusicServer.entitlements */,
 				3F9B3B382C6149B6003CDCA1 /* NinoMusicServerApp.swift */,
 				3F9B3B3C2C6149B7003CDCA1 /* Assets.xcassets */,
@@ -142,6 +155,7 @@
 				3F9B3B3E2C6149B7003CDCA1 /* Preview Content */,
 				3FEDF66A2C7E0C4400FCD5B4 /* Services */,
 				3F9B3B632C614C88003CDCA1 /* Views */,
+				3F88C41A2D662C1900DD25D2 /* Localizable.xcstrings */,
 			);
 			path = NinoMusicServer;
 			sourceTree = "<group>";
@@ -296,11 +310,12 @@
 			};
 			buildConfigurationList = 3F9B3B302C6149B6003CDCA1 /* Build configuration list for PBXProject "NinoMusicServer" */;
 			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = en;
+			developmentRegion = "pt-BR";
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				"pt-BR",
 			);
 			mainGroup = 3F9B3B2C2C6149B6003CDCA1;
 			packageReferences = (
@@ -324,6 +339,7 @@
 			files = (
 				3F9B3B402C6149B7003CDCA1 /* Preview Assets.xcassets in Resources */,
 				3F9B3B3D2C6149B7003CDCA1 /* Assets.xcassets in Resources */,
+				3F88C41B2D662C1900DD25D2 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -360,6 +376,7 @@
 				3F9B3B652C614CA4003CDCA1 /* MusicsView.swift in Sources */,
 				3F9B3B672C614CBA003CDCA1 /* ArtistsView.swift in Sources */,
 				3F3424CC2C7DFF3A0095F4CE /* Musics.swift in Sources */,
+				3F4295EE2D67A1FA003356D7 /* String.swift in Sources */,
 				3F9B3B6B2C614D9F003CDCA1 /* ServerView.swift in Sources */,
 				3FF3CEB42C6515B30072CF73 /* MusicRowView.swift in Sources */,
 				3F9B3B692C614CCE003CDCA1 /* AlbunsView.swift in Sources */,
@@ -464,6 +481,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -520,6 +538,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};

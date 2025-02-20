@@ -14,7 +14,7 @@ struct ServerView: View {
         Image(systemName: "server.rack")
             .imageScale(.large)
             .foregroundStyle(.tint)
-        Text("SERVIDOR")
+        Text(String(localized: "text_server").uppercased())
     }
 }
 

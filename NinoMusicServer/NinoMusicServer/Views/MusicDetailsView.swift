@@ -12,7 +12,7 @@ struct MusicDetailsView: View {
         Image(systemName: "info.circle")
             .imageScale(.large)
             .foregroundStyle(.tint)
-        Text("DETALHES DA MÚSICA")
+        Text(String(localized: "text_music_details").uppercased())
     }
 }
 

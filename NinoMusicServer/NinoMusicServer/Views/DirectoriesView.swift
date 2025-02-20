@@ -30,7 +30,7 @@ struct DirectoriesView: View, MusicFilesDelegate {
     var body: some View {
         VStack {
             Table(tableData, selection: $selection, sortOrder: $sortOrder) {
-                TableColumn("Diretórios Registrados") { diretory in
+                TableColumn(LocalizedStringKey("text_dirs_registered")) { diretory in
                     DirectoryView(diretory: diretory)
                 }
             }
@@ -65,33 +65,33 @@ struct DirectoriesView: View, MusicFilesDelegate {
             .padding(.bottom, 5)
         }
         
-        .alert("Diretório incluído com sucesso!", isPresented: $showAlert1) {
-            Button("OK", role: .cancel) { }
+        .alert(LocalizedStringKey("text_success_dir_included"), isPresented: $showAlert1) {
+            Button(LocalizedStringKey("text_ok"), role: .cancel) { }
         }
         .dialogIcon(Image(systemName: "info.circle"))
         
-        .confirmationDialog("Confirma a exclusão do diretório?", isPresented: $showAlert2) {
-            Button("Sim") {
+        .confirmationDialog(LocalizedStringKey("text_confirm_dir_exlusion"), isPresented: $showAlert2) {
+            Button(LocalizedStringKey("text_yes")) {
                 DeleteDirectory()
                 Task {
                     await UpdateMusicsDatabase()
                 }
                 showAlert3 = true
             }
-            Button("Não", role: .cancel) {
+            Button(LocalizedStringKey("text_no"), role: .cancel) {
             }
         }
         .dialogIcon(Image(systemName: "exclamationmark.triangle"))
         
-        .alert("Diretório excluído com sucesso!", isPresented: $showAlert3) {
-            Button("OK", role: .cancel) { }
+        .alert(LocalizedStringKey("text_success_dir_excluded"), isPresented: $showAlert3) {
+            Button(LocalizedStringKey("text_ok"), role: .cancel) { }
         }
         .dialogIcon(Image(systemName: "info.circle"))
     }
     
     func AddDirectory() {
         let dialog = NSOpenPanel()
-        dialog.title = "Selecione o diretório com as músicas"
+        dialog.title = String(localized: "text_select_dir")
         dialog.showsResizeIndicator = true;
         dialog.showsHiddenFiles = false;
         dialog.canChooseFiles = false;

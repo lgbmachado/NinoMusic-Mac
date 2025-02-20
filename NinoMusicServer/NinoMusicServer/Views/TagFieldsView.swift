@@ -17,10 +17,10 @@ struct TagFieldsView: View {
                 .aspectRatio(contentMode: .fit)
                 .border(.black)
             VStack {
-                Text("Album")
-                TextField("Album Name", text: .constant(""))
-                Text("Artist")
-                TextField("Artist Name", text: .constant(""))
+                Text(LocalizedStringKey("text_album"))
+                TextField(LocalizedStringKey("text_album_name"), text: .constant(""))
+                Text(LocalizedStringKey("text_artit"))
+                TextField(LocalizedStringKey("text_artit_name"), text: .constant(""))
             }
         }
     }

@@ -9,6 +9,7 @@ import Foundation
 
 struct Music: Identifiable {
     let id = UUID()
+    let count: Int
     let artist: String
     let album: String
     let year: String
@@ -17,7 +18,8 @@ struct Music: Identifiable {
     let genre: String
     let filePath: String
     
-    static let example = Music(artist: "BEAR MCCREARY",
+    static let example = Music(count : 1,
+                               artist: "BEAR MCCREARY",
                                album: "BATTLESTAR GALACTICA - SEASON 3",
                                year: "2007",
                                track: 21,
@@ -26,7 +28,8 @@ struct Music: Identifiable {
                                filePath: "/Users/nino/Documents/XCode/_musicas/BEAR MCCREARY - ALL ALONG THE WATCHTOWER.MP3")
     
     static let examples = [
-        Music(artist: "BEAR MCCREARY",
+        Music(count : 1,
+              artist: "BEAR MCCREARY",
               album: "BATTLESTAR GALACTICA - SEASON 3",
               year: "2007",
               track: 21,
@@ -34,7 +37,8 @@ struct Music: Identifiable {
               genre: "INSTRUMENTAL/CLÁSSICO",
               filePath: "/Users/nino/Documents/XCode/_musicas/BEAR MCCREARY - ALL ALONG THE WATCHTOWER.MP3"),
         
-        Music(artist: "BARRY WHITE",
+        Music(count : 2,
+              artist: "BARRY WHITE",
               album: "THE MAN",
               year: "1978",
               track: 6,
@@ -42,7 +46,8 @@ struct Music: Identifiable {
               genre: "POP",
               filePath: "/Users/nino/Documents/XCode/_musicas/BARRY WHITE - JUST THE WAY YOU ARE.MP3"),
         
-        Music(artist: "BILLY PAUL",
+        Music(count : 3,
+              artist: "BILLY PAUL",
               album: "ONLY THE STRONG SURVIVE",
               year: "1977",
               track: 1,
@@ -50,7 +55,8 @@ struct Music: Identifiable {
               genre: "POP",
               filePath: "/Users/nino/Documents/XCode/_musicas/BILLY PAUL - ONLY THE STRONG SURVIVE.MP3"),
         
-        Music(artist: "BILLY PAUL",
+        Music(count : 4,
+              artist: "BILLY PAUL",
               album: "ME AND MRS. JONES: THE BEST OF BILLY PAUL",
               year: "1999",
               track: 6,
@@ -58,7 +64,8 @@ struct Music: Identifiable {
               genre: "POP",
               filePath: "/Users/nino/Documents/XCode/_musicas/BILLY PAUL - YOUR SONG.MP3"),
         
-        Music(artist: "ALPHAVILLE",
+        Music(count : 5,
+              artist: "ALPHAVILLE",
               album: "FOREVER YOUNG (SPECIAL DANCE VERSION)",
               year: "1984",
               track: 1,
@@ -66,7 +73,8 @@ struct Music: Identifiable {
               genre: "POP",
               filePath: "/Users/nino/Documents/XCode/_musicas/ALPHAVILLE - FOREVER YOUNG.MP3"),
         
-        Music(artist: "A-HA",
+        Music(count : 6,
+              artist: "A-HA",
               album: "HUNTING HIGH AND LOW",
               year: "1985",
               track: 3,
@@ -74,7 +82,8 @@ struct Music: Identifiable {
               genre: "POP",
               filePath: "/Users/nino/Documents/XCode/_musicas/A-HA - HUNTING HIGH AND LOW.MP3"),
         
-        Music(artist: "A-HA",
+        Music(count : 7,
+              artist: "A-HA",
               album: "HUNTING HIGH AND LOW",
               year: "1985",
               track: 1,
@@ -82,7 +91,8 @@ struct Music: Identifiable {
               genre: "POP",
               filePath: "/Users/nino/Documents/XCode/_musicas/A-HA - TAKE ON ME.MP3"),
         
-        Music(artist: "A-HA",
+        Music(count : 8,
+              artist: "A-HA",
               album: "CAST IN STEEL",
               year: "2015",
               track: 1,
@@ -101,7 +111,8 @@ struct Music: Identifiable {
         var lastAlbum = ""
         var result = [Music]()
         for item in self.examples.sorted(by: {$0.artist < $1.artist}) {
-            let music = Music(artist: item.artist != lastArtist ? item.artist : "",
+            let music = Music(count: 1,
+                              artist: item.artist != lastArtist ? item.artist : "",
                               album: item.album != lastAlbum ? item.album : "",
                               year: item.year,
                               track: item.track,
@@ -119,7 +130,8 @@ struct Music: Identifiable {
         var lastAlbum = ""
         var result = [Music]()
         for item in self.examples.sorted(by: {$0.album < $1.album}) {
-            let music = Music(artist: item.artist,
+            let music = Music(count: 1,
+                              artist: item.artist,
                               album: item.album != lastAlbum ? item.album : "",
                               year: item.year,
                               track: item.track,

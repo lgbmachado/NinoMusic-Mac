@@ -10,13 +10,15 @@ import SwiftUI
 struct SelectionView: View {
     var menuSelection: MenuSelection
     @State var musics = Musics()
-    @State var music = Music(artist: "",
+    @State var music = Music(count: 0,
+                             artist: "",
                              album: "",
                              year: "",
                              track: 0,
                              musicTitle: "",
                              genre: "",
                              filePath: "")
+    @State var idMusicSelected = UUID()
     
     @State private var inspectorIsShown: Bool = false
     
@@ -26,7 +28,7 @@ struct SelectionView: View {
             case .directories:
                 DirectoriesView(musics: $musics)
             case .musics:
-                MusicsView(music: $music, musics: $musics)
+                MusicsView(music: $music, musics: $musics, idMusicSelected: $idMusicSelected)
             case .artists:
                 ArtistsView(musics: $musics)
             case .albuns:
@@ -40,7 +42,7 @@ struct SelectionView: View {
         .toolbar {
             if menuSelection == .musics || menuSelection == .artists || menuSelection == .albuns{
                 ToolbarItem(placement: .navigation) {
-                    MusicControlView(music: $music)
+                    MusicControlView(music: $music, musics: $musics, idMusicSelected: .constant(UUID()))
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -67,5 +69,5 @@ struct SelectionView: View {
 }
 
 #Preview {
-    SelectionView(menuSelection: .musics, musics: Musics())
+    SelectionView(menuSelection: .musics, musics: Musics(), idMusicSelected: UUID())
 }

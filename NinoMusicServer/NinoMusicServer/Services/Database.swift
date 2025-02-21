@@ -101,9 +101,11 @@ class Database {
         """
         var queryStatement: OpaquePointer?
         var musicList = [Music]()
+        var count = 0
         
         if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
             while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                count += 1
                 let artist = String(cString: sqlite3_column_text(queryStatement, 1))
                 let album = String(cString: sqlite3_column_text(queryStatement, 4))
                 let year = String(cString: sqlite3_column_text(queryStatement, 7))
@@ -113,7 +115,8 @@ class Database {
                 let duration = Int(sqlite3_column_int(queryStatement, 6))
                 let filePath = String(cString: sqlite3_column_text(queryStatement, 8))
                 
-                musicList.append(Music(artist: artist,
+                musicList.append(Music(count: count,
+                                       artist: artist,
                                        album: album,
                                        year: year,
                                        track: track,
@@ -149,9 +152,11 @@ class Database {
         """
         var queryStatement: OpaquePointer?
         var musicList = [Music]()
+        var count = 0
         
         if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
             while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                count += 1
                 let artist = String(cString: sqlite3_column_text(queryStatement, 1))
                 let album = String(cString: sqlite3_column_text(queryStatement, 4))
                 let year = String(cString: sqlite3_column_text(queryStatement, 7))
@@ -161,7 +166,8 @@ class Database {
                 let duration = Int(sqlite3_column_int(queryStatement, 6))
                 let filePath = String(cString: sqlite3_column_text(queryStatement, 8))
                 
-                musicList.append(Music(artist: artist,
+                musicList.append(Music(count: count,
+                                       artist: artist,
                                        album: album,
                                        year: year,
                                        track: track,
@@ -205,9 +211,11 @@ class Database {
         
         var queryStatement: OpaquePointer?
         var musicList = [Music]()
+        var count = 0
         
         if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
             while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                count += 1
                 let artist = String(cString: sqlite3_column_text(queryStatement, 0))
                 let genre = String(cString: sqlite3_column_text(queryStatement, 1))
                 let album = String(cString: sqlite3_column_text(queryStatement, 2))
@@ -217,7 +225,8 @@ class Database {
                 let duration = Int(sqlite3_column_int(queryStatement, 6))
                 let filePath = String(cString: sqlite3_column_text(queryStatement, 7))
                 
-                musicList.append(Music(artist: artist,
+                musicList.append(Music(count: count,
+                                       artist: artist,
                                        album: album,
                                        year: year,
                                        track: track,

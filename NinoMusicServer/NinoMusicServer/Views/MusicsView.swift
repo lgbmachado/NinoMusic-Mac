@@ -11,6 +11,7 @@ import SwiftUI
 struct MusicsView: View {
     @Binding var music: Music
     @Binding var musics: Musics
+    @Binding var idMusicSelected: Music.ID
 
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
     @State var selection: Music.ID? = nil
@@ -40,6 +41,24 @@ struct MusicsView: View {
     }
 }
 
+struct MusicRowView: View {
+    
+    @State var music: Music
+    
+    var body: some View {
+        GridRow {
+            Text(music.musicTitle)
+                .bold()
+            Text(music.artist)
+            Text(music.album)
+            Text(String(format: "%d", music.track))
+                .gridColumnAlignment(.trailing)
+            Text(music.year)
+            Text(music.genre)
+        }
+    }
+}
+
 #Preview {
-    MusicsView(music: .constant(Music.example), musics: .constant(Musics()))
+    MusicsView(music: .constant(Music.example), musics: .constant(Musics()), idMusicSelected: .constant(UUID()))
 }

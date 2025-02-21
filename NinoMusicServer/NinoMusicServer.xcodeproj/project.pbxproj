@@ -35,7 +35,6 @@
 		3FEDF66F2C7E0CBB00FCD5B4 /* ID3TagEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 3FEDF66E2C7E0CBB00FCD5B4 /* ID3TagEditor */; };
 		3FEDF6712C7E0CF600FCD5B4 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEDF6702C7E0CF600FCD5B4 /* Database.swift */; };
 		3FF12F802D442CF7008F69F0 /* MusicDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF12F7F2D442CF7008F69F0 /* MusicDetailsView.swift */; };
-		3FF3CEB42C6515B30072CF73 /* MusicRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF3CEB32C6515B30072CF73 /* MusicRowView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,7 +86,6 @@
 		3FEDF66B2C7E0C9300FCD5B4 /* MusicFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicFiles.swift; sourceTree = "<group>"; };
 		3FEDF6702C7E0CF600FCD5B4 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		3FF12F7F2D442CF7008F69F0 /* MusicDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicDetailsView.swift; sourceTree = "<group>"; };
-		3FF3CEB32C6515B30072CF73 /* MusicRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicRowView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -194,7 +192,6 @@
 				3F9B3B6F2C6169DE003CDCA1 /* DirectoriesView.swift */,
 				3FAF1B492C63F47A00540BD1 /* MusicControlView.swift */,
 				3FF12F7F2D442CF7008F69F0 /* MusicDetailsView.swift */,
-				3FF3CEB32C6515B30072CF73 /* MusicRowView.swift */,
 				3F9B3B642C614CA4003CDCA1 /* MusicsView.swift */,
 				3FAF1B472C63F25600540BD1 /* SelectionView.swift */,
 				3F9B3B6A2C614D9F003CDCA1 /* ServerView.swift */,
@@ -378,7 +375,6 @@
 				3F3424CC2C7DFF3A0095F4CE /* Musics.swift in Sources */,
 				3F4295EE2D67A1FA003356D7 /* String.swift in Sources */,
 				3F9B3B6B2C614D9F003CDCA1 /* ServerView.swift in Sources */,
-				3FF3CEB42C6515B30072CF73 /* MusicRowView.swift in Sources */,
 				3F9B3B692C614CCE003CDCA1 /* AlbunsView.swift in Sources */,
 				3F9B3B722C616E82003CDCA1 /* Directory.swift in Sources */,
 				3F9B3B6E2C614EBB003CDCA1 /* Music.swift in Sources */,

@@ -31,7 +31,7 @@ struct DirectoriesView: View, MusicFilesDelegate {
         VStack {
             Table(tableData, selection: $selection, sortOrder: $sortOrder) {
                 TableColumn(LocalizedStringKey("text_dirs_registered")) { diretory in
-                    DirectoryView(diretory: diretory)
+                    DirectoryRowView(diretory: diretory)
                 }
             }
             HStack {
@@ -139,7 +139,7 @@ struct DirectoriesView: View, MusicFilesDelegate {
     }
 }
 
-struct DirectoryView: View {
+struct DirectoryRowView: View {
     var diretory: Directory
     
     var body: some View {
@@ -154,26 +154,6 @@ struct DirectoryView: View {
             .font(.subheadline)
         }
     }
-}
-
-struct ModalView: View {
-  @Binding var show : Bool
-  var body: some View {
-    VStack {
-        Spacer()
-        
-        VStack {
-            Color.white
-        }
-        .frame(height : 400)
-        .cornerRadius(10)
-        .padding(.horizontal)
-    }
-    .background(Color.clear)
-    .onTapGesture {
-        self.show = false
-    }
-  }
 }
 
 #Preview {

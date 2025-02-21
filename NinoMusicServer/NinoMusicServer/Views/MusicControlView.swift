@@ -11,6 +11,9 @@ import ID3TagEditor
 
 struct MusicControlView: View {
     @Binding var music: Music
+    @Binding var musics: Musics
+    @Binding var idMusicSelected: Music.ID
+    
     @State var duration: Double = 0
     @State var position: Double = 0
     @State var timeDuration: String = ""
@@ -26,7 +29,7 @@ struct MusicControlView: View {
                 Button("", systemImage: "backward.circle", action: {PreviusSong()})
                     .font(.system(size: 20))
                     .buttonStyle(.borderless)
-                    .disabled(isPlaying)
+//                    .disabled(isPlaying)
                 Button("", systemImage: "playpause.circle", action: {
                     PlayPauseSong(pathMusic: music.filePath)
                 })
@@ -35,7 +38,7 @@ struct MusicControlView: View {
                 Button("", systemImage: "forward.circle", action: {NextSong()})
                     .font(.system(size: 20))
                     .buttonStyle(.borderless)
-                    .disabled(isPlaying)
+//                    .disabled(isPlaying)
                 Spacer(minLength: 30)
                 VStack {
                     Slider(value: $position, in: 0...duration)
@@ -72,13 +75,19 @@ struct MusicControlView: View {
     }
     
     func PreviusSong() {
-        
+        let pos = music.count - 1
+        if pos >= 1 {
+            if let musicSelected = musics.musics.first(where: {$0.count == pos}) {
+                music = musicSelected
+                idMusicSelected = musicSelected.id
+            }
+        }
     }
     
     func getCoverMusic(musicPath:String) -> NSImage {
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
         do {
-            let id3Tag = try id3TagEditor.read(from: musicPath.replacingOccurrences(of: "file://", with: ""))
+            let id3Tag = try id3TagEditor.read(from: musicPath.replacingOccurrences(of: "file://", with: "").replacingOccurrences(of: "%20", with: " "))
                         
             if let coverImage = id3Tag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
                 return NSImage(data: coverImage.picture) ?? NSImage()
@@ -119,10 +128,16 @@ struct MusicControlView: View {
     }
     
     func NextSong() {
-        
+        let pos = music.count + 1
+        if pos <= musics.musics.count {
+            if let musicSelected = musics.musics.first(where: {$0.count == pos}) {
+                music = musicSelected
+                idMusicSelected = musicSelected.id
+            }
+        }
     }
 }
 
 #Preview {
-    MusicControlView(music: .constant(Music.example))
+    MusicControlView(music: .constant(Music.example), musics: .constant(Musics()), idMusicSelected: .constant(UUID()))
 }

@@ -7,9 +7,6 @@
     "%lld" : {
 
     },
-    "Hello, World!" : {
-
-    },
     "text_album" : {
       "comment" : "Texto \"Álbum\".",
       "extractionState" : "manual",

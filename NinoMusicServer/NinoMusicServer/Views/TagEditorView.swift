@@ -13,6 +13,8 @@ struct TagEditorView: View {
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
     @State private var selection: Music.ID? = nil
     
+    @State private var inspectorIsShown: Bool = false
+    
     var tableData: [Music] {
         return musics.musics.sorted(using: sortOrder)
     }
@@ -35,6 +37,21 @@ struct TagEditorView: View {
                 print("Item selecionado:\n  ID: \(item.id)\n  Música: \(item.musicTitle)\n  Artista: \(item.artist)")
                 
             }
+        }
+        .toolbar{
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    inspectorIsShown.toggle()
+                } label: {
+                    Label(LocalizedStringKey("text_show_details"), systemImage: "sidebar.right")
+                }
+            }
+        }
+        .inspector(isPresented: $inspectorIsShown) {
+            Group {
+                MusicDetailsView()
+            }
+            .frame(minWidth: 100, maxWidth: .infinity)
         }
     }
 }

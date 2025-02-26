@@ -1,5 +1,5 @@
 //
-//  DirectoriesView.swift
+//  LibraryView.swift
 //  NinoMusicServer
 //
 //  Created by Luiz Guilherme Machado on 05/08/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct DirectoriesView: View, MusicFilesDelegate {
+struct LibraryView: View, MusicFilesDelegate {
     func musicLoading(musicsLoaded: Int) {
         
     }
@@ -34,6 +34,7 @@ struct DirectoriesView: View, MusicFilesDelegate {
                     DirectoryRowView(diretory: diretory)
                 }
             }
+            .padding()
             HStack {
                 Button {
                     AddDirectory()
@@ -157,5 +158,5 @@ struct DirectoryRowView: View {
 }
 
 #Preview {
-    DirectoriesView(musics: .constant(Musics()))
+    LibraryView(musics: .constant(Musics()))
 }

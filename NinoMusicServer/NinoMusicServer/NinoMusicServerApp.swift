@@ -2,14 +2,13 @@
 //  NinoMusicServerApp.swift
 //  NinoMusicServer
 //
-//  Created by Luiz Guilherme Machado on 05/08/24.
+//  Created by Luiz Guilherme Machado on 24/02/25.
 //
 
 import SwiftUI
 
 @main
 struct NinoMusicServerApp: App {
-        
     var body: some Scene {
         WindowGroup {
             ContentView()

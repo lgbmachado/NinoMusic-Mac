@@ -7,7 +7,7 @@
     "%lld" : {
 
     },
-    "Editor de Tags" : {
+    "Hello, World!" : {
 
     },
     "text_album" : {
@@ -117,12 +117,6 @@
           }
         }
       }
-    },
-    "text_artit" : {
-
-    },
-    "text_artit_name" : {
-
     },
     "text_confirm_dir_exlusion" : {
       "comment" : "Texto \"Confirma a exclusão do diretório?\".",

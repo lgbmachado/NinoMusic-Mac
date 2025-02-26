@@ -3,351 +3,119 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3F2297F12C7E5A1600DD7965 /* Artist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2297F02C7E5A1600DD7965 /* Artist.swift */; };
-		3F2297F32C7E5B2B00DD7965 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2297F22C7E5B2B00DD7965 /* Library.swift */; };
-		3F3424CC2C7DFF3A0095F4CE /* Musics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F3424CB2C7DFF3A0095F4CE /* Musics.swift */; };
-		3F4295EE2D67A1FA003356D7 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4295ED2D67A1FA003356D7 /* String.swift */; };
-		3F5AB61B2D47DF2E00D7D446 /* TagEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5AB61A2D47DF2E00D7D446 /* TagEditorView.swift */; };
-		3F5AB61D2D47E27E00D7D446 /* TagFieldsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5AB61C2D47E27E00D7D446 /* TagFieldsView.swift */; };
-		3F88C41B2D662C1900DD25D2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3F88C41A2D662C1900DD25D2 /* Localizable.xcstrings */; };
-		3F9B3B392C6149B6003CDCA1 /* NinoMusicServerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B382C6149B6003CDCA1 /* NinoMusicServerApp.swift */; };
-		3F9B3B3B2C6149B6003CDCA1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B3A2C6149B6003CDCA1 /* ContentView.swift */; };
-		3F9B3B3D2C6149B7003CDCA1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3F9B3B3C2C6149B7003CDCA1 /* Assets.xcassets */; };
-		3F9B3B402C6149B7003CDCA1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3F9B3B3F2C6149B7003CDCA1 /* Preview Assets.xcassets */; };
-		3F9B3B4B2C6149B8003CDCA1 /* NinoMusicServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B4A2C6149B8003CDCA1 /* NinoMusicServerTests.swift */; };
-		3F9B3B552C6149B8003CDCA1 /* NinoMusicServerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B542C6149B8003CDCA1 /* NinoMusicServerUITests.swift */; };
-		3F9B3B572C6149B8003CDCA1 /* NinoMusicServerUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B562C6149B8003CDCA1 /* NinoMusicServerUITestsLaunchTests.swift */; };
-		3F9B3B652C614CA4003CDCA1 /* MusicsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B642C614CA4003CDCA1 /* MusicsView.swift */; };
-		3F9B3B672C614CBA003CDCA1 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B662C614CBA003CDCA1 /* ArtistsView.swift */; };
-		3F9B3B692C614CCE003CDCA1 /* AlbunsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B682C614CCE003CDCA1 /* AlbunsView.swift */; };
-		3F9B3B6B2C614D9F003CDCA1 /* ServerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B6A2C614D9F003CDCA1 /* ServerView.swift */; };
-		3F9B3B6E2C614EBB003CDCA1 /* Music.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B6D2C614EBB003CDCA1 /* Music.swift */; };
-		3F9B3B702C6169DE003CDCA1 /* DirectoriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B6F2C6169DE003CDCA1 /* DirectoriesView.swift */; };
-		3F9B3B722C616E82003CDCA1 /* Directory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9B3B712C616E82003CDCA1 /* Directory.swift */; };
-		3FAF1B482C63F25600540BD1 /* SelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FAF1B472C63F25600540BD1 /* SelectionView.swift */; };
-		3FAF1B4A2C63F47A00540BD1 /* MusicControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FAF1B492C63F47A00540BD1 /* MusicControlView.swift */; };
-		3FEA26912D63C915008CC4A4 /* Directories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEA26902D63C915008CC4A4 /* Directories.swift */; };
-		3FEDF66C2C7E0C9300FCD5B4 /* MusicFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEDF66B2C7E0C9300FCD5B4 /* MusicFiles.swift */; };
-		3FEDF66F2C7E0CBB00FCD5B4 /* ID3TagEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 3FEDF66E2C7E0CBB00FCD5B4 /* ID3TagEditor */; };
-		3FEDF6712C7E0CF600FCD5B4 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEDF6702C7E0CF600FCD5B4 /* Database.swift */; };
-		3FF12F802D442CF7008F69F0 /* MusicDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF12F7F2D442CF7008F69F0 /* MusicDetailsView.swift */; };
+		3F42591A2D6E349600773DB2 /* ID3TagEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 3F4259192D6E349600773DB2 /* ID3TagEditor */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		3F9B3B472C6149B8003CDCA1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3F9B3B2D2C6149B6003CDCA1 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3F9B3B342C6149B6003CDCA1;
-			remoteInfo = NinoMusicServer;
-		};
-		3F9B3B512C6149B8003CDCA1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3F9B3B2D2C6149B6003CDCA1 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3F9B3B342C6149B6003CDCA1;
-			remoteInfo = NinoMusicServer;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
-		3F2297F02C7E5A1600DD7965 /* Artist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artist.swift; sourceTree = "<group>"; };
-		3F2297F22C7E5B2B00DD7965 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
-		3F3424CB2C7DFF3A0095F4CE /* Musics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Musics.swift; sourceTree = "<group>"; };
-		3F4295ED2D67A1FA003356D7 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
-		3F5AB61A2D47DF2E00D7D446 /* TagEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagEditorView.swift; sourceTree = "<group>"; };
-		3F5AB61C2D47E27E00D7D446 /* TagFieldsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagFieldsView.swift; sourceTree = "<group>"; };
-		3F88C41A2D662C1900DD25D2 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		3F9B3B352C6149B6003CDCA1 /* NinoMusicServer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NinoMusicServer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3F9B3B382C6149B6003CDCA1 /* NinoMusicServerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerApp.swift; sourceTree = "<group>"; };
-		3F9B3B3A2C6149B6003CDCA1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		3F9B3B3C2C6149B7003CDCA1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		3F9B3B3F2C6149B7003CDCA1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		3F9B3B412C6149B7003CDCA1 /* NinoMusicServer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NinoMusicServer.entitlements; sourceTree = "<group>"; };
-		3F9B3B462C6149B8003CDCA1 /* NinoMusicServerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NinoMusicServerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		3F9B3B4A2C6149B8003CDCA1 /* NinoMusicServerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerTests.swift; sourceTree = "<group>"; };
-		3F9B3B502C6149B8003CDCA1 /* NinoMusicServerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NinoMusicServerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		3F9B3B542C6149B8003CDCA1 /* NinoMusicServerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerUITests.swift; sourceTree = "<group>"; };
-		3F9B3B562C6149B8003CDCA1 /* NinoMusicServerUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NinoMusicServerUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		3F9B3B642C614CA4003CDCA1 /* MusicsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicsView.swift; sourceTree = "<group>"; };
-		3F9B3B662C614CBA003CDCA1 /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsView.swift; sourceTree = "<group>"; };
-		3F9B3B682C614CCE003CDCA1 /* AlbunsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbunsView.swift; sourceTree = "<group>"; };
-		3F9B3B6A2C614D9F003CDCA1 /* ServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerView.swift; sourceTree = "<group>"; };
-		3F9B3B6D2C614EBB003CDCA1 /* Music.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Music.swift; sourceTree = "<group>"; };
-		3F9B3B6F2C6169DE003CDCA1 /* DirectoriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoriesView.swift; sourceTree = "<group>"; };
-		3F9B3B712C616E82003CDCA1 /* Directory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Directory.swift; sourceTree = "<group>"; };
-		3FAF1B472C63F25600540BD1 /* SelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionView.swift; sourceTree = "<group>"; };
-		3FAF1B492C63F47A00540BD1 /* MusicControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicControlView.swift; sourceTree = "<group>"; };
-		3FEA26902D63C915008CC4A4 /* Directories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Directories.swift; sourceTree = "<group>"; };
-		3FEDF66B2C7E0C9300FCD5B4 /* MusicFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicFiles.swift; sourceTree = "<group>"; };
-		3FEDF6702C7E0CF600FCD5B4 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		3FF12F7F2D442CF7008F69F0 /* MusicDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicDetailsView.swift; sourceTree = "<group>"; };
+		3FAF953F2D6CAD2D0044D81B /* NinoMusicServer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NinoMusicServer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		3FAF95412D6CAD2D0044D81B /* NinoMusicServer */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = NinoMusicServer;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
-		3F9B3B322C6149B6003CDCA1 /* Frameworks */ = {
+		3FAF953C2D6CAD2D0044D81B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3FEDF66F2C7E0CBB00FCD5B4 /* ID3TagEditor in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F9B3B432C6149B8003CDCA1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F9B3B4D2C6149B8003CDCA1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				3F42591A2D6E349600773DB2 /* ID3TagEditor in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3F4295EC2D67A1DC003356D7 /* Extension */ = {
+		3FAF95362D6CAD2D0044D81B = {
 			isa = PBXGroup;
 			children = (
-				3F4295ED2D67A1FA003356D7 /* String.swift */,
-			);
-			path = Extension;
-			sourceTree = "<group>";
-		};
-		3F9B3B2C2C6149B6003CDCA1 = {
-			isa = PBXGroup;
-			children = (
-				3F9B3B372C6149B6003CDCA1 /* NinoMusicServer */,
-				3F9B3B492C6149B8003CDCA1 /* NinoMusicServerTests */,
-				3F9B3B532C6149B8003CDCA1 /* NinoMusicServerUITests */,
-				3F9B3B362C6149B6003CDCA1 /* Products */,
+				3FAF95412D6CAD2D0044D81B /* NinoMusicServer */,
+				3FAF95402D6CAD2D0044D81B /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		3F9B3B362C6149B6003CDCA1 /* Products */ = {
+		3FAF95402D6CAD2D0044D81B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3F9B3B352C6149B6003CDCA1 /* NinoMusicServer.app */,
-				3F9B3B462C6149B8003CDCA1 /* NinoMusicServerTests.xctest */,
-				3F9B3B502C6149B8003CDCA1 /* NinoMusicServerUITests.xctest */,
+				3FAF953F2D6CAD2D0044D81B /* NinoMusicServer.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		3F9B3B372C6149B6003CDCA1 /* NinoMusicServer */ = {
-			isa = PBXGroup;
-			children = (
-				3F4295EC2D67A1DC003356D7 /* Extension */,
-				3F9B3B412C6149B7003CDCA1 /* NinoMusicServer.entitlements */,
-				3F9B3B382C6149B6003CDCA1 /* NinoMusicServerApp.swift */,
-				3F9B3B3C2C6149B7003CDCA1 /* Assets.xcassets */,
-				3F9B3B6C2C614EA0003CDCA1 /* Models */,
-				3F9B3B3E2C6149B7003CDCA1 /* Preview Content */,
-				3FEDF66A2C7E0C4400FCD5B4 /* Services */,
-				3F9B3B632C614C88003CDCA1 /* Views */,
-				3F88C41A2D662C1900DD25D2 /* Localizable.xcstrings */,
-			);
-			path = NinoMusicServer;
-			sourceTree = "<group>";
-		};
-		3F9B3B3E2C6149B7003CDCA1 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				3F9B3B3F2C6149B7003CDCA1 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		3F9B3B492C6149B8003CDCA1 /* NinoMusicServerTests */ = {
-			isa = PBXGroup;
-			children = (
-				3F9B3B4A2C6149B8003CDCA1 /* NinoMusicServerTests.swift */,
-			);
-			path = NinoMusicServerTests;
-			sourceTree = "<group>";
-		};
-		3F9B3B532C6149B8003CDCA1 /* NinoMusicServerUITests */ = {
-			isa = PBXGroup;
-			children = (
-				3F9B3B542C6149B8003CDCA1 /* NinoMusicServerUITests.swift */,
-				3F9B3B562C6149B8003CDCA1 /* NinoMusicServerUITestsLaunchTests.swift */,
-			);
-			path = NinoMusicServerUITests;
-			sourceTree = "<group>";
-		};
-		3F9B3B632C614C88003CDCA1 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				3F9B3B682C614CCE003CDCA1 /* AlbunsView.swift */,
-				3F9B3B662C614CBA003CDCA1 /* ArtistsView.swift */,
-				3F9B3B3A2C6149B6003CDCA1 /* ContentView.swift */,
-				3F9B3B6F2C6169DE003CDCA1 /* DirectoriesView.swift */,
-				3FAF1B492C63F47A00540BD1 /* MusicControlView.swift */,
-				3FF12F7F2D442CF7008F69F0 /* MusicDetailsView.swift */,
-				3F9B3B642C614CA4003CDCA1 /* MusicsView.swift */,
-				3FAF1B472C63F25600540BD1 /* SelectionView.swift */,
-				3F9B3B6A2C614D9F003CDCA1 /* ServerView.swift */,
-				3F5AB61A2D47DF2E00D7D446 /* TagEditorView.swift */,
-				3F5AB61C2D47E27E00D7D446 /* TagFieldsView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		3F9B3B6C2C614EA0003CDCA1 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				3F2297F02C7E5A1600DD7965 /* Artist.swift */,
-				3FEA26902D63C915008CC4A4 /* Directories.swift */,
-				3F9B3B712C616E82003CDCA1 /* Directory.swift */,
-				3F2297F22C7E5B2B00DD7965 /* Library.swift */,
-				3F9B3B6D2C614EBB003CDCA1 /* Music.swift */,
-				3F3424CB2C7DFF3A0095F4CE /* Musics.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		3FEDF66A2C7E0C4400FCD5B4 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				3FEDF66B2C7E0C9300FCD5B4 /* MusicFiles.swift */,
-				3FEDF6702C7E0CF600FCD5B4 /* Database.swift */,
-			);
-			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3F9B3B342C6149B6003CDCA1 /* NinoMusicServer */ = {
+		3FAF953E2D6CAD2D0044D81B /* NinoMusicServer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3F9B3B5A2C6149B8003CDCA1 /* Build configuration list for PBXNativeTarget "NinoMusicServer" */;
+			buildConfigurationList = 3FAF954E2D6CAD300044D81B /* Build configuration list for PBXNativeTarget "NinoMusicServer" */;
 			buildPhases = (
-				3F9B3B312C6149B6003CDCA1 /* Sources */,
-				3F9B3B322C6149B6003CDCA1 /* Frameworks */,
-				3F9B3B332C6149B6003CDCA1 /* Resources */,
+				3FAF953B2D6CAD2D0044D81B /* Sources */,
+				3FAF953C2D6CAD2D0044D81B /* Frameworks */,
+				3FAF953D2D6CAD2D0044D81B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3FAF95412D6CAD2D0044D81B /* NinoMusicServer */,
 			);
 			name = NinoMusicServer;
 			packageProductDependencies = (
-				3FEDF66E2C7E0CBB00FCD5B4 /* ID3TagEditor */,
+				3F4259192D6E349600773DB2 /* ID3TagEditor */,
 			);
 			productName = NinoMusicServer;
-			productReference = 3F9B3B352C6149B6003CDCA1 /* NinoMusicServer.app */;
+			productReference = 3FAF953F2D6CAD2D0044D81B /* NinoMusicServer.app */;
 			productType = "com.apple.product-type.application";
-		};
-		3F9B3B452C6149B8003CDCA1 /* NinoMusicServerTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 3F9B3B5D2C6149B8003CDCA1 /* Build configuration list for PBXNativeTarget "NinoMusicServerTests" */;
-			buildPhases = (
-				3F9B3B422C6149B8003CDCA1 /* Sources */,
-				3F9B3B432C6149B8003CDCA1 /* Frameworks */,
-				3F9B3B442C6149B8003CDCA1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				3F9B3B482C6149B8003CDCA1 /* PBXTargetDependency */,
-			);
-			name = NinoMusicServerTests;
-			productName = NinoMusicServerTests;
-			productReference = 3F9B3B462C6149B8003CDCA1 /* NinoMusicServerTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		3F9B3B4F2C6149B8003CDCA1 /* NinoMusicServerUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 3F9B3B602C6149B8003CDCA1 /* Build configuration list for PBXNativeTarget "NinoMusicServerUITests" */;
-			buildPhases = (
-				3F9B3B4C2C6149B8003CDCA1 /* Sources */,
-				3F9B3B4D2C6149B8003CDCA1 /* Frameworks */,
-				3F9B3B4E2C6149B8003CDCA1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				3F9B3B522C6149B8003CDCA1 /* PBXTargetDependency */,
-			);
-			name = NinoMusicServerUITests;
-			productName = NinoMusicServerUITests;
-			productReference = 3F9B3B502C6149B8003CDCA1 /* NinoMusicServerUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		3F9B3B2D2C6149B6003CDCA1 /* Project object */ = {
+		3FAF95372D6CAD2D0044D81B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
-					3F9B3B342C6149B6003CDCA1 = {
-						CreatedOnToolsVersion = 15.4;
-					};
-					3F9B3B452C6149B8003CDCA1 = {
-						CreatedOnToolsVersion = 15.4;
-						TestTargetID = 3F9B3B342C6149B6003CDCA1;
-					};
-					3F9B3B4F2C6149B8003CDCA1 = {
-						CreatedOnToolsVersion = 15.4;
-						TestTargetID = 3F9B3B342C6149B6003CDCA1;
+					3FAF953E2D6CAD2D0044D81B = {
+						CreatedOnToolsVersion = 16.2;
 					};
 				};
 			};
-			buildConfigurationList = 3F9B3B302C6149B6003CDCA1 /* Build configuration list for PBXProject "NinoMusicServer" */;
-			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = "pt-BR";
+			buildConfigurationList = 3FAF953A2D6CAD2D0044D81B /* Build configuration list for PBXProject "NinoMusicServer" */;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 				"pt-BR",
 			);
-			mainGroup = 3F9B3B2C2C6149B6003CDCA1;
+			mainGroup = 3FAF95362D6CAD2D0044D81B;
+			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				3FEDF66D2C7E0CBB00FCD5B4 /* XCRemoteSwiftPackageReference "ID3TagEditor" */,
+				3F4259182D6E349600773DB2 /* XCRemoteSwiftPackageReference "ID3TagEditor" */,
 			);
-			productRefGroup = 3F9B3B362C6149B6003CDCA1 /* Products */;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3FAF95402D6CAD2D0044D81B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3F9B3B342C6149B6003CDCA1 /* NinoMusicServer */,
-				3F9B3B452C6149B8003CDCA1 /* NinoMusicServerTests */,
-				3F9B3B4F2C6149B8003CDCA1 /* NinoMusicServerUITests */,
+				3FAF953E2D6CAD2D0044D81B /* NinoMusicServer */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		3F9B3B332C6149B6003CDCA1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				3F9B3B402C6149B7003CDCA1 /* Preview Assets.xcassets in Resources */,
-				3F9B3B3D2C6149B7003CDCA1 /* Assets.xcassets in Resources */,
-				3F88C41B2D662C1900DD25D2 /* Localizable.xcstrings in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F9B3B442C6149B8003CDCA1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F9B3B4E2C6149B8003CDCA1 /* Resources */ = {
+		3FAF953D2D6CAD2D0044D81B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -357,68 +125,17 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		3F9B3B312C6149B6003CDCA1 /* Sources */ = {
+		3FAF953B2D6CAD2D0044D81B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3FEA26912D63C915008CC4A4 /* Directories.swift in Sources */,
-				3F2297F32C7E5B2B00DD7965 /* Library.swift in Sources */,
-				3F9B3B702C6169DE003CDCA1 /* DirectoriesView.swift in Sources */,
-				3F5AB61B2D47DF2E00D7D446 /* TagEditorView.swift in Sources */,
-				3FEDF66C2C7E0C9300FCD5B4 /* MusicFiles.swift in Sources */,
-				3F5AB61D2D47E27E00D7D446 /* TagFieldsView.swift in Sources */,
-				3FF12F802D442CF7008F69F0 /* MusicDetailsView.swift in Sources */,
-				3FAF1B4A2C63F47A00540BD1 /* MusicControlView.swift in Sources */,
-				3FEDF6712C7E0CF600FCD5B4 /* Database.swift in Sources */,
-				3F9B3B652C614CA4003CDCA1 /* MusicsView.swift in Sources */,
-				3F9B3B672C614CBA003CDCA1 /* ArtistsView.swift in Sources */,
-				3F3424CC2C7DFF3A0095F4CE /* Musics.swift in Sources */,
-				3F4295EE2D67A1FA003356D7 /* String.swift in Sources */,
-				3F9B3B6B2C614D9F003CDCA1 /* ServerView.swift in Sources */,
-				3F9B3B692C614CCE003CDCA1 /* AlbunsView.swift in Sources */,
-				3F9B3B722C616E82003CDCA1 /* Directory.swift in Sources */,
-				3F9B3B6E2C614EBB003CDCA1 /* Music.swift in Sources */,
-				3F9B3B3B2C6149B6003CDCA1 /* ContentView.swift in Sources */,
-				3F9B3B392C6149B6003CDCA1 /* NinoMusicServerApp.swift in Sources */,
-				3F2297F12C7E5A1600DD7965 /* Artist.swift in Sources */,
-				3FAF1B482C63F25600540BD1 /* SelectionView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F9B3B422C6149B8003CDCA1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				3F9B3B4B2C6149B8003CDCA1 /* NinoMusicServerTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F9B3B4C2C6149B8003CDCA1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				3F9B3B552C6149B8003CDCA1 /* NinoMusicServerUITests.swift in Sources */,
-				3F9B3B572C6149B8003CDCA1 /* NinoMusicServerUITestsLaunchTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		3F9B3B482C6149B8003CDCA1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3F9B3B342C6149B6003CDCA1 /* NinoMusicServer */;
-			targetProxy = 3F9B3B472C6149B8003CDCA1 /* PBXContainerItemProxy */;
-		};
-		3F9B3B522C6149B8003CDCA1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3F9B3B342C6149B6003CDCA1 /* NinoMusicServer */;
-			targetProxy = 3F9B3B512C6149B8003CDCA1 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
-		3F9B3B582C6149B8003CDCA1 /* Debug */ = {
+		3FAF954C2D6CAD300044D81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -471,18 +188,17 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
-		3F9B3B592C6149B8003CDCA1 /* Release */ = {
+		3FAF954D2D6CAD300044D81B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -529,20 +245,20 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};
-		3F9B3B5B2C6149B8003CDCA1 /* Debug */ = {
+		3FAF954F2D6CAD300044D81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NinoMusicServer/NinoMusicServer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -552,24 +268,27 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Nino Music Server";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nino.NinoMusicServer;
+				PRODUCT_BUNDLE_IDENTIFIER = nino.musicserver;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		3F9B3B5C2C6149B8003CDCA1 /* Release */ = {
+		3FAF95502D6CAD300044D81B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NinoMusicServer/NinoMusicServer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -579,126 +298,38 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Nino Music Server";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nino.NinoMusicServer;
+				PRODUCT_BUNDLE_IDENTIFIER = nino.musicserver;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		3F9B3B5E2C6149B8003CDCA1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4CV3KNNXNH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nino.NinoMusicServerTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NinoMusicServer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/NinoMusicServer";
-			};
-			name = Debug;
-		};
-		3F9B3B5F2C6149B8003CDCA1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4CV3KNNXNH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nino.NinoMusicServerTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NinoMusicServer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/NinoMusicServer";
-			};
-			name = Release;
-		};
-		3F9B3B612C6149B8003CDCA1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4CV3KNNXNH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nino.NinoMusicServerUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = NinoMusicServer;
-			};
-			name = Debug;
-		};
-		3F9B3B622C6149B8003CDCA1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4CV3KNNXNH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nino.NinoMusicServerUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = NinoMusicServer;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3F9B3B302C6149B6003CDCA1 /* Build configuration list for PBXProject "NinoMusicServer" */ = {
+		3FAF953A2D6CAD2D0044D81B /* Build configuration list for PBXProject "NinoMusicServer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3F9B3B582C6149B8003CDCA1 /* Debug */,
-				3F9B3B592C6149B8003CDCA1 /* Release */,
+				3FAF954C2D6CAD300044D81B /* Debug */,
+				3FAF954D2D6CAD300044D81B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3F9B3B5A2C6149B8003CDCA1 /* Build configuration list for PBXNativeTarget "NinoMusicServer" */ = {
+		3FAF954E2D6CAD300044D81B /* Build configuration list for PBXNativeTarget "NinoMusicServer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3F9B3B5B2C6149B8003CDCA1 /* Debug */,
-				3F9B3B5C2C6149B8003CDCA1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		3F9B3B5D2C6149B8003CDCA1 /* Build configuration list for PBXNativeTarget "NinoMusicServerTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				3F9B3B5E2C6149B8003CDCA1 /* Debug */,
-				3F9B3B5F2C6149B8003CDCA1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		3F9B3B602C6149B8003CDCA1 /* Build configuration list for PBXNativeTarget "NinoMusicServerUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				3F9B3B612C6149B8003CDCA1 /* Debug */,
-				3F9B3B622C6149B8003CDCA1 /* Release */,
+				3FAF954F2D6CAD300044D81B /* Debug */,
+				3FAF95502D6CAD300044D81B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -706,23 +337,23 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		3FEDF66D2C7E0CBB00FCD5B4 /* XCRemoteSwiftPackageReference "ID3TagEditor" */ = {
+		3F4259182D6E349600773DB2 /* XCRemoteSwiftPackageReference "ID3TagEditor" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/chicio/ID3TagEditor.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.6.0;
+				minimumVersion = 5.2.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		3FEDF66E2C7E0CBB00FCD5B4 /* ID3TagEditor */ = {
+		3F4259192D6E349600773DB2 /* ID3TagEditor */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3FEDF66D2C7E0CBB00FCD5B4 /* XCRemoteSwiftPackageReference "ID3TagEditor" */;
+			package = 3F4259182D6E349600773DB2 /* XCRemoteSwiftPackageReference "ID3TagEditor" */;
 			productName = ID3TagEditor;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 3F9B3B2D2C6149B6003CDCA1 /* Project object */;
+	rootObject = 3FAF95372D6CAD2D0044D81B /* Project object */;
 }

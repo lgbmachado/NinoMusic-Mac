@@ -9,6 +9,11 @@ import SwiftUI
 import AVFAudio
 import ID3TagEditor
 
+enum NavigationKind {
+    case next
+    case previus
+}
+
 // MARK: MusicsView
 struct MusicsView: View {
     @State var music = Music(count: 0,
@@ -61,7 +66,7 @@ struct MusicsView: View {
             ToolbarItem(placement: .navigation) {
                 VStack {
                     HStack {
-                        Button("", systemImage: "backward.circle", action: {PreviusSong()})
+                        Button("", systemImage: "backward.circle", action: {NavigateSongs(kind: .previus)})
                             .font(.system(size: 20))
                             .buttonStyle(.borderless)
                         Button("", systemImage: "playpause.circle", action: {
@@ -69,7 +74,7 @@ struct MusicsView: View {
                         })
                         .font(.system(size: 20))
                         .buttonStyle(.borderless)
-                        Button("", systemImage: "forward.circle", action: {NextSong()})
+                        Button("", systemImage: "forward.circle", action: {NavigateSongs(kind: .next)})
                             .font(.system(size: 20))
                             .buttonStyle(.borderless)
                         Spacer(minLength: 30)
@@ -137,25 +142,12 @@ struct MusicsView: View {
         }
     }
     
-    func PreviusSong() {
+    func NavigateSongs(kind: NavigationKind) {
         if let musicSelected = musics.musics.first(where: {$0.id == selection}) {
-            if let nextMusicSelected = musics.musics.first(where: {$0.count == musicSelected.count - 1}) {
-                selection = nextMusicSelected.id
-                music = nextMusicSelected
-                if isPlaying {
-                    player?.stop()
-                    isPlaying = false
-                    PlayPauseSong(pathMusic: music.filePath)
-                }
-            }
-        }
-    }
-    
-    func NextSong() {
-        if let musicSelected = musics.musics.first(where: {$0.id == selection}) {
-            if let nextMusicSelected = musics.musics.first(where: {$0.count == musicSelected.count + 1}) {
-                selection = nextMusicSelected.id
-                music = nextMusicSelected
+            let searchCount = kind == .next ? musicSelected.count + 1 : musicSelected.count - 1
+            if let musicSelected = musics.musics.first(where: {$0.count == searchCount}) {
+                selection = musicSelected.id
+                music = musicSelected
                 if isPlaying {
                     player?.stop()
                     isPlaying = false

@@ -7,6 +7,12 @@
     "%lld" : {
 
     },
+    "Data/Hora" : {
+
+    },
+    "Descrição" : {
+
+    },
     "text_album" : {
       "comment" : "Texto \"Álbum\".",
       "extractionState" : "manual",
@@ -510,6 +516,9 @@
           }
         }
       }
+    },
+    "Tipo" : {
+
     }
   },
   "version" : "1.0"

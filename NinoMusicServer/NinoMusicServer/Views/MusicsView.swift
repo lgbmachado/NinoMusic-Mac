@@ -23,6 +23,7 @@ struct MusicsView: View {
                              track: 0,
                              musicTitle: "",
                              genre: "",
+                             duration: 0,
                              filePath: "")
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
     @State var selection: Music.ID? = nil
@@ -56,8 +57,8 @@ struct MusicsView: View {
             }
 
         .padding()
-        .onChange(of: selection) { selected in
-            musics.idMusicSelected = selected ?? UUID()
+        .onChange(of: selection) { oldSelected, newSelected in
+            musics.idMusicSelected = newSelected ?? UUID()
             if let item = musics.musicSelected {
                 music = item
             }
@@ -170,24 +171,6 @@ struct MusicsView: View {
             print(error)
         }
         return NSImage()
-    }
-}
-
-// MARK: MusicRowView
-struct MusicRowView: View {
-    @State var music: Music
-    
-    var body: some View {
-        GridRow {
-            Text(music.musicTitle)
-                .bold()
-            Text(music.artist)
-            Text(music.album)
-            Text(String(format: "%d", music.track))
-                .gridColumnAlignment(.trailing)
-            Text(music.year)
-            Text(music.genre)
-        }
     }
 }
 

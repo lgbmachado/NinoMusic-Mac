@@ -8,10 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		3F42591A2D6E349600773DB2 /* ID3TagEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 3F4259192D6E349600773DB2 /* ID3TagEditor */; };
+		92DA01F4453E5935B95E9F57 /* Pods_NinoMusicServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C51BBD570371E43122E48EB /* Pods_NinoMusicServer.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3FAF953F2D6CAD2D0044D81B /* NinoMusicServer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NinoMusicServer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C51BBD570371E43122E48EB /* Pods_NinoMusicServer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NinoMusicServer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		95B9751136FF98183571C246 /* Pods-NinoMusicServer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NinoMusicServer.release.xcconfig"; path = "Target Support Files/Pods-NinoMusicServer/Pods-NinoMusicServer.release.xcconfig"; sourceTree = "<group>"; };
+		9D7AA74379E2CBAEDBD314FE /* Pods-NinoMusicServer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NinoMusicServer.debug.xcconfig"; path = "Target Support Files/Pods-NinoMusicServer/Pods-NinoMusicServer.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -28,6 +32,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F42591A2D6E349600773DB2 /* ID3TagEditor in Frameworks */,
+				92DA01F4453E5935B95E9F57 /* Pods_NinoMusicServer.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -39,6 +44,8 @@
 			children = (
 				3FAF95412D6CAD2D0044D81B /* NinoMusicServer */,
 				3FAF95402D6CAD2D0044D81B /* Products */,
+				8AF4C4A009FC549ADD7901C3 /* Pods */,
+				497AF6C96BBF62FF9B534E92 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -50,6 +57,23 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		497AF6C96BBF62FF9B534E92 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6C51BBD570371E43122E48EB /* Pods_NinoMusicServer.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8AF4C4A009FC549ADD7901C3 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				9D7AA74379E2CBAEDBD314FE /* Pods-NinoMusicServer.debug.xcconfig */,
+				95B9751136FF98183571C246 /* Pods-NinoMusicServer.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -57,9 +81,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3FAF954E2D6CAD300044D81B /* Build configuration list for PBXNativeTarget "NinoMusicServer" */;
 			buildPhases = (
+				7B7CE65DCD2BE602789B761E /* [CP] Check Pods Manifest.lock */,
 				3FAF953B2D6CAD2D0044D81B /* Sources */,
 				3FAF953C2D6CAD2D0044D81B /* Frameworks */,
 				3FAF953D2D6CAD2D0044D81B /* Resources */,
+				0872AC156643DA0DE82222B3 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -123,6 +149,48 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0872AC156643DA0DE82222B3 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-NinoMusicServer/Pods-NinoMusicServer-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-NinoMusicServer/Pods-NinoMusicServer-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NinoMusicServer/Pods-NinoMusicServer-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		7B7CE65DCD2BE602789B761E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NinoMusicServer-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3FAF953B2D6CAD2D0044D81B /* Sources */ = {
@@ -255,6 +323,7 @@
 		};
 		3FAF954F2D6CAD300044D81B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9D7AA74379E2CBAEDBD314FE /* Pods-NinoMusicServer.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -267,6 +336,7 @@
 				DEVELOPMENT_TEAM = 4CV3KNNXNH;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Nino Music Server";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
@@ -275,6 +345,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = nino.musicserver;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -285,6 +356,7 @@
 		};
 		3FAF95502D6CAD300044D81B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 95B9751136FF98183571C246 /* Pods-NinoMusicServer.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -297,6 +369,7 @@
 				DEVELOPMENT_TEAM = 4CV3KNNXNH;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Nino Music Server";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
@@ -305,6 +378,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = nino.musicserver;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -93,7 +93,7 @@ struct LibraryView: View, MusicFilesDelegate {
     func AddDirectory() {
         let dialog = NSOpenPanel()
         dialog.title = String(localized: "text_select_dir")
-        dialog.showsResizeIndicator = true;
+//        dialog.showsResizeIndicator = true;
         dialog.showsHiddenFiles = false;
         dialog.canChooseFiles = false;
         dialog.canChooseDirectories = true;

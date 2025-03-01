@@ -10,7 +10,7 @@ import Foundation
 struct Directory: Codable,
                   Identifiable,
                   Hashable {
-    let id = UUID()
+    var id = UUID()
     let name: String
     let path: String
     

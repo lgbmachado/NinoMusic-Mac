@@ -152,7 +152,6 @@ class MainViewController: NSViewController {
         if startServerDlg.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
             musicServer.start()
         }
-        
     }
     
 }

@@ -27,7 +27,7 @@ struct ContentView: View {
                 TagEditorView(musics: $musics)
                     .navigationTitle("")
             case .server:
-                ServerView(musics: $musics)
+                ServerView()
                     .navigationTitle("")
             }
         }

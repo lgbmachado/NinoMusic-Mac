@@ -31,12 +31,8 @@ struct TagEditorView: View {
             TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
         }
         .padding()
-        .onChange(of: selection) { selected in
-            musics.idMusicSelected = selected ?? UUID()
-            if let item = musics.musicSelected {
-                print("Item selecionado:\n  ID: \(item.id)\n  Música: \(item.musicTitle)\n  Artista: \(item.artist)")
-                
-            }
+        .onChange(of: selection) { oldSelected, newSelected in
+            musics.idMusicSelected = newSelected ?? UUID()
         }
         .toolbar{
             ToolbarItem(placement: .primaryAction) {

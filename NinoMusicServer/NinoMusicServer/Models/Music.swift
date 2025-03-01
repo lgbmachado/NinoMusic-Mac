@@ -16,6 +16,7 @@ struct Music: Identifiable {
     let track: Int
     let musicTitle: String
     let genre: String
+    let duration: Int
     let filePath: String
     
     static let example = Music(count : 1,
@@ -25,6 +26,7 @@ struct Music: Identifiable {
                                track: 21,
                                musicTitle: "ALL ALONG THE WATCHTOWER",
                                genre: "INSTRUMENTAL/CLÁSSICO",
+                               duration: 0,
                                filePath: "/Users/nino/Documents/XCode/_musicas/BEAR MCCREARY - ALL ALONG THE WATCHTOWER.MP3")
     
     static let examples = [
@@ -35,6 +37,7 @@ struct Music: Identifiable {
               track: 21,
               musicTitle: "ALL ALONG THE WATCHTOWER",
               genre: "INSTRUMENTAL/CLÁSSICO",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/BEAR MCCREARY - ALL ALONG THE WATCHTOWER.MP3"),
         
         Music(count : 2,
@@ -44,6 +47,7 @@ struct Music: Identifiable {
               track: 6,
               musicTitle: "JUST THE WAY YOU ARE",
               genre: "POP",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/BARRY WHITE - JUST THE WAY YOU ARE.MP3"),
         
         Music(count : 3,
@@ -53,6 +57,7 @@ struct Music: Identifiable {
               track: 1,
               musicTitle: "ONLY THE STRONG SURVIVE",
               genre: "POP",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/BILLY PAUL - ONLY THE STRONG SURVIVE.MP3"),
         
         Music(count : 4,
@@ -62,6 +67,7 @@ struct Music: Identifiable {
               track: 6,
               musicTitle: "YOUR SONG",
               genre: "POP",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/BILLY PAUL - YOUR SONG.MP3"),
         
         Music(count : 5,
@@ -71,6 +77,7 @@ struct Music: Identifiable {
               track: 1,
               musicTitle: "FOREVER YOUNG",
               genre: "POP",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/ALPHAVILLE - FOREVER YOUNG.MP3"),
         
         Music(count : 6,
@@ -80,6 +87,7 @@ struct Music: Identifiable {
               track: 3,
               musicTitle: "HUNTING HIGH AND LOW",
               genre: "POP",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/A-HA - HUNTING HIGH AND LOW.MP3"),
         
         Music(count : 7,
@@ -89,6 +97,7 @@ struct Music: Identifiable {
               track: 1,
               musicTitle: "TAKE ON ME",
               genre: "POP",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/A-HA - TAKE ON ME.MP3"),
         
         Music(count : 8,
@@ -98,6 +107,7 @@ struct Music: Identifiable {
               track: 1,
               musicTitle: "CAST IN STEEL",
               genre: "POP",
+              duration: 0,
               filePath: "/Users/nino/Documents/XCode/_musicas/A-HA - CAST IN STEEL.MP3"),
         
     ]
@@ -118,6 +128,7 @@ struct Music: Identifiable {
                               track: item.track,
                               musicTitle: item.musicTitle,
                               genre: item.genre,
+                              duration: item.duration,
                               filePath: item.filePath)
             lastArtist = item.artist
             lastAlbum = item.album
@@ -137,6 +148,7 @@ struct Music: Identifiable {
                               track: item.track,
                               musicTitle: item.musicTitle,
                               genre: item.genre,
+                              duration: 0,
                               filePath: item.filePath)
             lastAlbum = item.album
             result.append(music)

@@ -122,6 +122,7 @@ class Database {
                                        track: track,
                                        musicTitle: musicTitle,
                                        genre: genre,
+                                       duration: duration,
                                        filePath: filePath))
             }
         }
@@ -173,6 +174,7 @@ class Database {
                                        track: track,
                                        musicTitle: musicTitle,
                                        genre: genre,
+                                       duration: duration,
                                        filePath: filePath))
             }
         }
@@ -232,6 +234,7 @@ class Database {
                                        track: track,
                                        musicTitle: musicTitle,
                                        genre: genre,
+                                       duration: duration,
                                        filePath: filePath))
             }
         }

@@ -98,8 +98,6 @@ class MusicFiles {
             } catch {
                 return 0
             }
-            
-            
         }
     }
 }

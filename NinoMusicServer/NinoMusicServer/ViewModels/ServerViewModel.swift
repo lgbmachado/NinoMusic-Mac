@@ -22,19 +22,19 @@ class ServerViewModel: ObservableObject {
     private let webServer = GCDWebServer()
     private let serverPort:UInt = 8080
     
-    func StartMusicServer() {
+    func startMusicServer() {
         webServer.addDefaultHandler(forMethod: "GET", request: GCDWebServerRequest.self, processBlock: {request in
             let arrayParam = request.path.split(separator: "/")
             let command = String(arrayParam.first ?? "")
             switch ServerComand(rawValue: command) {
             case .playMusic:
-                return self.PlayMusic(arrayParam: arrayParam)
+                return self.playMusic(arrayParam: arrayParam)
             case .listMusic:
-                return self.ListMusic()
+                return self.listMusic()
             case .getCover:
-                return self.GetCover(arrayParam: arrayParam)
+                return self.getCover(arrayParam: arrayParam)
             case .serverInfo:
-                return self.ServerInfo()
+                return self.serverInfo()
                 
             default:
                 break
@@ -50,14 +50,14 @@ class ServerViewModel: ObservableObject {
         webServer.start(withPort: serverPort, bonjourName: "Nino Music Server")
     }
     
-    func StopServer() {
+    func stopServer() {
         self.webServer.stop()
         self.logs.insert(ServerLog(dateTime: Date.now,
                                    type: .info,
                                    descr: "Servidor finalizado com sucesso!"), at: 0)
     }
     
-    func PlayMusic(arrayParam: [String.SubSequence]) -> GCDWebServerDataResponse {
+    private func playMusic(arrayParam: [String.SubSequence]) -> GCDWebServerDataResponse {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
@@ -94,7 +94,7 @@ class ServerViewModel: ObservableObject {
         return result
     }
     
-    func ListMusic() -> GCDWebServerDataResponse {
+    private func listMusic() -> GCDWebServerDataResponse {
         var data = Data()
         let musicDb = Database()
         musicDb.listMusicsRemote { musicsList in
@@ -113,7 +113,7 @@ class ServerViewModel: ObservableObject {
         return GCDWebServerDataResponse(data: data, contentType: "application/json")
     }
     
-    func GetCover(arrayParam: [String.SubSequence]) -> GCDWebServerDataResponse {
+    private func getCover(arrayParam: [String.SubSequence]) -> GCDWebServerDataResponse {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
@@ -159,7 +159,7 @@ class ServerViewModel: ObservableObject {
         return result
     }
     
-    func ServerInfo() -> GCDWebServerDataResponse {
+    private func serverInfo() -> GCDWebServerDataResponse {
         var data = Data()
         let defaults = UserDefaults.standard
         let serverName = defaults.string(forKey: "ServerName")

@@ -41,7 +41,7 @@ struct ServerView: View {
         .padding()
         .confirmationDialog(LocalizedStringKey("text_confirm_start_server"), isPresented: $showAlert) {
             Button(LocalizedStringKey("text_yes")) {
-                serverViewModel.StartMusicServer()
+                serverViewModel.startMusicServer()
             }
             Button(LocalizedStringKey("text_no"), role: .cancel) {
             }
@@ -60,7 +60,7 @@ struct ServerView: View {
                     .disabled(disableButtonStartServer)
                     
                     Button("", systemImage: "stop.circle", action: {
-                        serverViewModel.StopServer()
+                        serverViewModel.stopServer()
                         disableButtonStartServer = false
                         disableButtonStoptServer = true
                     })

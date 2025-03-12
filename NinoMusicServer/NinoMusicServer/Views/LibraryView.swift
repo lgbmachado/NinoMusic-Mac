@@ -32,9 +32,9 @@ struct LibraryView: View {
             ToolbarItem(placement: .navigation) {
                 HStack {
                     Button("", systemImage: "plus.circle", action: {
-                        self.musicsViewModel.AddDirectory()
+                        self.musicsViewModel.addDirectory()
                         Task {
-                            await self.musicsViewModel.UpdateMusicsDatabase()
+                            await self.musicsViewModel.updateMusicsDatabase()
                         }
                         showAlert1 = true
                     })
@@ -46,6 +46,15 @@ struct LibraryView: View {
                     })
                         .font(.system(size: 30))
                         .buttonStyle(.borderless)
+                    
+                    Spacer(minLength: 30)
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(verbatim: "\(self.musicsViewModel.totalMusics) músicas lidas")
+                            .font(.title3)
+                        Text(verbatim: "")
+                            .font(.caption2)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 10)
@@ -59,9 +68,9 @@ struct LibraryView: View {
         
         .confirmationDialog(LocalizedStringKey("text_confirm_dir_exlusion"), isPresented: $showAlert2) {
             Button(LocalizedStringKey("text_yes")) {
-                self.musicsViewModel.DeleteDirectory(selection: selection ?? UUID())
+                self.musicsViewModel.deleteDirectory(selection: selection ?? UUID())
                 Task {
-                    await self.musicsViewModel.UpdateMusicsDatabase()
+                    await self.musicsViewModel.updateMusicsDatabase()
                 }
                 
                 showAlert3 = true

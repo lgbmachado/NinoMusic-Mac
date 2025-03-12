@@ -43,18 +43,18 @@ struct MusicsView: View {
                 VStack {
                     HStack {
                         Button("", systemImage: "backward.circle", action: {
-                            self.musicsViewModel.NavigateSongs(kind: .previus)
+                            self.musicsViewModel.navigateSongs(kind: .previus)
                             selection = self.musicsViewModel.idMusicSelected
                         })
                             .font(.system(size: 30))
                             .buttonStyle(.borderless)
                         Button("", systemImage: "playpause.circle", action: {
-                            self.musicsViewModel.PlayPauseSong()
+                            self.musicsViewModel.playPauseSong()
                         })
                         .font(.system(size: 30))
                         .buttonStyle(.borderless)
                         Button("", systemImage: "forward.circle", action: {
-                            self.musicsViewModel.NavigateSongs(kind: .next)
+                            self.musicsViewModel.navigateSongs(kind: .next)
                             selection = self.musicsViewModel.idMusicSelected
                         })
                             .font(.system(size: 30))

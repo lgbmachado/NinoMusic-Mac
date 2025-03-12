@@ -24,30 +24,11 @@ class MusicsViewModel: ObservableObject {
     @Published var timeDuration: String = "00:00"
     @Published var timePosition: String = "00:00"
     @Published var isPlaying: Bool = false
+    @Published var totalMusics: Int = 0
     
     @Published var directories = Directories().dirs
     
     private var player: AVAudioPlayer?
-
-    func addMusic(count: Int,
-                  artist: String,
-                  album: String,
-                  year: String,
-                  track: Int,
-                  musicTitle: String,
-                  genre: String,
-                  duration: Int,
-                  filePath: String) {
-        musics.append(Music(count: count,
-                            artist: artist,
-                            album: album,
-                            year: year,
-                            track: track,
-                            musicTitle: musicTitle,
-                            genre: genre,
-                            duration: duration,
-                            filePath: filePath))
-    }
     
     func loadMusics() {
         let musicDb = Database()
@@ -63,7 +44,7 @@ class MusicsViewModel: ObservableObject {
         }
     }
     
-    func NavigateSongs(kind: NavigationKind) {
+    func navigateSongs(kind: NavigationKind) {
         let searchCount = kind == .next ? musicSelected.count + 1 : musicSelected.count - 1
         if let selected = musics.first(where: {$0.count == searchCount}) {
             self.idMusicSelected = selected.id
@@ -86,7 +67,7 @@ class MusicsViewModel: ObservableObject {
         return NSImage()
     }
     
-    func PlayPauseSong() {
+    func playPauseSong() {
         if !self.isPlaying {
             if let url = URL(string: self.musicSelected.filePath) {
                 do {
@@ -129,7 +110,7 @@ class MusicsViewModel: ObservableObject {
         }
     }
     
-    func AddDirectory() {
+    func addDirectory() {
         let dialog = NSOpenPanel()
         dialog.title = String(localized: "text_select_dir")
         dialog.showsHiddenFiles = false;
@@ -149,7 +130,7 @@ class MusicsViewModel: ObservableObject {
         }
     }
     
-    func DeleteDirectory(selection: UUID) {
+    func deleteDirectory(selection: UUID) {
         if directories.count > 0 {
             let modstations = directories.filter{ $0.id != selection}
             Directories().dirs = modstations
@@ -159,13 +140,14 @@ class MusicsViewModel: ObservableObject {
         }
     }
     
-    func UpdateMusicsDatabase() async {
+    func updateMusicsDatabase() async {
+        self.totalMusics = 0
         let musicFiles = MusicFiles()
         for i in 0..<Directories().dirs.count {
             await musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
                 if let musicsLoaded = musicsLoaded {
+                    self.totalMusics += musicsLoaded
                     DispatchQueue.main.async {
-                        print("\(musicsLoaded) musicas lidas.")
                         let musicDb = Database()
                         self.musics = musicDb.getMusics()
                     }

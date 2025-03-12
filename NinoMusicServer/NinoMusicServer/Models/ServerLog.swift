@@ -29,22 +29,5 @@ struct ServerLog: Identifiable, Equatable {
     let dateTime: Date
     let type: ServerLogType
     let descr: String
-    
-    static let example = ServerLog(dateTime: Date.now,
-                                   type: .info,
-                                   descr: "Servidor iniciado com sucesso!")
-    
-    static let examples = [
-        ServerLog(dateTime: Date.now,
-                  type: .info,
-                  descr: "Servidor iniciado com sucesso!"),
-        
-        ServerLog(dateTime: Date.now,
-                  type:  .warning,
-                  descr: "Música não encontrada!"),
-        ServerLog(dateTime: Date.now,
-                  type:  .error,
-                  descr: "Falha ao iniciar o versidos!")
-    ]
 }
 

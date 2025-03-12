@@ -7,82 +7,27 @@
     "%lld" : {
 
     },
-    "text_date_time" : {
-      "comment" : "Texto \"Data/Hora\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Date/Time"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Data/Hora"
-          }
-        }
-      }
-    },
-    
-    "text_type" : {
-      "comment" : "Texto \"Tipo\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Type"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tipo"
-          }
-        }
-      }
-    },
+    "" : {
 
-    "text_description" : {
-      "comment" : "Texto \"Descrição\".",
+    },
+    "text_file_name" : {
+      "comment" : "Texto \"Nome do Arquivo\".",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Description"
+            "value" : "File Name"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descrição"
+            "value" : "Nome do Arquivo"
           }
         }
       }
     },
-    
-    "text_confirm_start_server" : {
-      "comment" : "Texto \"Iniciar servidor de música?\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirm start server music?"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Iniciar servidor de música?"
-          }
-        }
-      }
-    },
-    
     "text_album" : {
       "comment" : "Texto \"Álbum\".",
       "extractionState" : "manual",
@@ -205,6 +150,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Confirma a exclusão do diretório?"
+          }
+        }
+      }
+    },
+    "text_confirm_start_server" : {
+      "comment" : "Texto \"Iniciar servidor de música?\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm start server music?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar servidor de música?"
+          }
+        }
+      }
+    },
+    "text_date_time" : {
+      "comment" : "Texto \"Data/Hora\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date/Time"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data/Hora"
+          }
+        }
+      }
+    },
+    "text_description" : {
+      "comment" : "Texto \"Descrição\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descrição"
           }
         }
       }
@@ -547,6 +546,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trilha"
+          }
+        }
+      }
+    },
+    "text_type" : {
+      "comment" : "Texto \"Tipo\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tipo"
           }
         }
       }

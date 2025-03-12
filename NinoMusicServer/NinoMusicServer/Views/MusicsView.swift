@@ -52,8 +52,12 @@ struct MusicsView: View {
                 TableColumn(LocalizedStringKey("text_track")) { music in
                     Text("\(music.track)")
                 }
+                .width(40)
+                .alignment(.trailing)
                 TableColumn(LocalizedStringKey("text_year"), value: \.year)
+                    .width(50)
                 TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
+                    .width(170)
             }
 
         .padding()
@@ -68,15 +72,15 @@ struct MusicsView: View {
                 VStack {
                     HStack {
                         Button("", systemImage: "backward.circle", action: {NavigateSongs(kind: .previus)})
-                            .font(.system(size: 20))
+                            .font(.system(size: 30))
                             .buttonStyle(.borderless)
                         Button("", systemImage: "playpause.circle", action: {
                             PlayPauseSong(pathMusic: music.filePath)
                         })
-                        .font(.system(size: 20))
+                        .font(.system(size: 30))
                         .buttonStyle(.borderless)
                         Button("", systemImage: "forward.circle", action: {NavigateSongs(kind: .next)})
-                            .font(.system(size: 20))
+                            .font(.system(size: 30))
                             .buttonStyle(.borderless)
                         Spacer(minLength: 30)
                         VStack {
@@ -115,6 +119,7 @@ struct MusicsView: View {
         }
     }
     
+    // TODO: Implementar uma forma de não precisar pressionar o botão "play/pause" para tocar uma nova música
     func PlayPauseSong(pathMusic: String?) {
         if !isPlaying {
             if let url = URL(string: pathMusic ?? "") {

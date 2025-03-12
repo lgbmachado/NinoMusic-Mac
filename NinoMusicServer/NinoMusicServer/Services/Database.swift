@@ -12,7 +12,8 @@ class Database {
     
     private let colRowId = "RowId"
     
-    private let databasePath = (Bundle.main.bundlePath as NSString).deletingLastPathComponent + "/MusicDatabase.db"
+//    private let databasePath = (Bundle.main.bundlePath as NSString).deletingLastPathComponent + "/MusicDatabase.db"
+    private let databasePath = "/Users/nino/MusicDatabase.db"
     private var database: OpaquePointer?
     
     private let tableMusics = "Musics"

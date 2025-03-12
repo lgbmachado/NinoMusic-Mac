@@ -21,6 +21,8 @@ struct ServerView: View {
     private let serverPort:UInt = 8080
     @State var tableData = [ServerLog]()
     @State private var showAlert = false
+    @State private var disableButtonStartServer = false
+    @State private var disableButtonStoptServer = true
     
     var body: some View {
         Table(tableData) {
@@ -56,16 +58,24 @@ struct ServerView: View {
                 HStack {
                     Button("", systemImage: "flag.pattern.checkered.circle", action: {
                         showAlert = true
+                        disableButtonStartServer = true
+                        disableButtonStoptServer = false
                     })
-                    .font(.system(size: 25))
+                    .font(.system(size: 30))
                     .buttonStyle(.borderless)
+                    .disabled(disableButtonStartServer)
+                    
                     Button("", systemImage: "stop.circle", action: {
+                        webServer.stop()
+                        disableButtonStartServer = false
+                        disableButtonStoptServer = true
                         tableData.insert(ServerLog(dateTime: Date.now,
                                                    type: .info,
                                                    descr: "Servidor finalizado com sucesso!"), at: 0)
                     })
-                    .font(.system(size: 25))
+                    .font(.system(size: 30))
                     .buttonStyle(.borderless)
+                    .disabled(disableButtonStoptServer)
                 }
             }
         }

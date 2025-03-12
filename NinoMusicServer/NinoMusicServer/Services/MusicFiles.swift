@@ -74,7 +74,7 @@ class MusicFiles {
                     }
                 }
             }
-            self.musicDb.closeDatabase()
+//            self.musicDb.closeDatabase()
             
             if let deviceName = Host.current().localizedName {
                 

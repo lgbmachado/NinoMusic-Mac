@@ -21,14 +21,20 @@ struct TagEditorView: View {
     
     var body: some View {
         Table(tableData, selection: $selection, sortOrder: $sortOrder) {
+            TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
+                Text(verbatim: "\(((music.filePath as NSString).lastPathComponent).replacingOccurrences(of: "%20", with: " "))")
+            }
             TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
             TableColumn(LocalizedStringKey("text_artist"), value: \.artist)
             TableColumn(LocalizedStringKey("text_album"), value: \.album)
             TableColumn(LocalizedStringKey("text_track")) { music in
                 Text("\(music.track)")
             }
+            .width(40)
             TableColumn(LocalizedStringKey("text_year"), value: \.year)
+                .width(50)
             TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
+                .width(170)
         }
         .padding()
         .onChange(of: selection) { oldSelected, newSelected in

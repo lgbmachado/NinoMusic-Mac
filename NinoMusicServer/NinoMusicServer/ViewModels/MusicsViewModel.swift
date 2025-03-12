@@ -132,13 +132,11 @@ class MusicsViewModel: ObservableObject {
     func AddDirectory() {
         let dialog = NSOpenPanel()
         dialog.title = String(localized: "text_select_dir")
-//        dialog.showsResizeIndicator = true;
         dialog.showsHiddenFiles = false;
         dialog.canChooseFiles = false;
         dialog.canChooseDirectories = true;
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
-//            showProgress = true
             if let result = dialog.url {
                 self.directories.append(Directory(name: "Dir \(directories.count + 1)",
                                              path: result.path))

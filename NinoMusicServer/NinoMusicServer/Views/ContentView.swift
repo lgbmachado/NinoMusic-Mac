@@ -10,6 +10,8 @@ import SwiftUI
 struct ContentView: View {
 
     @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var serverViewModel: ServerViewModel
+    
     @State private var selection: ItemMenu = .musics
 
     var body: some View {
@@ -27,7 +29,7 @@ struct ContentView: View {
                 TagEditorView(musicsViewModel: musicsViewModel)
                     .navigationTitle("")
             case .server:
-                ServerView()
+                ServerView(serverViewModel: serverViewModel)
                     .navigationTitle("")
             }
         }
@@ -38,5 +40,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(musicsViewModel: MusicsViewModel())
+    ContentView(musicsViewModel: MusicsViewModel(), serverViewModel: ServerViewModel())
 }

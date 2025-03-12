@@ -10,7 +10,6 @@ import SwiftUI
 struct ContentView: View {
 
     @ObservedObject var musicsViewModel: MusicsViewModel
-    @State var musics = Musics()
     @State private var selection: ItemMenu = .musics
 
     var body: some View {
@@ -19,13 +18,13 @@ struct ContentView: View {
         } detail: {
             switch selection {
             case .libray:
-                LibraryView(musics: $musics)
+                LibraryView(musicsViewModel: musicsViewModel)
                     .navigationTitle("")
             case .musics:
                 MusicsView(musicsViewModel: musicsViewModel)
                     .navigationTitle("")
             case .tags:
-                TagEditorView(musics: $musics)
+                TagEditorView(musicsViewModel: musicsViewModel)
                     .navigationTitle("")
             case .server:
                 ServerView()

@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct TagEditorView: View {
-    @Binding var musics: Musics
+    @ObservedObject var musicsViewModel: MusicsViewModel
     
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
-    @State private var selection: Music.ID? = nil
+    @State var selection: Music.ID? = nil
+
+    var tableData: [Music] {
+        return musicsViewModel.musics.sorted(using: sortOrder)
+    }
     
     @State private var inspectorIsShown: Bool = false
-    
-    var tableData: [Music] {
-        return musics.musics.sorted(using: sortOrder)
-    }
     
     var body: some View {
         Table(tableData, selection: $selection, sortOrder: $sortOrder) {
@@ -38,7 +38,7 @@ struct TagEditorView: View {
         }
         .padding()
         .onChange(of: selection) { oldSelected, newSelected in
-            musics.idMusicSelected = newSelected ?? UUID()
+            musicsViewModel.setIdSelection(selection: newSelected ?? UUID())
         }
         .toolbar{
             ToolbarItem(placement: .primaryAction) {
@@ -59,5 +59,5 @@ struct TagEditorView: View {
 }
 
 #Preview {
-    TagEditorView(musics: .constant(Musics()))
+    TagEditorView(musicsViewModel: MusicsViewModel())
 }

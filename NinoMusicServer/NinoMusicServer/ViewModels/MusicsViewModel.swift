@@ -25,6 +25,8 @@ class MusicsViewModel: ObservableObject {
     @Published var timePosition: String = "00:00"
     @Published var isPlaying: Bool = false
     
+    @Published var directories = Directories().dirs
+    
     private var player: AVAudioPlayer?
 
     func addMusic(count: Int,
@@ -124,6 +126,53 @@ class MusicsViewModel: ObservableObject {
         } else {
             self.player?.pause()
             self.isPlaying = false
+        }
+    }
+    
+    func AddDirectory() {
+        let dialog = NSOpenPanel()
+        dialog.title = String(localized: "text_select_dir")
+//        dialog.showsResizeIndicator = true;
+        dialog.showsHiddenFiles = false;
+        dialog.canChooseFiles = false;
+        dialog.canChooseDirectories = true;
+        
+        if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
+//            showProgress = true
+            if let result = dialog.url {
+                self.directories.append(Directory(name: "Dir \(directories.count + 1)",
+                                             path: result.path))
+                Directories().dirs = directories
+                let musicDb = Database()
+                musicDb.cleanTables()
+            }
+        } else {
+            return
+        }
+    }
+    
+    func DeleteDirectory(selection: UUID) {
+        if directories.count > 0 {
+            let modstations = directories.filter{ $0.id != selection}
+            Directories().dirs = modstations
+            directories = Directories().dirs
+            let musicDb = Database()
+            musicDb.cleanTables()
+        }
+    }
+    
+    func UpdateMusicsDatabase() async {
+        let musicFiles = MusicFiles()
+        for i in 0..<Directories().dirs.count {
+            await musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
+                if let musicsLoaded = musicsLoaded {
+                    DispatchQueue.main.async {
+                        print("\(musicsLoaded) musicas lidas.")
+                        let musicDb = Database()
+                        self.musics = musicDb.getMusics()
+                    }
+                }
+            }
         }
     }
 }

@@ -19,6 +19,16 @@ struct Music: Identifiable {
     let duration: Int
     let filePath: String
     
+    static let emptyMusic = Music(count : 0,
+                                  artist: "",
+                                  album: "",
+                                  year: "",
+                                  track: 0,
+                                  musicTitle: "",
+                                  genre: "",
+                                  duration: 0,
+                                  filePath: "")
+    
     static let example = Music(count : 1,
                                artist: "BEAR MCCREARY",
                                album: "BATTLESTAR GALACTICA - SEASON 3",

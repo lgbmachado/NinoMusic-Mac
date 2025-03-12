@@ -11,7 +11,7 @@ import SwiftUI
 struct NinoMusicServerApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(musicsViewModel: MusicsViewModel())
         }
     }
 }

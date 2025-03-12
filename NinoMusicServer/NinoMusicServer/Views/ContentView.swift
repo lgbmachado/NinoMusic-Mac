@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
 
+    @ObservedObject var musicsViewModel: MusicsViewModel
     @State var musics = Musics()
     @State private var selection: ItemMenu = .musics
 
@@ -21,7 +22,7 @@ struct ContentView: View {
                 LibraryView(musics: $musics)
                     .navigationTitle("")
             case .musics:
-                MusicsView(musics: $musics)
+                MusicsView(musicsViewModel: musicsViewModel)
                     .navigationTitle("")
             case .tags:
                 TagEditorView(musics: $musics)
@@ -31,15 +32,12 @@ struct ContentView: View {
                     .navigationTitle("")
             }
         }
-        .task {
-            let musicDb = Database()
-            let musicsTemp = Musics()
-            musicsTemp.musics = musicDb.getMusics()
-            musics = musicsTemp
+        .task {   
+            musicsViewModel.loadMusics()
         }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(musicsViewModel: MusicsViewModel())
 }

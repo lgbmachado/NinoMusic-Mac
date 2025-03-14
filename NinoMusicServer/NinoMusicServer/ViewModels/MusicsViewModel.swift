@@ -15,7 +15,7 @@ enum NavigationKind {
     case previus
 }
 
-class MusicsViewModel: ObservableObject, MusicFilesDelegate {
+class MusicsViewModel: ObservableObject {
     
     @Published var musics: [Music] = []
     @Published var idMusicSelected: Music.ID = UUID()
@@ -25,28 +25,8 @@ class MusicsViewModel: ObservableObject, MusicFilesDelegate {
     @Published var timeDuration: String = "00:00"
     @Published var timePosition: String = "00:00"
     @Published var isPlaying: Bool = false
-    @Published var totalMusics: Int = 0
-    @Published var totalTime: TimeInterval = 0
-    @Published var isLoading: Bool = false
-    
-    @Published var directories = Directories().dirs
     
     private var player: AVAudioPlayer?
-    private var musicFiles = MusicFiles()
-    
-    init() {
-        self.musicFiles.delegate = self
-    }
-    
-    func loadMusics() {
-        let musicDb = Database()
-        self.musics = musicDb.getMusics()
-        self.totalTime = 0
-        for music in musics {
-            self.totalTime += Double(music.duration)
-        }
-        self.totalMusics = musics.count
-    }
     
     func setIdSelection(selection: Music.ID) {
         self.idMusicSelected = selection
@@ -105,7 +85,7 @@ class MusicsViewModel: ObservableObject, MusicFilesDelegate {
                         let seconds = ti % 60
                         let minutes = (ti / 60) % 60
                         self.timePosition = String(format: "%0.2d:%0.2d",minutes,seconds)
-
+                        
                         if !self.isPlaying {
                             timer.invalidate()
                             self.timeDuration = "00:00"
@@ -121,55 +101,5 @@ class MusicsViewModel: ObservableObject, MusicFilesDelegate {
             self.player?.pause()
             self.isPlaying = false
         }
-    }
-    
-    func addDirectory() {
-        let dialog = NSOpenPanel()
-        dialog.title = String(localized: "text_select_dir")
-        dialog.showsHiddenFiles = false;
-        dialog.canChooseFiles = false;
-        dialog.canChooseDirectories = true;
-        
-        if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
-            if let result = dialog.url {
-                self.directories.append(Directory(name: "Dir \(directories.count + 1)",
-                                             path: result.path))
-                Directories().dirs = directories
-                let musicDb = Database()
-                musicDb.cleanTables()
-            }
-        } else {
-            return
-        }
-    }
-    
-    func deleteDirectory(selection: UUID) {
-        if directories.count > 0 {
-            let modstations = directories.filter{ $0.id != selection}
-            Directories().dirs = modstations
-            directories = Directories().dirs
-            let musicDb = Database()
-            musicDb.cleanTables()
-        }
-    }
-    
-    func updateMusicsDatabase() async {
-        self.totalMusics = 0
-        self.totalTime = 0
-        self.isLoading = true
-        for i in 0..<Directories().dirs.count {
-            await self.musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
-            }
-        }
-        loadMusics()
-        self.isLoading = false
-    }
-}
-
-extension MusicsViewModel {
-    
-    func musicLoading(musicsLoaded: Int, totalTime: TimeInterval) {
-        self.totalMusics = musicsLoaded
-        self.totalTime = totalTime
     }
 }

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
 
+    @ObservedObject var libraryViewModel: LibraryViewModel
     @ObservedObject var musicsViewModel: MusicsViewModel
     @ObservedObject var serverViewModel: ServerViewModel
     
@@ -20,7 +21,7 @@ struct ContentView: View {
         } detail: {
             switch selection {
             case .libray:
-                LibraryView(musicsViewModel: musicsViewModel)
+                LibraryView(musicsViewModel: musicsViewModel, libraryViewModel: libraryViewModel)
                     .navigationTitle("")
             case .musics:
                 MusicsView(musicsViewModel: musicsViewModel)
@@ -34,11 +35,12 @@ struct ContentView: View {
             }
         }
         .task {   
-            musicsViewModel.loadMusics()
+            libraryViewModel.loadMusics()
+            musicsViewModel.musics = libraryViewModel.musics
         }
     }
 }
 
 #Preview {
-    ContentView(musicsViewModel: MusicsViewModel(), serverViewModel: ServerViewModel())
+    ContentView(libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(), serverViewModel: ServerViewModel())
 }

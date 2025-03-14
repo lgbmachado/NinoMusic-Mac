@@ -9,12 +9,13 @@ import SwiftUI
 
 struct LibraryView: View {
     @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var libraryViewModel: LibraryViewModel
     
     @State private var sortOrder = [KeyPathComparator(\Directory.name)]
     @State private var selection: Directory.ID? = nil
     
     var tableData: [Directory] {
-        return musicsViewModel.directories.sorted(using: sortOrder)
+        return libraryViewModel.directories.sorted(using: sortOrder)
     }
     
     var body: some View {
@@ -26,7 +27,7 @@ struct LibraryView: View {
         .padding()
         .toolbar {
             ToolbarItem(placement: .navigation) {
-                ToolbarLibraryView(musicsViewModel: musicsViewModel, selection: $selection)
+                ToolbarLibraryView(musicsViewModel: musicsViewModel, libraryViewModel: libraryViewModel, selection: $selection)
             }
         }
     }
@@ -35,6 +36,8 @@ struct LibraryView: View {
 // MARK: ToolbarMusicsView
 struct ToolbarLibraryView: View {
     @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var libraryViewModel: LibraryViewModel
+    
     @Binding var selection: Music.ID?
     
     @State private var showAlert1 = false
@@ -45,11 +48,7 @@ struct ToolbarLibraryView: View {
     var body: some View {
         HStack {
             Button("", systemImage: "plus.circle", action: {
-                self.musicsViewModel.addDirectory()
-                Task {
-                    await self.musicsViewModel.updateMusicsDatabase()
-                }
-                showAlert1 = true
+                self.addDiretory()
             })
             .font(.system(size: 30))
             .buttonStyle(.borderless)
@@ -62,9 +61,9 @@ struct ToolbarLibraryView: View {
             
             
             VStack(alignment: .leading, spacing: 6) {
-                Text(verbatim: !self.musicsViewModel.isLoading && self.musicsViewModel.totalMusics > 0 ? "Músicas:  \(self.musicsViewModel.totalMusics)" : "")
+                Text(verbatim: !self.libraryViewModel.isLoading && self.libraryViewModel.totalMusics > 0 ? "Músicas:  \(self.libraryViewModel.totalMusics)" : "")
                     .font(.title3)
-                Text(verbatim: !self.musicsViewModel.isLoading  && self.musicsViewModel.totalMusics > 0 ? "Tempo: \(getTotalMusicTime(interval: self.musicsViewModel.totalTime))" : "")
+                Text(verbatim: !self.libraryViewModel.isLoading  && self.libraryViewModel.totalMusics > 0 ? "Tempo: \(getTotalMusicTime(interval: self.libraryViewModel.totalTime))" : "")
                     .font(.title3)
             }
             .padding(.top, 5)
@@ -74,14 +73,14 @@ struct ToolbarLibraryView: View {
         .padding(.bottom, 5)
         
         .sheet(isPresented: $showAlert1) {
-            showLoadingProgress(musicsViewModel: musicsViewModel)
+            showLoadingProgress(libraryViewModel: libraryViewModel)
         }
         
         .confirmationDialog(LocalizedStringKey("text_confirm_dir_exlusion"), isPresented: $showAlert2) {
             Button(LocalizedStringKey("text_yes")) {
-                self.musicsViewModel.deleteDirectory(selection: selection ?? UUID())
+                self.libraryViewModel.deleteDirectory(selection: selection ?? UUID())
                 Task {
-                    await self.musicsViewModel.updateMusicsDatabase()
+                    await self.libraryViewModel.updateMusicsDatabase()
                 }
                 
                 showAlert3 = true
@@ -95,6 +94,27 @@ struct ToolbarLibraryView: View {
             Button(LocalizedStringKey("text_ok"), role: .cancel) { }
         }
         .dialogIcon(Image(systemName: "info.circle"))
+    }
+    
+    func addDiretory() {
+        let dialog = NSOpenPanel()
+        dialog.title = String(localized: "text_select_dir")
+        dialog.showsHiddenFiles = false;
+        dialog.canChooseFiles = false;
+        dialog.canChooseDirectories = true;
+        
+        if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
+            if let url = dialog.url {
+                self.libraryViewModel.addDirectory(diretory: url.path())
+                Task {
+                    await self.libraryViewModel.updateMusicsDatabase()
+                    musicsViewModel.musics = libraryViewModel.musics
+                }
+                showAlert1 = true
+            }
+        } else {
+            return
+        }
     }
     
     func getTotalMusicTime(interval: TimeInterval) -> String {
@@ -147,12 +167,12 @@ struct ToolbarLibraryView: View {
 
 
 struct showLoadingProgress: View {
-    @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var libraryViewModel: LibraryViewModel
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
         VStack {
-            if self.musicsViewModel.isLoading {
+            if self.libraryViewModel.isLoading {
                 ProgressView()
                     .frame(width: 50, height: 50, alignment: .center)
             } else {
@@ -160,12 +180,12 @@ struct showLoadingProgress: View {
                     .resizable()
                     .frame(width: 45, height: 45, alignment: .center)
             }
-            Text(verbatim: self.musicsViewModel.isLoading ? "Carregando \(self.musicsViewModel.totalMusics) músicas..." : "\(self.musicsViewModel.totalMusics) músicas lidas!")
+            Text(verbatim: self.libraryViewModel.isLoading ? "Carregando \(self.libraryViewModel.totalMusics) músicas..." : "\(self.libraryViewModel.totalMusics) músicas lidas!")
             Button(LocalizedStringKey("text_ok")) {
                 dismiss()
             }
             .frame(width: 100, height: 35, alignment: .center)
-            .disabled(self.musicsViewModel.isLoading)
+            .disabled(self.libraryViewModel.isLoading)
         }
         .frame(maxWidth: 300, maxHeight: 200, alignment: .center)
         .padding()
@@ -190,5 +210,5 @@ struct DirectoryRowView: View {
 }
 
 #Preview {
-    LibraryView(musicsViewModel: MusicsViewModel())
+    LibraryView(musicsViewModel: MusicsViewModel(), libraryViewModel: LibraryViewModel())
 }

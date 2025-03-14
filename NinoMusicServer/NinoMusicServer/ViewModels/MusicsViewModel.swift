@@ -15,7 +15,8 @@ enum NavigationKind {
     case previus
 }
 
-class MusicsViewModel: ObservableObject {
+class MusicsViewModel: ObservableObject, MusicFilesDelegate {
+    
     @Published var musics: [Music] = []
     @Published var idMusicSelected: Music.ID = UUID()
     @Published var musicSelected: Music = Music.emptyMusic
@@ -25,14 +26,26 @@ class MusicsViewModel: ObservableObject {
     @Published var timePosition: String = "00:00"
     @Published var isPlaying: Bool = false
     @Published var totalMusics: Int = 0
+    @Published var totalTime: TimeInterval = 0
+    @Published var isLoading: Bool = false
     
     @Published var directories = Directories().dirs
     
     private var player: AVAudioPlayer?
+    private var musicFiles = MusicFiles()
+    
+    init() {
+        self.musicFiles.delegate = self
+    }
     
     func loadMusics() {
         let musicDb = Database()
         self.musics = musicDb.getMusics()
+        self.totalTime = 0
+        for music in musics {
+            self.totalTime += Double(music.duration)
+        }
+        self.totalMusics = musics.count
     }
     
     func setIdSelection(selection: Music.ID) {
@@ -142,17 +155,21 @@ class MusicsViewModel: ObservableObject {
     
     func updateMusicsDatabase() async {
         self.totalMusics = 0
-        let musicFiles = MusicFiles()
+        self.totalTime = 0
+        self.isLoading = true
         for i in 0..<Directories().dirs.count {
-            await musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
-                if let musicsLoaded = musicsLoaded {
-                    self.totalMusics += musicsLoaded
-                    DispatchQueue.main.async {
-                        let musicDb = Database()
-                        self.musics = musicDb.getMusics()
-                    }
-                }
+            await self.musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
             }
         }
+        loadMusics()
+        self.isLoading = false
+    }
+}
+
+extension MusicsViewModel {
+    
+    func musicLoading(musicsLoaded: Int, totalTime: TimeInterval) {
+        self.totalMusics = musicsLoaded
+        self.totalTime = totalTime
     }
 }

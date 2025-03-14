@@ -7,27 +7,6 @@
     "%lld" : {
 
     },
-    "" : {
-
-    },
-    "text_file_name" : {
-      "comment" : "Texto \"Nome do Arquivo\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File Name"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nome do Arquivo"
-          }
-        }
-      }
-    },
     "text_album" : {
       "comment" : "Texto \"Álbum\".",
       "extractionState" : "manual",
@@ -258,6 +237,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Editor"
+          }
+        }
+      }
+    },
+    "text_file_name" : {
+      "comment" : "Texto \"Nome do Arquivo\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File Name"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome do Arquivo"
           }
         }
       }

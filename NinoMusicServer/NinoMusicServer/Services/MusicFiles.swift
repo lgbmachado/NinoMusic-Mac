@@ -10,12 +10,13 @@ import Foundation
 import ID3TagEditor
 
 protocol MusicFilesDelegate {
-    func musicLoading(musicsLoaded: Int)
+    func musicLoading(musicsLoaded: Int, totalTime: TimeInterval)
 }
 
 class MusicFiles {
     
     private var count = 0
+    private var totalTime: TimeInterval = 0
     var delegate: MusicFilesDelegate?
     
     let musicDb = Database()
@@ -61,9 +62,10 @@ class MusicFiles {
                                                              genre: genre) {
                                         
                                         if count % 49 == 0 {
-                                            delegate?.musicLoading(musicsLoaded: count)
+                                            delegate?.musicLoading(musicsLoaded: count, totalTime: totalTime)
                                         }
                                         count += 1
+                                        totalTime += Double(duration)
                                     }
                                 }
                                 catch {

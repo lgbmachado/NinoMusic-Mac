@@ -51,6 +51,9 @@ struct ToolbarMusicsView: View {
     @ObservedObject var musicsViewModel: MusicsViewModel
     @Binding var selection: Music.ID?
     
+    @State private var isMovingSlider = false
+    @State var dragGestureValue: DragGesture.Value?
+    
     var body: some View {
         
         VStack {
@@ -74,7 +77,12 @@ struct ToolbarMusicsView: View {
                 .buttonStyle(.borderless)
                 Spacer(minLength: 30)
                 VStack {
-                    Slider(value: $musicsViewModel.position, in: 0...self.musicsViewModel.duration)
+                    Slider(value: $musicsViewModel.position, in: 0...self.musicsViewModel.duration, onEditingChanged: { editing in
+                        isMovingSlider = editing
+                        if !isMovingSlider {
+                            self.musicsViewModel.setMusicPosition(newPosition: musicsViewModel.position)
+                        }
+                    })
                         .frame(width: 200, height: 20)
                     Text(verbatim: self.musicsViewModel.isPlaying ? "\(self.musicsViewModel.timePosition) / \(self.musicsViewModel.timeDuration)" : "")
                         .font(.caption2)

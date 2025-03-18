@@ -15,7 +15,7 @@ enum NavigationKind {
     case previus
 }
 
-class MusicsViewModel: ObservableObject {
+class MusicsViewModel: NSObject, ObservableObject {
     
     @Published var musics: [Music] = []
     @Published var idMusicSelected: Music.ID = UUID()
@@ -65,6 +65,7 @@ class MusicsViewModel: ObservableObject {
             if let url = URL(string: self.musicSelected.filePath) {
                 do {
                     self.player = try AVAudioPlayer(contentsOf: url)
+                    self.player?.delegate  = self
                     self.player?.prepareToPlay()
                     
                     self.duration = player?.duration ?? 0
@@ -100,6 +101,24 @@ class MusicsViewModel: ObservableObject {
         } else {
             self.player?.pause()
             self.isPlaying = false
+        }
+    }
+    
+    func setMusicPosition(newPosition: Double) {
+        self.player?.pause()
+        self.player?.currentTime = newPosition
+        self.player?.play()
+    }
+}
+
+extension MusicsViewModel: AVAudioPlayerDelegate {
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        if flag {
+            self.player?.stop()
+            self.isPlaying = false
+            navigateSongs(kind: .next)
+            playPauseSong()
         }
     }
 }

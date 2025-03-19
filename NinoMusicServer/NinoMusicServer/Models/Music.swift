@@ -8,26 +8,26 @@
 import Foundation
 
 struct Music: Identifiable {
-    let id = UUID()
-    let count: Int
-    let artist: String
-    let album: String
-    let year: String
-    let track: Int
-    let musicTitle: String
-    let genre: String
+    var id = UUID()
+    var count: Int
+    var artist: String
+    var album: String
+    var year: String
+    var track: Int
+    var musicTitle: String
+    var genre: String
     let duration: Int
-    let filePath: String
+    var filePath: String
     
-    static let emptyMusic = Music(count : 0,
-                                  artist: "",
-                                  album: "",
-                                  year: "",
-                                  track: 0,
-                                  musicTitle: "",
-                                  genre: "",
-                                  duration: 0,
-                                  filePath: "")
+    static let emptyMusic = Music(count : Int(),
+                                  artist: String(),
+                                  album: String(),
+                                  year: String(),
+                                  track: Int(),
+                                  musicTitle: String(),
+                                  genre: String(),
+                                  duration: Int(),
+                                  filePath: String())
     
 }
 

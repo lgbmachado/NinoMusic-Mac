@@ -21,7 +21,7 @@ struct MusicsView: View {
     var body: some View {
         Table(tableData, selection: $selection, sortOrder: $sortOrder) {
             TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
-            TableColumn(LocalizedStringKey("text_artist"), value: \.artist)
+            TableColumn(LocalizedStringKey("text_artists"), value: \.artist)
             TableColumn(LocalizedStringKey("text_album"), value: \.album)
             TableColumn(LocalizedStringKey("text_track")) { music in
                 Text("\(music.track)")
@@ -58,18 +58,18 @@ struct ToolbarMusicsView: View {
         
         VStack {
             HStack {
-                Button("", systemImage: "backward.circle", action: {
+                Button(String(), systemImage: "backward.circle", action: {
                     self.musicsViewModel.navigateSongs(kind: .previus)
                     selection = self.musicsViewModel.idMusicSelected
                 })
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
-                Button("", systemImage: "playpause.circle", action: {
+                Button(String(), systemImage: "playpause.circle", action: {
                     self.musicsViewModel.playPauseSong()
                 })
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
-                Button("", systemImage: "forward.circle", action: {
+                Button(String(), systemImage: "forward.circle", action: {
                     self.musicsViewModel.navigateSongs(kind: .next)
                     selection = self.musicsViewModel.idMusicSelected
                 })

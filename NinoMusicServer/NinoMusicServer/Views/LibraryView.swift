@@ -47,13 +47,13 @@ struct ToolbarLibraryView: View {
     
     var body: some View {
         HStack {
-            Button("", systemImage: "plus.circle", action: {
+            Button(String(), systemImage: "plus.circle", action: {
                 self.addDiretory()
             })
             .font(.system(size: 30))
             .buttonStyle(.borderless)
             
-            Button("", systemImage: "minus.circle", action: {
+            Button(String(), systemImage: "minus.circle", action: {
                 showAlert2 = true
             })
             .font(.system(size: 30))

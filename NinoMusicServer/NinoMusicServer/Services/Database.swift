@@ -16,6 +16,10 @@ class Database {
     private let databasePath = "/Users/nino/MusicDatabase.db"
     private var database: OpaquePointer?
     
+    private let tableDirectories = "Directories"
+    private let colDirName = "Name"
+    private let colDirPath = "DirPath"
+    
     private let tableMusics = "Musics"
     private let colFilePath = "FilePath"
     private let colIdArtist = "IdArtist"
@@ -39,6 +43,7 @@ class Database {
         print("Path banco de dados: \(self.databasePath)")
         
         if sqlite3_open(self.databasePath, &database) == SQLITE_OK {
+            CreateTableDirectories()
             CreateTableMusics()
             CreateTableArtists()
             CreateTableAlbuns()
@@ -417,10 +422,10 @@ class Database {
     }
     
     private func DeleteRowsTableArtists() -> Bool {
-        let sqlDeleteRowsTableMusics = "DELETE FROM \(self.tableArtists);"
+        let sqlDeleteRowsTableArtists = "DELETE FROM \(self.tableArtists);"
         var deleteRowsTableStatement: OpaquePointer?
         var result = false
-        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableMusics, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableArtists, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
             if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
                 result = true
             }
@@ -441,10 +446,10 @@ class Database {
     }
     
     private func DeleteRowsTableAlbuns() -> Bool {
-        let sqlDeleteRowsTableMusics = "DELETE FROM \(self.tableAlbuns);"
+        let sqlDeleteRowsTableAlbuns = "DELETE FROM \(self.tableAlbuns);"
         var deleteRowsTableStatement: OpaquePointer?
         var result = false
-        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableMusics, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableAlbuns, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
             if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
                 result = true
             }
@@ -464,10 +469,10 @@ class Database {
     }
     
     private func DeleteRowsTableGenres() -> Bool {
-        let sqlDeleteRowsTableMusics = "DELETE FROM \(self.tableGenres);"
+        let sqlDeleteRowsTableGenres = "DELETE FROM \(self.tableGenres);"
         var deleteRowsTableStatement: OpaquePointer?
         var result = false
-        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableMusics, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableGenres, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
             if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
                 result = true
             }
@@ -475,5 +480,58 @@ class Database {
         sqlite3_finalize(deleteRowsTableStatement)
         return result
     }
+    
+    private func CreateTableDirectories() {
+        let sqlCreateTableDir = """
+        CREATE TABLE IF NOT EXISTS \(self.tableDirectories) (
+        \(self.colDirPath) CHAR(255) PRIMARY KEY NOT NULL,
+        \(self.colDirName) CHAR(75);
+        """
+        if CreateTable(sql: sqlCreateTableDir) {
+            
+        }
+    }
+    
+    func getDirectories() -> [Directory] {
+        let sql = """
+        SELECT
+           \(self.tableDirectories).\(self.colRowId),
+           \(self.tableDirectories).\(self.colDirName),
+           \(self.tableDirectories).\(self.colDirPath)
+        FROM
+           \(self.tableDirectories)
+        ORDER BY
+           \(self.tableDirectories).\(self.colDirName)
+        """
+        var queryStatement: OpaquePointer?
+        var dirList = [Directory]()
+        var count = 0
+        
+        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                count += 1
+                let dirName = String(cString: sqlite3_column_text(queryStatement, 1))
+                let dirPath = String(cString: sqlite3_column_text(queryStatement, 2))
+                
+                dirList.append(Directory(name: dirName, path: dirPath))
+            }
+        }
+        sqlite3_finalize(queryStatement)
+        return dirList
+    }
+    
+    private func DeleteRowsTableDirectories() -> Bool {
+        let sqlDeleteRowsTableDirs = "DELETE FROM \(self.tableDirectories);"
+        var deleteRowsTableStatement: OpaquePointer?
+        var result = false
+        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableDirs, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
+            if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
+                result = true
+            }
+        }
+        sqlite3_finalize(deleteRowsTableStatement)
+        return result
+    }
+    
 }
 

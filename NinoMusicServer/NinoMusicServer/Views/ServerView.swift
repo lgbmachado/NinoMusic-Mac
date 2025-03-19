@@ -50,7 +50,7 @@ struct ServerView: View {
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 HStack {
-                    Button("", systemImage: "flag.pattern.checkered.circle", action: {
+                    Button(String(), systemImage: "flag.pattern.checkered.circle", action: {
                         showAlert = true
                         disableButtonStartServer = true
                         disableButtonStoptServer = false
@@ -59,7 +59,7 @@ struct ServerView: View {
                     .buttonStyle(.borderless)
                     .disabled(disableButtonStartServer)
                     
-                    Button("", systemImage: "stop.circle", action: {
+                    Button(String(), systemImage: "stop.circle", action: {
                         serverViewModel.stopServer()
                         disableButtonStartServer = false
                         disableButtonStoptServer = true

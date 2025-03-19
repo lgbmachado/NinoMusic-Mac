@@ -43,13 +43,13 @@ class MusicFiles {
                                 do {
                                     let id3Tag = try id3TagEditor.read(from: fileURL.path)
                                     
-                                    let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? "") as String
-                                    let album = ((id3Tag?.frames[ .album] as? ID3FrameWithStringContent)?.content ?? "") as String
-                                    let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? 0) as Int
-                                    let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? 0) as Int
+                                    let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
+                                    let album = ((id3Tag?.frames[ .album] as? ID3FrameWithStringContent)?.content ?? String()) as String
+                                    let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int
+                                    let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
                                     let duration = await getDuration(url: fileURL)
-                                    let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? "") as String
-                                    let genre = ((id3Tag?.frames[.genre] as? ID3FrameGenre)?.description ?? "") as String
+                                    let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? String()) as String
+                                    let genre = ((id3Tag?.frames[.genre] as? ID3FrameGenre)?.description ?? String()) as String
                                     let filePath = fileURL.absoluteString
                                     
                                     if self.musicDb.AddMusic(filePath: filePath,
@@ -76,7 +76,6 @@ class MusicFiles {
                     }
                 }
             }
-//            self.musicDb.closeDatabase()
             
             if let deviceName = Host.current().localizedName {
                 

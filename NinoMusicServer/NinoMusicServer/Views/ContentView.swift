@@ -22,16 +22,16 @@ struct ContentView: View {
             switch selection {
             case .libray:
                 LibraryView(musicsViewModel: musicsViewModel, libraryViewModel: libraryViewModel)
-                    .navigationTitle("")
+                    .navigationTitle(String())
             case .musics:
                 MusicsView(musicsViewModel: musicsViewModel)
-                    .navigationTitle("")
+                    .navigationTitle(String())
             case .tags:
                 TagEditorView(musicsViewModel: musicsViewModel)
-                    .navigationTitle("")
+                    .navigationTitle(String())
             case .server:
                 ServerView(serverViewModel: serverViewModel)
-                    .navigationTitle("")
+                    .navigationTitle(String())
             }
         }
         .task {   

@@ -26,6 +26,7 @@ struct TagEditorView: View {
             }
             TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
             TableColumn(LocalizedStringKey("text_artist"), value: \.artist)
+                .width(150)
             TableColumn(LocalizedStringKey("text_album"), value: \.album)
             TableColumn(LocalizedStringKey("text_track")) { music in
                 Text("\(music.track)")
@@ -34,7 +35,7 @@ struct TagEditorView: View {
             TableColumn(LocalizedStringKey("text_year"), value: \.year)
                 .width(50)
             TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
-                .width(170)
+                .width(100)
         }
         .padding()
         .onChange(of: selection) { oldSelected, newSelected in
@@ -51,7 +52,7 @@ struct TagEditorView: View {
         }
         .inspector(isPresented: $inspectorIsShown) {
             Group {
-                MusicDetailsView()
+                MusicDetailsView(musicsViewModel: self.musicsViewModel)
             }
             .frame(minWidth: 100, maxWidth: .infinity)
         }

@@ -43,6 +43,9 @@ struct MusicsView: View {
                 ToolbarMusicsView(musicsViewModel: musicsViewModel, selection: $selection)
             }
         }
+        .onAppear() {
+            musicsViewModel.reloadMusics()
+        }
     }
 }
 

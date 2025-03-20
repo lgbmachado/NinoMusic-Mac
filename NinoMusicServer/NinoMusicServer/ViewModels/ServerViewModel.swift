@@ -21,6 +21,7 @@ class ServerViewModel: ObservableObject {
     
     private let webServer = GCDWebServer()
     private let serverPort:UInt = 8080
+    private let musicDb = Database()
     
     func startMusicServer() {
         webServer.addDefaultHandler(forMethod: "GET", request: GCDWebServerRequest.self, processBlock: {request in
@@ -61,8 +62,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            let musicDb = Database()
-            musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
+            self.musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -96,8 +96,7 @@ class ServerViewModel: ObservableObject {
     
     private func listMusic() -> GCDWebServerDataResponse {
         var data = Data()
-        let musicDb = Database()
-        musicDb.listMusicsRemote { musicsList in
+        self.musicDb.listMusicsRemote { musicsList in
             if let musicsList = musicsList {
                 do {
                     data = try JSONEncoder().encode(musicsList)
@@ -106,7 +105,6 @@ class ServerViewModel: ObservableObject {
                 }
             }
         }
-        musicDb.closeDatabase()
         self.logs.insert(ServerLog(dateTime: Date.now,
                                    type: .info,
                                    descr: "Enviada lista de músicas."), at: 0)
@@ -117,8 +115,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            let musicDb = Database()
-            musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
+            self.musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {

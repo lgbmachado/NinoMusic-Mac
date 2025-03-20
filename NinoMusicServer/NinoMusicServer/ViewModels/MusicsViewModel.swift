@@ -28,9 +28,13 @@ class MusicsViewModel: NSObject, ObservableObject {
     
     private var player: AVAudioPlayer?
     
+    func reloadMusics() {
+        self.musics = MusicFiles().musics
+    }
+    
     func setIdSelection(selection: Music.ID) {
         self.idMusicSelected = selection
-        if let item = musics.first(where: { $0.id == self.idMusicSelected }) {
+        if let item = self.musics.first(where: { $0.id == self.idMusicSelected }) {
             self.musicSelected = item
         } else {
             self.musicSelected = Music.emptyMusic
@@ -39,9 +43,12 @@ class MusicsViewModel: NSObject, ObservableObject {
     
     func navigateSongs(kind: NavigationKind) {
         let searchCount = kind == .next ? musicSelected.count + 1 : musicSelected.count - 1
-        if let selected = musics.first(where: {$0.count == searchCount}) {
+        if let selected = self.musics.first(where: {$0.count == searchCount}) {
             self.idMusicSelected = selected.id
             self.musicSelected = selected
+            self.player?.stop()
+            self.isPlaying = false
+            playPauseSong()
         }
     }
     

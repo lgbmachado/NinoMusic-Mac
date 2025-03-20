@@ -24,6 +24,9 @@ struct LibraryView: View {
                 DirectoryRowView(diretory: diretory)
             }
         }
+        .onChange(of: selection) { oldSelected, newSelected in
+
+        }
         .padding()
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -54,7 +57,9 @@ struct ToolbarLibraryView: View {
             .buttonStyle(.borderless)
             
             Button(String(), systemImage: "minus.circle", action: {
-                showAlert2 = true
+                if self.selection != nil {
+                    showAlert2 = true
+                }
             })
             .font(.system(size: 30))
             .buttonStyle(.borderless)
@@ -78,12 +83,10 @@ struct ToolbarLibraryView: View {
         
         .confirmationDialog(LocalizedStringKey("text_confirm_dir_exlusion"), isPresented: $showAlert2) {
             Button(LocalizedStringKey("text_yes")) {
-                self.libraryViewModel.deleteDirectory(selection: selection ?? UUID())
                 Task {
-                    await self.libraryViewModel.updateMusicsDatabase()
+                    await self.libraryViewModel.deleteDirectory(selection: selection ?? UUID())
+                    showAlert3 = true
                 }
-                
-                showAlert3 = true
             }
             Button(LocalizedStringKey("text_no"), role: .cancel) {
             }
@@ -105,10 +108,8 @@ struct ToolbarLibraryView: View {
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             if let url = dialog.url {
-                self.libraryViewModel.addDirectory(diretory: url.path())
                 Task {
-                    await self.libraryViewModel.updateMusicsDatabase()
-                    musicsViewModel.musics = libraryViewModel.musics
+                    await self.libraryViewModel.addDirectory(dirPath: url.path())
                 }
                 showAlert1 = true
             }

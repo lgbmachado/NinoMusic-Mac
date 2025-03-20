@@ -14,53 +14,37 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     @Published var totalTime: TimeInterval = 0
     @Published var isLoading: Bool = false
     
-    @Published var directories = Directories().dirs
+    @Published var directories = [Directory]()
     
     private var musicFiles = MusicFiles()
     
     init() {
         self.musicFiles.delegate = self
+        self.directories = self.musicFiles.directories
+        self.musics = self.musicFiles.musics
     }
-    
-    func loadMusics() {
-        let musicDb = Database()
-        self.musics = musicDb.getMusics()
-        self.totalTime = 0
-        for music in musics {
-            self.totalTime += Double(music.duration)
-        }
-        self.totalMusics = musics.count
-    }
-    
- 
-    func addDirectory(diretory: String) {
-        self.directories.append(Directory(name: "Dir \(directories.count + 1)",
-                                     path: diretory))
-        Directories().dirs = directories
-        let musicDb = Database()
-        musicDb.cleanTables()
-    }
-    
-    func deleteDirectory(selection: UUID) {
-        if directories.count > 0 {
-            let modstations = directories.filter{ $0.id != selection}
-            Directories().dirs = modstations
-            directories = Directories().dirs
-            let musicDb = Database()
-            musicDb.cleanTables()
-        }
-    }
-    
-    func updateMusicsDatabase() async {
-        self.totalMusics = 0
-        self.totalTime = 0
+     
+    func addDirectory(dirPath: String) async {
         self.isLoading = true
-        for i in 0..<Directories().dirs.count {
-            await self.musicFiles.loadMusics(path: Directories().dirs[i].path) { musicsLoaded in
-            }
-        }
-        loadMusics()
+        await self.musicFiles.addDirectory(dirPath: dirPath.replacingOccurrences(of: "file://", with: "").replacingOccurrences(of: "%20", with: " "))
+        self.directories = self.musicFiles.directories
+        self.musics = self.musicFiles.musics
         self.isLoading = false
+    }
+    
+    func deleteDirectory(selection: UUID) async {
+        self.isLoading = true
+        if let dir = musicFiles.directories.first(where: { $0.id == selection }) {
+            await self.musicFiles.deleteDirectory(dirName: dir.name)
+            self.directories = self.musicFiles.directories
+            self.musics = self.musicFiles.musics
+            self.totalTime = self.musicFiles.totalTime
+            self.totalMusics = self.musicFiles.musics.count
+            self.isLoading = false
+        } else {
+            self.isLoading = false
+        }
+
     }
 }
 

@@ -35,7 +35,6 @@ struct ContentView: View {
             }
         }
         .task {   
-            libraryViewModel.loadMusics()
             musicsViewModel.musics = libraryViewModel.musics
         }
     }

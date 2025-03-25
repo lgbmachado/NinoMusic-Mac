@@ -19,6 +19,7 @@ class MusicsViewModel: NSObject, ObservableObject {
     
     @Published var musics: [Music] = []
     @Published var idMusicSelected: Music.ID = UUID()
+    @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
     @Published var duration: Double = 0
     @Published var position: Double = 0
@@ -36,6 +37,7 @@ class MusicsViewModel: NSObject, ObservableObject {
         self.idMusicSelected = selection
         if let item = self.musics.first(where: { $0.id == self.idMusicSelected }) {
             self.musicSelected = item
+            self.fileSelected = String((item.filePath as NSString).lastPathComponent).replacingOccurrences(of: "%20", with: " ")
         } else {
             self.musicSelected = Music.emptyMusic
         }

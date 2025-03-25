@@ -4,113 +4,11 @@
     "%lld" : {
 
     },
-    "text_album_cover" : {
-      "comment" : "Texto \"Capa do Álbum\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Album Cover"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capa do Álbum"
-          }
-        }
-      }
+    "Arquivo" : {
+
     },
-    "text_music_genre" : {
-      "comment" : "Texto \"Gênero da Música\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Music Genre"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gênero da Música"
-          }
-        }
-      }
-    },
-    "text_music_name" : {
-      "comment" : "Texto \"Nome da Música\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Music Name"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nome da Música"
-          }
-        }
-      }
-    },
-    "text_album_name" : {
-      "comment" : "Texto \"Nome do Álbum\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Album Name"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nome do Álbum"
-          }
-        }
-      }
-    },
-    "text_artist_name" : {
-      "comment" : "Texto \"Nome do Artista\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artist Name"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nome do Artista"
-          }
-        }
-      }
-    },
-    "text_track_number" : {
-      "comment" : "Texto \"Número da Trilha\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Track Number"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Número da Trilha"
-          }
-        }
-      }
+    "Nome do Arquivo" : {
+
     },
     "text_album" : {
       "comment" : "Texto \"Álbum\".",
@@ -126,6 +24,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Álbum"
+          }
+        }
+      }
+    },
+    "text_album_cover" : {
+      "comment" : "Texto \"Capa do Álbum\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album Cover"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capa do Álbum"
           }
         }
       }
@@ -180,24 +96,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Artista"
-          }
-        }
-      }
-    },
-    "text_artists" : {
-      "comment" : "Texto \"Artistas\".",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artists"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artistas"
           }
         }
       }
@@ -472,6 +370,42 @@
         }
       }
     },
+    "text_music_genre" : {
+      "comment" : "Texto \"Gênero da Música\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music Genre"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gênero da Música"
+          }
+        }
+      }
+    },
+    "text_music_name" : {
+      "comment" : "Texto \"Nome da Música\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music Name"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome da Música"
+          }
+        }
+      }
+    },
     "text_music_server" : {
       "comment" : "Texto \"Servidor de Músicas\".",
       "extractionState" : "manual",
@@ -720,6 +654,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trilha"
+          }
+        }
+      }
+    },
+    "text_track_number" : {
+      "comment" : "Texto \"Número da Trilha\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track Number"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Número da Trilha"
           }
         }
       }

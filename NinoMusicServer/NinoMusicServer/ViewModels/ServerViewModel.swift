@@ -35,7 +35,7 @@ class ServerViewModel: ObservableObject {
             case .getCover:
                 return self.getCover(arrayParam: arrayParam)
             case .serverInfo:
-                return self.serverInfo()
+                return self.getServerInfo()
                 
             default:
                 break
@@ -156,14 +156,14 @@ class ServerViewModel: ObservableObject {
         return result
     }
     
-    private func serverInfo() -> GCDWebServerDataResponse {
+    private func getServerInfo() -> GCDWebServerDataResponse {
         var data = Data()
         let defaults = UserDefaults.standard
         let serverName = defaults.string(forKey: "ServerName")
-        let musicCount = defaults.string(forKey: "MusicsCount")
+        let musicCount = defaults.integer(forKey: "MusicsCount")
         let lastUpdate = defaults.string(forKey: "LastUpdate")
         
-        let serverInfo = ServerInfoRemote(server_name: serverName, music_count: musicCount, last_update: lastUpdate)
+        let serverInfo = ServerInfo(server_name: serverName, music_count: musicCount, last_update: lastUpdate)
         
         do {
             data = try JSONEncoder().encode(serverInfo)

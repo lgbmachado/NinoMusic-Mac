@@ -33,6 +33,7 @@ class MusicFiles {
             self.directories = musicDb.getDirectories()
             await updateMusicsDatabase { _ in
                 self.musics = self.musicDb.getMusics()
+                self.saveServerInfo()
             }
         }
     }
@@ -42,6 +43,7 @@ class MusicFiles {
             self.directories = self.musicDb.getDirectories()
             await updateMusicsDatabase { _ in
                 self.musics = self.musicDb.getMusics()
+                self.saveServerInfo()
             }
         }
     }
@@ -115,6 +117,20 @@ class MusicFiles {
             return ("\(CMTimeGetSeconds(duration))" as NSString).integerValue
         } catch {
             return 0
+        }
+    }
+    
+    private func saveServerInfo() {
+        if let deviceName = Host.current().localizedName {
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyyMMddHHmmss"
+            let lastUpdate = dateFormatter.string(from: Date())
+            
+            let defaults = UserDefaults.standard
+            defaults.set(deviceName, forKey: "ServerName")
+            defaults.set(count, forKey: "MusicsCount")
+            defaults.set(lastUpdate, forKey: "LastUpdate")
         }
     }
 }

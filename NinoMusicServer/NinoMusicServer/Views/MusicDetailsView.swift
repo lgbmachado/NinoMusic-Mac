@@ -17,7 +17,7 @@ struct MusicDetailsView: View {
                     Image(systemName: "tag")
                     Text(LocalizedStringKey("text_tag"))
                 }
-            FileView()
+            FileView(musicsViewModel: musicsViewModel)
                 .tabItem {
                     Image(systemName: "folder")
                     Text(LocalizedStringKey("text_file"))
@@ -102,8 +102,15 @@ struct TagView: View {
 }
 
 struct FileView: View {
+    @ObservedObject var musicsViewModel: MusicsViewModel
+
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
+            Text("Arquivo")
+                .font(.caption2)
+                .padding(.bottom, -7)
+            TextField("Nome do Arquivo", text: $musicsViewModel.fileSelected)
+            Spacer()
         }
     }
 }

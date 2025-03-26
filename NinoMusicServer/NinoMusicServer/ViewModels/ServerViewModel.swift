@@ -11,7 +11,7 @@ import ID3TagEditor
 
 enum ServerComand: String {
     case playMusic = "playMusic"
-    case listMusic = "listMusic"
+    case listMusic = "listMusics"
     case getCover = "getCover"
     case serverInfo = "serverInfo"
 }

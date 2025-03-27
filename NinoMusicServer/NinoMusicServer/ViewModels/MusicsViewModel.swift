@@ -90,11 +90,8 @@ class MusicsViewModel: NSObject, ObservableObject {
                     
                     Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
                         self.position = self.player?.currentTime ?? 0
-                        
-                        let ti = NSInteger(self.player?.currentTime ?? 0)
-                        let seconds = ti % 60
-                        let minutes = (ti / 60) % 60
-                        self.timePosition = String(format: "%0.2d:%0.2d",minutes,seconds)
+                        let seconds = NSInteger(self.position) % 60
+                        self.timePosition = "\(String().secondsToTime(seconds: seconds))"
                         
                         if !self.isPlaying {
                             timer.invalidate()
@@ -102,7 +99,6 @@ class MusicsViewModel: NSObject, ObservableObject {
                             self.timePosition = "00:00"
                         }
                     }
-                    
                 } catch let error as NSError {
                     print(error.description)
                 }

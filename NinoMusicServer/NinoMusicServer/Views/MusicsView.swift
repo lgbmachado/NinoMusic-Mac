@@ -87,7 +87,7 @@ struct ToolbarMusicsView: View {
                         }
                     })
                         .frame(width: 200, height: 20)
-                    Text(verbatim: self.musicsViewModel.isPlaying ? "\(self.musicsViewModel.timePosition) / \(self.musicsViewModel.timeDuration)" : "")
+                    Text(verbatim: self.musicsViewModel.isPlaying ? "\(self.musicsViewModel.timePosition) / \(self.musicsViewModel.timeDuration)" : "00:00 / 00:00")
                         .font(.caption2)
                 }
                 

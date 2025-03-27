@@ -12,7 +12,7 @@ class Database {
     
     private let colRowId = "RowId"
     
-//    private let databasePath = (Bundle.main.bundlePath as NSString).deletingLastPathComponent + "/MusicDatabase.db"
+    //    private let databasePath = (Bundle.main.bundlePath as NSString).deletingLastPathComponent + "/MusicDatabase.db"
     private let databasePath = "/Users/nino/MusicDatabase.db"
     private var database: OpaquePointer?
     
@@ -42,7 +42,7 @@ class Database {
     init () {
         print("Path banco de dados: \(self.databasePath)")
         
-        if sqlite3_open(self.databasePath, &database) == SQLITE_OK {
+        if sqlite3_open_v2(self.databasePath, &database, SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
             createTableDirectories()
             createTableMusics()
             createTableArtists()
@@ -248,7 +248,7 @@ class Database {
         completion(musicList)
     }
     
-    func listMusicsRemote(completion: @escaping ([MusicRemote]?) -> ()) {
+    func listMusicsRemote(completion: @escaping ([Music]?) -> ()) {
         let sql = """
         SELECT
            \(self.tableMusics).\(self.colRowId),
@@ -269,11 +269,11 @@ class Database {
            \(self.tableArtists).\(self.colArtist)
         """
         var queryStatement: OpaquePointer?
-        var musicListRemote = [MusicRemote]()
+        var musicListRemote = [Music]()
         
         if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
             while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                let id = Int(sqlite3_column_int(queryStatement, 0))
+                let count = Int(sqlite3_column_int(queryStatement, 0))
                 let artist = String(cString: sqlite3_column_text(queryStatement, 1))
                 let album = String(cString: sqlite3_column_text(queryStatement, 5))
                 let year = String(cString: sqlite3_column_text(queryStatement, 7))
@@ -282,14 +282,15 @@ class Database {
                 let genre = String(cString: sqlite3_column_text(queryStatement, 6))
                 let duration = Int(sqlite3_column_int(queryStatement, 4))
                 
-                musicListRemote.append(MusicRemote(id: id,
-                                                   artist: artist,
-                                                   album: album,
-                                                   year: year,
-                                                   track: track,
-                                                   musicTitle: musicTitle,
-                                                   genre: genre,
-                                                   duration: duration))
+                musicListRemote.append(Music(count: count,
+                                             artist: artist,
+                                             album: album,
+                                             year: year,
+                                             track: track,
+                                             musicTitle: musicTitle,
+                                             genre: genre,
+                                             duration: duration,
+                                             filePath: ""))
             }
         }
         sqlite3_finalize(queryStatement)

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Music: Identifiable {
+struct Music: Encodable, Decodable, Identifiable {
     var id = UUID()
     var count: Int
     var artist: String
@@ -19,6 +19,18 @@ struct Music: Identifiable {
     let duration: Int
     var filePath: String
     
+    enum CodingKeys: String, CodingKey {
+        case count = "count"
+        case artist = "artist"
+        case album = "album"
+        case year = "year"
+        case track = "track"
+        case musicTitle = "musicTitle"
+        case genre = "genre"
+        case duration = "duration"
+        case filePath = "filePath"
+    }
+    
     static let emptyMusic = Music(count : Int(),
                                   artist: String(),
                                   album: String(),
@@ -28,16 +40,4 @@ struct Music: Identifiable {
                                   genre: String(),
                                   duration: Int(),
                                   filePath: String())
-    
-}
-
-struct MusicRemote: Encodable{
-    let id: Int?
-    let artist: String?
-    let album: String?
-    let year: String?
-    let track: Int?
-    let musicTitle: String?
-    let genre: String?
-    let duration: Int?
 }

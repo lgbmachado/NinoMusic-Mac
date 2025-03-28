@@ -44,8 +44,8 @@ class MusicsViewModel: NSObject, ObservableObject {
     }
     
     func navigateSongs(kind: NavigationKind) {
-        let searchCount = kind == .next ? musicSelected.count + 1 : musicSelected.count - 1
-        if let selected = self.musics.first(where: {$0.count == searchCount}) {
+        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
+        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
             self.idMusicSelected = selected.id
             self.musicSelected = selected
             self.player?.stop()

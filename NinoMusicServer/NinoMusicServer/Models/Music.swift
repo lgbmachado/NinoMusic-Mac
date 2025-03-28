@@ -9,7 +9,8 @@ import Foundation
 
 struct Music: Encodable, Decodable, Identifiable {
     var id = UUID()
-    var count: Int
+    var seq: Int
+    var idServer: Int
     var artist: String
     var album: String
     var year: String
@@ -20,7 +21,8 @@ struct Music: Encodable, Decodable, Identifiable {
     var filePath: String
     
     enum CodingKeys: String, CodingKey {
-        case count = "count"
+        case seq = "seq"
+        case idServer = "idServer"
         case artist = "artist"
         case album = "album"
         case year = "year"
@@ -31,7 +33,8 @@ struct Music: Encodable, Decodable, Identifiable {
         case filePath = "filePath"
     }
     
-    static let emptyMusic = Music(count : Int(),
+    static let emptyMusic = Music(seq : Int(),
+                                  idServer: Int(),
                                   artist: String(),
                                   album: String(),
                                   year: String(),

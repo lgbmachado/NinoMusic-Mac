@@ -11,10 +11,20 @@ struct TagEditorView: View {
     @ObservedObject var musicsViewModel: MusicsViewModel
     
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
+    @State private var searchTerm: String = ""
     @State var selection: Music.ID? = nil
 
     var tableData: [Music] {
-        return musicsViewModel.musics.sorted(using: sortOrder)
+        if searchTerm.isEmpty {
+            return musicsViewModel.musics.sorted(using: sortOrder)
+        } else {
+            return musicsViewModel.musics
+                .filter { $0.musicTitle.lowercased().contains(searchTerm.lowercased()) ||
+                    $0.artist.lowercased().contains(searchTerm.lowercased()) ||
+                    $0.album.lowercased().contains(searchTerm.lowercased()) ||
+                    $0.genre.lowercased().contains(searchTerm.lowercased())}
+                .sorted(using: sortOrder)
+        }
     }
     
     @State private var inspectorIsShown: Bool = false
@@ -56,6 +66,7 @@ struct TagEditorView: View {
             }
             .frame(minWidth: 100, maxWidth: .infinity)
         }
+        .searchable(text: $searchTerm)
     }
 }
 

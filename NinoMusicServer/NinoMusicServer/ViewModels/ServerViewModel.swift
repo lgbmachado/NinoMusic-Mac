@@ -63,7 +63,7 @@ class ServerViewModel: ObservableObject {
         if arrayParam.count > 1 {
             let param = arrayParam[1]
             self.musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
-                if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
+                if let path = (path! as NSString).removingPercentEncoding {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
                         if let handler = FileHandle.init(forReadingAtPath: url.path) {

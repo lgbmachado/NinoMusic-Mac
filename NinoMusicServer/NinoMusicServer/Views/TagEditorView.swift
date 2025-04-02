@@ -32,7 +32,7 @@ struct TagEditorView: View {
     var body: some View {
         Table(tableData, selection: $selection, sortOrder: $sortOrder) {
             TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
-                Text(verbatim: "\(((music.filePath as NSString).lastPathComponent).replacingOccurrences(of: "%20", with: " "))")
+                Text(verbatim: "\(((music.filePath as NSString).lastPathComponent).removingPercentEncoding ?? "")")
             }
             TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
             TableColumn(LocalizedStringKey("text_artist"), value: \.artist)

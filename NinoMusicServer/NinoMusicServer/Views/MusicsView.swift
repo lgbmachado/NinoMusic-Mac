@@ -106,7 +106,7 @@ struct ToolbarMusicsView: View {
                 }
                 
                 Spacer(minLength: 30)
-                Image(nsImage:self.musicsViewModel.getCoverMusic())
+                Image(nsImage: Id3TagUtils.getImageCover(path: self.musicsViewModel.musicSelected.filePath))
                     .resizable()
                     .frame(width: 49, height: 49, alignment: .bottom)
                     .scaledToFit()

@@ -37,7 +37,7 @@ class MusicsViewModel: NSObject, ObservableObject {
         self.idMusicSelected = selection
         if let item = self.musics.first(where: { $0.id == self.idMusicSelected }) {
             self.musicSelected = item
-            self.fileSelected = String((item.filePath as NSString).lastPathComponent).replacingOccurrences(of: "%20", with: " ")
+            self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
         } else {
             self.musicSelected = Music.emptyMusic
         }
@@ -52,21 +52,6 @@ class MusicsViewModel: NSObject, ObservableObject {
             self.isPlaying = false
             playPauseSong()
         }
-    }
-    
-    func getCoverMusic() -> NSImage {
-        let id3TagEditor: ID3TagEditor = ID3TagEditor()
-        do {
-            let id3Tag = try id3TagEditor.read(from: self.musicSelected.filePath.replacingOccurrences(of: "file://", with: "").replacingOccurrences(of: "%20", with: " "))
-            
-            if let coverImage = id3Tag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
-                return NSImage(data: coverImage.picture) ?? NSImage()
-            }
-        }
-        catch {
-            print(error)
-        }
-        return NSImage()
     }
     
     func playPauseSong() {

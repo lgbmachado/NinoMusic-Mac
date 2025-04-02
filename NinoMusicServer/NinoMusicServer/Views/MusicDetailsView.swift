@@ -89,7 +89,7 @@ struct TagView: View {
             Text(LocalizedStringKey("text_album_cover"))
                 .font(.caption2)
                 .padding(.bottom, -7)
-            Image(nsImage:self.musicsViewModel.getCoverMusic())
+            Image(nsImage: Id3TagUtils.getImageCover(path: self.musicsViewModel.musicSelected.filePath))
                 .resizable()
                 .frame(width: .infinity, height: .infinity, alignment: .bottom)
                 .scaledToFit()

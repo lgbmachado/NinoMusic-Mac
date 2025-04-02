@@ -21,11 +21,13 @@ class MusicFiles {
     var delegate: MusicFilesDelegate?
     var directories = [Directory]()
     var musics = [Music]()
+    var albuns = [Album]()
     var totalTime: TimeInterval = 0
     
     init() {
         self.directories = musicDb.getDirectories()
         self.musics = musicDb.getMusics()
+        self.albuns = self.musicDb.getAlbuns()
     }
     
     func addDirectory(dirPath: String) async {
@@ -33,6 +35,7 @@ class MusicFiles {
             self.directories = musicDb.getDirectories()
             await updateMusicsDatabase { _ in
                 self.musics = self.musicDb.getMusics()
+                self.albuns = self.musicDb.getAlbuns()
                 self.saveServerInfo()
             }
         }
@@ -43,6 +46,7 @@ class MusicFiles {
             self.directories = self.musicDb.getDirectories()
             await updateMusicsDatabase { _ in
                 self.musics = self.musicDb.getMusics()
+                self.albuns = self.musicDb.getAlbuns()
                 self.saveServerInfo()
             }
         }
@@ -109,6 +113,57 @@ class MusicFiles {
             }
         }
     }
+    
+//    private func updateMusicsDatabase(completion: @escaping (Int?) -> ()) async {
+//        musicDb.cleanMusicsTables()
+//        for dir in self.directories {
+//            let url = URL(fileURLWithPath: dir.path)
+//            var directories = [URL]()
+//            if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
+//                for case let dirURL as URL in enumerator {
+//                    do {
+//                        let dirAttributes = try dirURL.resourceValues(forKeys:[.isDirectoryKey])
+//                        if dirAttributes.isDirectory! {
+//                            directories.append(dirURL)
+//                        }
+//                    } catch { print(error, dirURL) }
+//                }
+//                let id3TagUtils = Id3TagUtils()
+//                
+//                for urlDir in directories {
+//                    if let enumFiles = FileManager.default.enumerator(at: urlDir, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
+//                        for case let fileURL as URL in enumFiles {
+//                            if fileURL.pathExtension.uppercased() == "MP3" {
+//                                if !self.musicDb.musicExists(filePath: fileURL.absoluteString) {
+//                                    let duration = await id3TagUtils.getDuration(path: fileURL.path)
+//                                    let filePath = fileURL.absoluteString
+//                                    
+//                                    let track = id3TagUtils.getTrack(path: fileURL.path)
+//                                    
+//                                    if self.musicDb.AddMusic(filePath: filePath,
+//                                                             musicTitle: id3TagUtils.getTitle(path: fileURL.path),
+//                                                             artist: id3TagUtils.getArtist(path: fileURL.path),
+//                                                             album: id3TagUtils.getAlbum(path: fileURL.path),
+//                                                             year: id3TagUtils.getYear(path: fileURL.path),
+//                                                             track: track,
+//                                                             duration: duration,
+//                                                             genre: id3TagUtils.getGenre(path: fileURL.path)) {
+//                                        
+//                                        if count % 49 == 0 {
+//                                            delegate?.musicLoading(musicsLoaded: count, totalTime: totalTime)
+//                                        }
+//                                        count += 1
+//                                        totalTime += Double(duration)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                completion(count)
+//            }
+//        }
+//    }
     
     private func getDuration(url: URL) async -> Int {
         do {

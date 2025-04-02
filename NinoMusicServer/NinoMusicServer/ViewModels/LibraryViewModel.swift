@@ -26,7 +26,7 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
      
     func addDirectory(dirPath: String) async {
         self.isLoading = true
-        await self.musicFiles.addDirectory(dirPath: dirPath.replacingOccurrences(of: "file://", with: "").replacingOccurrences(of: "%20", with: " "))
+        await self.musicFiles.addDirectory(dirPath: dirPath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
         self.directories = self.musicFiles.directories
         self.musics = self.musicFiles.musics
         self.isLoading = false

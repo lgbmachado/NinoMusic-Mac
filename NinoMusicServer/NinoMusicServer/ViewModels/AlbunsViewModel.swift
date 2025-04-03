@@ -20,11 +20,16 @@ class AlbunsViewModel: NSObject, ObservableObject {
         self.albuns = MusicFiles().albuns
         self.albumSelected = albuns.first ?? Album.emptyAlbum
         self.idAlbumSelected = albumSelected.id
-        self.filePathCover = albumSelected.musics.first?.filePath ?? ""
+        self.filePathCover = albuns.first?.musics.first?.filePath ?? ""
     }
     
     func goToPreviusAlbum() {
-        
+        let searchCount = albumSelected.seq  - 1
+        if let selected = self.albuns.first(where: {$0.seq == searchCount}) {
+            self.idAlbumSelected = selected.id
+            self.albumSelected = selected
+            self.filePathCover = albumSelected.musics.first?.filePath ?? ""
+        }
     }
     
     func goToNextAlbum() {
@@ -32,7 +37,7 @@ class AlbunsViewModel: NSObject, ObservableObject {
         if let selected = self.albuns.first(where: {$0.seq == searchCount}) {
             self.idAlbumSelected = selected.id
             self.albumSelected = selected
-            self.filePathCover = albumSelected.musics.first?.filePath ?? ""
+            self.filePathCover = self.albumSelected.musics.first?.filePath ?? ""
         }
     }
 }

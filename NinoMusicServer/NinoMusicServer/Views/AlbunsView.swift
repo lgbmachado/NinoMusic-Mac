@@ -39,6 +39,7 @@ struct AlbunsView: View {
                 })
                 .font(.system(size: 30))
                 .frame(width: 300, height: 50, alignment: .center)
+                
                 Button(String(), systemImage: "forward", action: {
                     albunsViewModel.goToNextAlbum()
                 })

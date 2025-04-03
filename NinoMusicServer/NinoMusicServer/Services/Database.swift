@@ -171,6 +171,7 @@ class Database {
         var lastAlbum = ""
         var lastArtist = ""
         var lastYear = ""
+        var lastGenre = ""
         
         var isFirst = true
         
@@ -185,17 +186,14 @@ class Database {
                 if !isFirst && (album != lastAlbum || artist != lastArtist || year != lastYear) {
                     seqAlbum += 1
                     albumList.append(Album(seq: seqAlbum,
-                                           album: album,
-                                           artist: artist,
-                                           year: year,
-                                           genre: genre,
+                                           album: lastAlbum,
+                                           artist: lastArtist,
+                                           year: lastYear,
+                                           genre: lastGenre,
                                            musics: musicList))
                     
                     seqMusic = 0
                     musicList.removeAll()
-                    lastAlbum = album
-                    lastArtist = artist
-                    lastYear = year
                 }
                 seqMusic += 1
                 let idServer = Int(sqlite3_column_int(queryStatement, 4))
@@ -211,6 +209,10 @@ class Database {
                                             duration: duration,
                                             filePath: filePath))
                 isFirst = false
+                lastAlbum = album
+                lastArtist = artist
+                lastYear = year
+                lastGenre = genre
             }
         }
         sqlite3_finalize(queryStatement)

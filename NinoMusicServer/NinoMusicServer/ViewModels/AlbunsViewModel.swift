@@ -12,8 +12,11 @@ import SwiftUI
 class AlbunsViewModel: NSObject, ObservableObject {
     
     @Published var albuns: [Album] = []
-    @Published var idAlbumSelected: Music.ID = UUID()
+    @Published var idAlbumSelected: Album.ID = UUID()
     @Published var filePathCover: String = String()
+    @Published var idMusicSelected: AlbumMusic.ID = UUID()
+    @Published var fileSelected: String = String()
+    @Published var musicSelected: AlbumMusic = AlbumMusic.emptyMusic
     @Published var albumSelected: Album = Album.emptyAlbum
     
     func reloadAlbuns() {

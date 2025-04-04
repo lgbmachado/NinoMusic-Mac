@@ -52,4 +52,11 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
         case duration = "duration"
         case filePath = "filePath"
     }
+    
+    static let emptyMusic = AlbumMusic(seq: Int(),
+                                       idServer: Int(),
+                                       track: Int(),
+                                       musicTitle: String(),
+                                       duration: Int(),
+                                       filePath: String())
 }

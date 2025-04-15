@@ -11,10 +11,10 @@ struct LibraryView: View {
     @ObservedObject var musicsViewModel: MusicsViewModel
     @ObservedObject var libraryViewModel: LibraryViewModel
     
-    @State private var sortOrder = [KeyPathComparator(\Directory.name)]
-    @State private var selection: Directory.ID? = nil
+    @State private var sortOrder = [KeyPathComparator(\MusicDirectory.name)]
+    @State private var selection: MusicDirectory.ID? = nil
     
-    var tableData: [Directory] {
+    var tableData: [MusicDirectory] {
         return libraryViewModel.directories.sorted(using: sortOrder)
     }
     
@@ -194,7 +194,7 @@ struct showLoadingProgress: View {
 }
 
 struct DirectoryRowView: View {
-    var diretory: Directory
+    var diretory: MusicDirectory
     
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {

@@ -14,7 +14,7 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     @Published var totalTime: TimeInterval = 0
     @Published var isLoading: Bool = false
     
-    @Published var directories = [Directory]()
+    @Published var directories = [MusicDirectory]()
     
     private var musicFiles = MusicFiles()
     

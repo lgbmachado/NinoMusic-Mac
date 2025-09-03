@@ -225,6 +225,119 @@ class Database {
         return albumList
     }
     
+    func getArtists() -> [Artist] {
+        let sqlArtist = """
+        SELECT DISTINCT
+           \(self.tableMusics).\(self.colIdArtist),
+           \(self.tableArtists).\(self.colArtist),
+           \(self.tableGenres).\(self.colGenre)
+        FROM
+           \(self.tableMusics)
+           INNER JOIN \(self.tableArtists) ON \(self.tableArtists).\(self.colRowId) = \(self.tableMusics).\(self.colIdArtist)
+           INNER JOIN \(self.tableGenres) ON \(self.tableGenres).\(self.colRowId) = \(self.tableMusics).\(self.colIdGenre)
+        ORDER BY
+           \(self.tableArtists).\(self.colArtist),
+           \(self.tableMusics).\(self.colTrack)
+        """
+        var queryStatement1: OpaquePointer?
+        var artistList = [Artist]()
+        var albumList = [ArtistAlbum]()
+        var seqArtist = 0
+        var seqAlbum = 0
+        var seqMusic = 0
+        
+        
+        if sqlite3_prepare_v2(self.database, sqlArtist, -1, &queryStatement1, nil) == SQLITE_OK {
+            while(sqlite3_step(queryStatement1) == SQLITE_ROW) {
+                let idArtist = String(cString: sqlite3_column_text(queryStatement1, 0))
+                let artist = String(cString: sqlite3_column_text(queryStatement1, 1))
+                let genre = String(cString: sqlite3_column_text(queryStatement1, 2))
+                
+                let sqlAlbuns = """
+        SELECT DISTINCT
+           \(self.tableAlbuns).\(self.colRowId),
+           \(self.tableAlbuns).\(self.colAlbum),
+           \(self.tableAlbuns).\(self.colYear)
+        FROM
+           \(self.tableAlbuns)
+           INNER JOIN \(self.tableArtists) ON \(self.tableArtists).\(self.colRowId) = \(self.tableMusics).\(self.colIdArtist)
+           INNER JOIN \(self.tableMusics) ON \(self.tableAlbuns).\(self.colRowId) = \(self.tableMusics).\(self.colIdAlbum)
+        WHERE
+           \(self.tableMusics).\(self.colIdArtist) = \(idArtist) 
+        ORDER BY
+           \(self.tableAlbuns).\(self.colYear),
+           \(self.tableAlbuns).\(self.colAlbum)
+           
+        """
+                var queryStatement2: OpaquePointer?
+                var musicList = [ArtistMusic]()
+                seqAlbum += 1
+                
+                if sqlite3_prepare_v2(self.database, sqlAlbuns, -1, &queryStatement2, nil) == SQLITE_OK {
+                    while(sqlite3_step(queryStatement2) == SQLITE_ROW) {
+                        
+                        let idAlbum = String(cString: sqlite3_column_text(queryStatement2, 0))
+                        let album = String(cString: sqlite3_column_text(queryStatement2, 1))
+                        let year = String(cString: sqlite3_column_text(queryStatement2, 2))
+                        
+                        let sqlMusics = """
+                SELECT
+                   \(self.tableMusics).\(self.colRowId),
+                   \(self.tableMusics).\(self.colTrack),
+                   \(self.tableMusics).\(self.colTitle),
+                   \(self.tableMusics).\(self.colDuration),
+                   \(self.tableMusics).\(self.colFilePath)
+                FROM
+                   \(self.tableMusics)
+                WHERE
+                   \(self.tableMusics).\(self.colIdAlbum) = \(idAlbum) 
+                ORDER BY
+                   \(self.tableMusics).\(self.colTrack),
+                   \(self.tableMusics).\(self.colTitle)
+                """
+                        
+                        var queryStatement3: OpaquePointer?
+                        if sqlite3_prepare_v2(self.database, sqlMusics, -1, &queryStatement3, nil) == SQLITE_OK {
+                            while(sqlite3_step(queryStatement3) == SQLITE_ROW) {
+                                seqMusic += 1
+                                
+                                let idServer = Int(sqlite3_column_int(queryStatement3, 0))
+                                let track = Int(sqlite3_column_int(queryStatement3, 1))
+                                let musicTitle = String(cString: sqlite3_column_text(queryStatement3, 2))
+                                let duration = Int(sqlite3_column_int(queryStatement3, 3))
+                                let filePath = String(cString: sqlite3_column_text(queryStatement3, 4))
+                                
+                                musicList.append(ArtistMusic(seq: seqMusic,
+                                                             idServer: idServer,
+                                                             track: track,
+                                                             musicTitle: musicTitle,
+                                                             duration: duration,
+                                                             filePath: filePath))
+                            }
+                        }
+                        seqMusic = 0
+                        
+
+                        albumList.append(ArtistAlbum(seq: seqAlbum,
+                                                     album: album,
+                                                     year: year,
+                                                     musics: musicList))
+                        musicList.removeAll()
+                        sqlite3_finalize(queryStatement3)
+                    }
+                }
+                seqArtist += 1
+                artistList.append(Artist(seq: seqArtist,
+                                         artist: artist,
+                                         genre: genre,
+                                         albuns: albumList))
+                albumList.removeAll()
+            }
+        }
+        sqlite3_finalize(queryStatement1)
+        return artistList
+    }
+    
     func listMusicsRemote(completion: @escaping ([Music]?) -> ()) {
         let sql = """
         SELECT
@@ -370,7 +483,7 @@ class Database {
         sqlite3_finalize(createTableStatement)
         return result
     }
-
+    
     private func deleteRows(table: String) -> Bool {
         let sqlDeleteRowsTable = "DELETE FROM \(table);"
         var deleteRowsTableStatement: OpaquePointer?
@@ -562,9 +675,7 @@ class Database {
         if updateRowsTableDirectories() {
             result = true
         }
-        
         return result
     }
-    
 }
 

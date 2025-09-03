@@ -22,12 +22,14 @@ class MusicFiles {
     var directories = [MusicDirectory]()
     var musics = [Music]()
     var albuns = [Album]()
+    var artists = [Artist]()
     var totalTime: TimeInterval = 0
     
     init() {
         self.directories = musicDb.getDirectories()
         self.musics = musicDb.getMusics()
         self.albuns = self.musicDb.getAlbuns()
+        self.artists = self.musicDb.getArtists()
     }
     
     func addDirectory(dirPath: String) async {

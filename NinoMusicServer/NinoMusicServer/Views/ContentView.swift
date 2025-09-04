@@ -11,6 +11,7 @@ struct ContentView: View {
 
     @ObservedObject var libraryViewModel: LibraryViewModel
     @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var artistsViewModel: ArtistsViewModel
     @ObservedObject var albunsViewModel: AlbunsViewModel
     @ObservedObject var serverViewModel: ServerViewModel
     
@@ -26,6 +27,9 @@ struct ContentView: View {
                     .navigationTitle(String())
             case .musics:
                 MusicsView(musicsViewModel: musicsViewModel)
+                    .navigationTitle(String())
+            case .artists:
+                ArtistsView(artistsViewModel: artistsViewModel)
                     .navigationTitle(String())
             case .albuns:
                 AlbunsView(albunsViewModel: albunsViewModel)
@@ -45,5 +49,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(), albunsViewModel: AlbunsViewModel(), serverViewModel: ServerViewModel())
+    ContentView(libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(), artistsViewModel: ArtistsViewModel(), albunsViewModel: AlbunsViewModel(), serverViewModel: ServerViewModel())
 }

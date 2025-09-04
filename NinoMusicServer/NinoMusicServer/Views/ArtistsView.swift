@@ -7,21 +7,105 @@
 
 import SwiftUI
 
+// MARK: - Modelo
+struct Node: Identifiable {
+    var id = UUID()
+    let name: String
+    var children: [Node]?
+}
+
+// MARK: - View
 struct ArtistsView: View {
     @ObservedObject var artistsViewModel: ArtistsViewModel
-    @State var selection: Music.ID? = nil
+    
+    var listData: [Node] {
+        var listData = [Node]()
+        for artist in artistsViewModel.artist {
+            var node = Node(id: artist.id, name: artist.artist)
+            node.children = [Node]()
+            for album in artist.albuns {
+                var subNode = Node(id: album.id, name: album.album)
+                subNode.children = nil
+                node.children?.append(subNode)
+            }
+            listData.append(node)
+        }
+        return listData
+    }
     
     var body: some View {
-        HStack {
+        List {
+            OutlineGroup(listData, children: \.children) { node in
+                if node.children == nil {
+                    AlbumView(artistsViewModel: self.artistsViewModel, node: node)
+                } else {
+                    Label(node.name, systemImage: node.children == nil ? "opticaldisc" : "music.microphone")
+                }
+                
+            }
         }
         .onAppear() {
             artistsViewModel.reloadArtists()
         }
     }
-    
-
 }
 
-#Preview {
-    ArtistsView(artistsViewModel: ArtistsViewModel())
+// MARK: ToolbarMusicsView
+struct AlbumView: View {
+    @ObservedObject var artistsViewModel: ArtistsViewModel
+    @State var selection: ArtistMusic.ID? = nil
+    var node: Node
+    var album: ArtistAlbum? {
+        for artist in artistsViewModel.artist {
+            for album in artist.albuns {
+                if album.id == node.id {
+                    return album
+                }
+            }
+        }
+        return ArtistAlbum.emptyAlbum
+    }
+    var musics: [ArtistMusic] {
+        album?.musics ?? []
+    }
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Image(nsImage: Id3TagUtils.getImageCover(path: album?.musics.first?.filePath ?? ""))
+                    .resizable()
+                    .frame(width: 75, height: 75, alignment: .bottom)
+                    .scaledToFit()
+                    .aspectRatio(contentMode: .fit)
+                    .border(.black)
+                Text(verbatim: album?.album ?? "")
+                    .font(.title3)
+                Text(verbatim: album?.year ?? "")
+                    .font(.caption2)
+            }
+            .frame(maxWidth: 300, alignment: .leading)
+            .padding()
+            
+            Table(musics, selection: $selection) {
+                TableColumn(LocalizedStringKey("text_track")) { music in
+                    Text("\(music.track)")
+                }
+                .width(40)
+                .alignment(.trailing)
+                TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
+                TableColumn("Duração") { music in
+                    Text(String().secondsToTime(seconds: music.duration))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Preview
+struct HierarchicalListView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
+            ArtistsView(artistsViewModel: ArtistsViewModel())
+        }
+    }
 }

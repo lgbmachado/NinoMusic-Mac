@@ -11,6 +11,7 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
         
     case libray
     case musics
+    case artists
     case albuns
     case tags
     case server
@@ -21,6 +22,8 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
             "libray"
         case .musics:
             "musics"
+        case .artists:
+            "artists"
         case .albuns:
             "albuns"
         case .tags:
@@ -36,6 +39,8 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
             "Biblioteca"
         case .musics:
             "Músicas"
+        case .artists:
+            "Artistas"
         case .albuns:
             "Albuns"
         case .tags:
@@ -51,6 +56,8 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
             "folder"
         case .musics:
             "music.note.list"
+        case .artists:
+            "music.microphone"
         case .albuns:
             "opticaldisc"
         case .tags:
@@ -61,6 +68,6 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
     }
     
     static var menu: [ItemMenu] {
-        [.libray, .musics, .albuns, .tags, .server]
+        [.libray, .musics, .artists, .albuns, .tags, .server]
     }
 }

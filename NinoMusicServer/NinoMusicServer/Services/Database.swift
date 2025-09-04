@@ -290,7 +290,8 @@ class Database {
                 FROM
                    \(self.tableMusics)
                 WHERE
-                   \(self.tableMusics).\(self.colIdAlbum) = \(idAlbum) 
+                   \(self.tableMusics).\(self.colIdAlbum) = \(idAlbum) AND 
+                   \(self.tableMusics).\(self.colIdArtist) = \(idArtist) 
                 ORDER BY
                    \(self.tableMusics).\(self.colTrack),
                    \(self.tableMusics).\(self.colTitle)

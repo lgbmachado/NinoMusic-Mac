@@ -27,17 +27,12 @@ class MusicFiles {
     
     init() {
         self.directories = musicDb.getDirectories()
-        self.musics = musicDb.getMusics()
-        self.albuns = self.musicDb.getAlbuns()
-        self.artists = self.musicDb.getArtists()
     }
     
     func addDirectory(dirPath: String) async {
         if musicDb.addDirectory(dirPath: dirPath) {
             self.directories = musicDb.getDirectories()
             await updateMusicsDatabase { _ in
-                self.musics = self.musicDb.getMusics()
-                self.albuns = self.musicDb.getAlbuns()
                 self.saveServerInfo()
             }
         }
@@ -47,8 +42,8 @@ class MusicFiles {
         if musicDb.deleteDirectory(dirName: dirName) {
             self.directories = self.musicDb.getDirectories()
             await updateMusicsDatabase { _ in
-                self.musics = self.musicDb.getMusics()
-                self.albuns = self.musicDb.getAlbuns()
+//                self.musics = self.musicDb.getMusics()
+//                self.albuns = self.musicDb.getAlbuns()
                 self.saveServerInfo()
             }
         }

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AlbunsView: View {
+    @EnvironmentObject var musicPlayerViewModel: MusicPlayerViewModel
     @ObservedObject var albunsViewModel: AlbunsViewModel
     @State var selection: Music.ID? = nil
     
@@ -58,6 +59,17 @@ struct AlbunsView: View {
                 }
             }
             .padding()
+            .onChange(of: selection) { oldSelected, newSelected in
+                albunsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
+                let music = albunsViewModel.musicSelected
+                musicPlayerViewModel.setMusicSelected(music: music)
+            }
+        }
+        .padding()
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
+            }
         }
         .onAppear() {
             albunsViewModel.reloadAlbuns()

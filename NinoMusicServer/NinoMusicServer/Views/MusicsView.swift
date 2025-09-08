@@ -9,6 +9,7 @@ import SwiftUI
 
 // MARK: MusicsView
 struct MusicsView: View {
+    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
     @ObservedObject var musicsViewModel: MusicsViewModel
     
     @State private var sortOrder = [KeyPathComparator(\Music.seq)]
@@ -48,11 +49,13 @@ struct MusicsView: View {
             .padding()
             .onChange(of: selection) { oldSelected, newSelected in
                 musicsViewModel.setIdSelection(selection: newSelected ?? UUID())
+                musicPlayerViewModel.setMusicSelected(music: musicsViewModel.musicSelected)
                 proxy.scrollTo(musicsViewModel.idMusicSelected , anchor: .center)
             }
             .toolbar {
                 ToolbarItem(placement: .navigation) {
-                    ToolbarMusicsView(musicsViewModel: musicsViewModel, selection: $selection)
+                    MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
+//                    ToolbarMusicsView(musicsViewModel: musicsViewModel, selection: $selection)
                 }
             }
             .onAppear() {
@@ -64,68 +67,68 @@ struct MusicsView: View {
 }
 
 // MARK: ToolbarMusicsView
-struct ToolbarMusicsView: View {
-    @ObservedObject var musicsViewModel: MusicsViewModel
-    @Binding var selection: Music.ID?
-    
-    @State private var isMovingSlider = false
-    @State var dragGestureValue: DragGesture.Value?
-    
-    var body: some View {
-        
-        VStack {
-            HStack {
-                Button(String(), systemImage: "backward.circle", action: {
-                    self.musicsViewModel.navigateSongs(kind: .previus)
-                    selection = self.musicsViewModel.idMusicSelected
-                })
-                .font(.system(size: 30))
-                .buttonStyle(.borderless)
-                Button(String(), systemImage: "playpause.circle", action: {
-                    self.musicsViewModel.playPauseSong()
-                })
-                .font(.system(size: 30))
-                .buttonStyle(.borderless)
-                Button(String(), systemImage: "forward.circle", action: {
-                    self.musicsViewModel.navigateSongs(kind: .next)
-                    selection = self.musicsViewModel.idMusicSelected
-                })
-                .font(.system(size: 30))
-                .buttonStyle(.borderless)
-                Spacer(minLength: 30)
-                VStack {
-                    Slider(value: $musicsViewModel.position, in: 0...self.musicsViewModel.duration, onEditingChanged: { editing in
-                        isMovingSlider = editing
-                        if !isMovingSlider {
-                            self.musicsViewModel.setMusicPosition(newPosition: musicsViewModel.position)
-                        }
-                    })
-                        .frame(width: 200, height: 20)
-                    Text(verbatim: self.musicsViewModel.isPlaying ? "\(self.musicsViewModel.timePosition) / \(self.musicsViewModel.timeDuration)" : "00:00 / 00:00")
-                        .font(.caption2)
-                }
-                
-                Spacer(minLength: 30)
-                Image(nsImage: Id3TagUtils.getImageCover(path: self.musicsViewModel.musicSelected.filePath))
-                    .resizable()
-                    .frame(width: 49, height: 49, alignment: .bottom)
-                    .scaledToFit()
-                    .aspectRatio(contentMode: .fit)
-                    .border(.black)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(verbatim: musicsViewModel.musicSelected.musicTitle)
-                        .font(.title3)
-                    Text(verbatim: musicsViewModel.musicSelected.artist)
-                        .font(.caption2)
-                }
-                
-            }
-        }
-    }
-    
-}
+//struct ToolbarMusicsView: View {
+//    @ObservedObject var musicsViewModel: MusicsViewModel
+//    @Binding var selection: Music.ID?
+//    
+//    @State private var isMovingSlider = false
+//    @State var dragGestureValue: DragGesture.Value?
+//    
+//    var body: some View {
+//        
+//        VStack {
+//            HStack {
+//                Button(String(), systemImage: "backward.circle", action: {
+//                    self.musicsViewModel.navigateSongs(kind: .previus)
+//                    selection = self.musicsViewModel.idMusicSelected
+//                })
+//                .font(.system(size: 30))
+//                .buttonStyle(.borderless)
+//                Button(String(), systemImage: "playpause.circle", action: {
+//                    self.musicsViewModel.playPauseSong()
+//                })
+//                .font(.system(size: 30))
+//                .buttonStyle(.borderless)
+//                Button(String(), systemImage: "forward.circle", action: {
+//                    self.musicsViewModel.navigateSongs(kind: .next)
+//                    selection = self.musicsViewModel.idMusicSelected
+//                })
+//                .font(.system(size: 30))
+//                .buttonStyle(.borderless)
+//                Spacer(minLength: 30)
+//                VStack {
+//                    Slider(value: $musicsViewModel.position, in: 0...self.musicsViewModel.duration, onEditingChanged: { editing in
+//                        isMovingSlider = editing
+//                        if !isMovingSlider {
+//                            self.musicsViewModel.setMusicPosition(newPosition: musicsViewModel.position)
+//                        }
+//                    })
+//                        .frame(width: 200, height: 20)
+//                    Text(verbatim: self.musicsViewModel.isPlaying ? "\(self.musicsViewModel.timePosition) / \(self.musicsViewModel.timeDuration)" : "00:00 / 00:00")
+//                        .font(.caption2)
+//                }
+//                
+//                Spacer(minLength: 30)
+//                Image(nsImage: Id3TagUtils.getImageCover(path: self.musicsViewModel.musicSelected.filePath))
+//                    .resizable()
+//                    .frame(width: 49, height: 49, alignment: .bottom)
+//                    .scaledToFit()
+//                    .aspectRatio(contentMode: .fit)
+//                    .border(.black)
+//                VStack(alignment: .leading, spacing: 6) {
+//                    Text(verbatim: musicsViewModel.musicSelected.musicTitle)
+//                        .font(.title3)
+//                    Text(verbatim: musicsViewModel.musicSelected.artist)
+//                        .font(.caption2)
+//                }
+//                
+//            }
+//        }
+//    }
+//    
+//}
 
 
 #Preview {
-    MusicsView(musicsViewModel: MusicsViewModel())
+    MusicsView(musicPlayerViewModel: MusicPlayerViewModel(), musicsViewModel: MusicsViewModel())
 }

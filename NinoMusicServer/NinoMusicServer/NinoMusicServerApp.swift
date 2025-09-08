@@ -9,13 +9,16 @@ import SwiftUI
 
 @main
 struct NinoMusicServerApp: App {
+    @StateObject var playerVM = MusicPlayerViewModel()
     var body: some Scene {
         WindowGroup {
-            ContentView(libraryViewModel: LibraryViewModel(),
+            ContentView(musicPlayerViewModel: MusicPlayerViewModel(),
+                        libraryViewModel: LibraryViewModel(),
                         musicsViewModel: MusicsViewModel(),
                         artistsViewModel: ArtistsViewModel(),
                         albunsViewModel: AlbunsViewModel(),
                         serverViewModel: ServerViewModel())
+            .environmentObject(playerVM)
         }
     }
 }

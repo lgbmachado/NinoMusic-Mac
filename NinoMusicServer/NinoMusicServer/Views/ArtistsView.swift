@@ -17,14 +17,17 @@ struct Node: Identifiable {
 // MARK: - View
 struct ArtistsView: View {
     @ObservedObject var artistsViewModel: ArtistsViewModel
+    @EnvironmentObject var musicPlayerViewModel: MusicPlayerViewModel
+    
+    @State var selection: Music.ID? = nil
     
     var listData: [Node] {
         var listData = [Node]()
-        for artist in artistsViewModel.artist {
+        for artist in artistsViewModel.artists {
             var node = Node(id: artist.id, name: artist.artist)
             node.children = [Node]()
             for album in artist.albuns {
-                var subNode = Node(id: album.id, name: album.album)
+                var subNode = Node(id: album.id ?? UUID(), name: album.album)
                 subNode.children = nil
                 node.children?.append(subNode)
             }
@@ -37,11 +40,19 @@ struct ArtistsView: View {
         List {
             OutlineGroup(listData, children: \.children) { node in
                 if node.children == nil {
-                    AlbumView(artistsViewModel: self.artistsViewModel, node: node)
+                    AlbumView(artistsViewModel: self.artistsViewModel,
+                              musicPlayerViewModel: musicPlayerViewModel,
+                              node: node)
                 } else {
                     Label(node.name, systemImage: node.children == nil ? "opticaldisc" : "music.microphone")
                 }
                 
+            }
+        }
+        .padding()
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
             }
         }
         .onAppear() {
@@ -53,10 +64,11 @@ struct ArtistsView: View {
 // MARK: ToolbarMusicsView
 struct AlbumView: View {
     @ObservedObject var artistsViewModel: ArtistsViewModel
+    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
     @State var selection: ArtistMusic.ID? = nil
     var node: Node
     var album: ArtistAlbum? {
-        for artist in artistsViewModel.artist {
+        for artist in artistsViewModel.artists {
             for album in artist.albuns {
                 if album.id == node.id {
                     return album
@@ -96,6 +108,11 @@ struct AlbumView: View {
                 TableColumn("Duração") { music in
                     Text(String().secondsToTime(seconds: music.duration))
                 }
+            }
+            .onChange(of: selection) { oldSelected, newSelected in
+                artistsViewModel.setIdSelection(selection: (newSelected ?? UUID()) ?? UUID())
+                let music = artistsViewModel.musicSelected
+                musicPlayerViewModel.setMusicSelected(music: music)
             }
         }
     }

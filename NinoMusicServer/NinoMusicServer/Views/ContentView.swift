@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
-
+    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
+    
     @ObservedObject var libraryViewModel: LibraryViewModel
     @ObservedObject var musicsViewModel: MusicsViewModel
     @ObservedObject var artistsViewModel: ArtistsViewModel
@@ -26,7 +27,7 @@ struct ContentView: View {
                 LibraryView(musicsViewModel: musicsViewModel, libraryViewModel: libraryViewModel)
                     .navigationTitle(String())
             case .musics:
-                MusicsView(musicsViewModel: musicsViewModel)
+                MusicsView(musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel)
                     .navigationTitle(String())
             case .artists:
                 ArtistsView(artistsViewModel: artistsViewModel)
@@ -49,5 +50,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(), artistsViewModel: ArtistsViewModel(), albunsViewModel: AlbunsViewModel(), serverViewModel: ServerViewModel())
+    ContentView(musicPlayerViewModel: MusicPlayerViewModel(), libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(), artistsViewModel: ArtistsViewModel(), albunsViewModel: AlbunsViewModel(), serverViewModel: ServerViewModel())
 }

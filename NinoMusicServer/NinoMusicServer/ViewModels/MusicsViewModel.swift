@@ -6,14 +6,12 @@
 //
 
 import AVFAudio
-import Foundation
-import ID3TagEditor
-import SwiftUI
+import SQLite3
 
-enum NavigationKind {
-    case next
-    case previus
-}
+//enum NavigationKind {
+//    case next
+//    case previus
+//}
 
 class MusicsViewModel: NSObject, ObservableObject {
     
@@ -21,21 +19,73 @@ class MusicsViewModel: NSObject, ObservableObject {
     @Published var idMusicSelected: Music.ID = UUID()
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
-    @Published var duration: Double = 0
-    @Published var position: Double = 0
-    @Published var timeDuration: String = "00:00"
-    @Published var timePosition: String = "00:00"
-    @Published var isPlaying: Bool = false
-    
-    private var player: AVAudioPlayer?
     
     func reloadMusics() {
-        self.musics = MusicFiles().musics
+        var database: OpaquePointer?
+        if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
+            let sql = """
+            SELECT
+               \(DBConstants.TableMusic.colRowId),
+               \(DBConstants.TableArtist.colArtist),
+               \(DBConstants.TableMusic.colTitle),
+               \(DBConstants.TableMusic.colTrack),
+               \(DBConstants.TableAlbum.colAlbum),
+               \(DBConstants.TableGenre.colGenre),
+               \(DBConstants.TableMusic.colDuration),
+               \(DBConstants.TableAlbum.colYear),
+               \(DBConstants.TableMusic.colFilePath)
+            FROM
+               \(DBConstants.TableMusic.tableName)
+               INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+               INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
+               INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
+            ORDER BY
+               \(DBConstants.TableMusic.colTitle),
+               \(DBConstants.TableArtist.colArtist)
+            """
+            var queryStatement: OpaquePointer?
+            var musicList = [Music]()
+            var seq = 0
+            
+            if sqlite3_prepare_v2(database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+                while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                    seq += 1
+                    let idServer = Int(sqlite3_column_int(queryStatement, 0))
+                    let artist = String(cString: sqlite3_column_text(queryStatement, 1))
+                    let album = String(cString: sqlite3_column_text(queryStatement, 4))
+                    let year = String(cString: sqlite3_column_text(queryStatement, 7))
+                    let track = Int(sqlite3_column_int(queryStatement, 3))
+                    let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
+                    let genre = String(cString: sqlite3_column_text(queryStatement, 5))
+                    let duration = Int(sqlite3_column_int(queryStatement, 6))
+                    let filePath = String(cString: sqlite3_column_text(queryStatement, 8))
+                    
+                    musicList.append(Music(seq: seq,
+                                           idServer: idServer,
+                                           artist: artist,
+                                           album: album,
+                                           year: year,
+                                           track: track,
+                                           musicTitle: musicTitle,
+                                           genre: genre,
+                                           duration: duration,
+                                           filePath: filePath))
+                }
+            }
+            sqlite3_finalize(queryStatement)
+            self.musics = musicList
+            if sqlite3_close(database) != SQLITE_OK {
+                print("Erro ao fechar banco de dados!")
+            }
+        } else {
+            print("Erro ao abrir banco de dados!")
+        }
     }
     
     func setIdSelection(selection: Music.ID) {
         self.idMusicSelected = selection
         if let item = self.musics.first(where: { $0.id == self.idMusicSelected }) {
+            self.idMusicSelected = item.id
             self.musicSelected = item
             self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
         } else {
@@ -43,72 +93,4 @@ class MusicsViewModel: NSObject, ObservableObject {
         }
     }
     
-    func navigateSongs(kind: NavigationKind) {
-        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
-        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
-            self.idMusicSelected = selected.id
-            self.musicSelected = selected
-            self.player?.stop()
-            self.isPlaying = false
-            playPauseSong()
-        }
-    }
-    
-    func playPauseSong() {
-        if !self.isPlaying {
-            if let url = URL(string: self.musicSelected.filePath) {
-                do {
-                    self.player = try AVAudioPlayer(contentsOf: url)
-                    self.player?.delegate  = self
-                    self.player?.prepareToPlay()
-                    
-                    self.duration = player?.duration ?? 0
-                    
-                    let ti = NSInteger(player?.duration ?? 0)
-                    let seconds = ti % 60
-                    let minutes = (ti / 60) % 60
-                    self.timeDuration = String(format: "%0.2d:%0.2d",minutes,seconds)
-                    
-                    self.player?.isMeteringEnabled = true
-                    self.player?.play()
-                    self.isPlaying = true
-                    
-                    Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-                        self.position = self.player?.currentTime ?? 0
-                        let seconds = NSInteger(self.position) % 60
-                        self.timePosition = "\(String().secondsToTime(seconds: seconds))"
-                        
-                        if !self.isPlaying {
-                            timer.invalidate()
-                            self.timeDuration = "00:00"
-                            self.timePosition = "00:00"
-                        }
-                    }
-                } catch let error as NSError {
-                    print(error.description)
-                }
-            }
-        } else {
-            self.player?.pause()
-            self.isPlaying = false
-        }
-    }
-    
-    func setMusicPosition(newPosition: Double) {
-        self.player?.pause()
-        self.player?.currentTime = newPosition
-        self.player?.play()
-    }
-}
-
-extension MusicsViewModel: AVAudioPlayerDelegate {
-    
-    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        if flag {
-            self.player?.stop()
-            self.isPlaying = false
-            navigateSongs(kind: .next)
-            playPauseSong()
-        }
-    }
 }

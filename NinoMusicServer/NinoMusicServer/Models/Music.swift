@@ -17,7 +17,7 @@ struct Music: Encodable, Decodable, Identifiable {
     var track: Int
     var musicTitle: String
     var genre: String
-    let duration: Int
+    var duration: Int
     var filePath: String
     
     enum CodingKeys: String, CodingKey {

@@ -44,7 +44,9 @@ struct ContentView: View {
             }
         }
         .task {   
-            musicsViewModel.musics = libraryViewModel.musics
+            musicsViewModel.reloadMusics()
+            artistsViewModel.reloadArtists()
+            albunsViewModel.reloadAlbuns()
         }
     }
 }

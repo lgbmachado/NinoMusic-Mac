@@ -14,39 +14,39 @@ struct DBConstants {
 
     struct TableAlbum {
         static let tableName = "Albuns"
-        static let colRowId = "Albuns.RowId"
-        static let colAlbum = "Albuns.Album"
-        static let colYear = "Albuns.Year"
+        static let colRowId = "RowId"
+        static let colAlbum = "Album"
+        static let colYear = "Year"
     }
 
     struct TableArtist {
         static let tableName = "Artists"
-        static let colRowId = "Artists.RowId"
-        static let colArtist = "Artists.Artist"
+        static let colRowId = "RowId"
+        static let colArtist = "Artist"
     }
     
     struct TableDiretory {
         static let tableName = "Directories"
-        static let colRowId = "Directories.RowId"
-        static let colDirName = "Directories.Name"
-        static let colDirPath = "Directories.DirPath"
+        static let colRowId = "RowId"
+        static let colDirName = "Name"
+        static let colDirPath = "DirPath"
     }
     
     struct TableGenre {
         static let tableName = "Genres"
-        static let colRowId = "Genres.RowId"
-        static let colGenre = "Genres.Genre"
+        static let colRowId = "RowId"
+        static let colGenre = "Genre"
     }
 
     struct TableMusic {
         static let tableName = "Musics"
-        static let colRowId = "Musics.RowId"
-        static let colTitle = "Musics.Title"
-        static let colIdArtist = "Musics.IdArtist"
-        static let colIdAlbum = "Musics.IdAlbum"
-        static let colTrack = "Musics.Track"
-        static let colIdGenre = "Musics.IdGenre"
-        static let colDuration = "Musics.Duration"
-        static let colFilePath = "Musics.FilePath"
+        static let colRowId = "RowId"
+        static let colTitle = "Title"
+        static let colIdArtist = "IdArtist"
+        static let colIdAlbum = "IdAlbum"
+        static let colTrack = "Track"
+        static let colIdGenre = "IdGenre"
+        static let colDuration = "Duration"
+        static let colFilePath = "FilePath"
     }
 }

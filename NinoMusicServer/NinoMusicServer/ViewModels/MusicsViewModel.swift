@@ -20,12 +20,28 @@ class MusicsViewModel: NSObject, ObservableObject {
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
     
-    func reloadMusics() {
+    private func OpenDb() -> OpaquePointer? {
         var database: OpaquePointer?
         if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
+            return database
+        }
+        print("Erro ao abrir banco de dados!")
+        return nil
+    }
+    
+    private func CloseDb(database: OpaquePointer?) {
+        if let database = database {
+            if sqlite3_close(database) != SQLITE_OK {
+                print("Erro ao fechar banco de dados!")
+            }
+        }
+    }
+    
+    func reloadMusics() {
+        if let database = OpenDb() {
             let sql = """
             SELECT
-               \(DBConstants.TableMusic.colRowId),
+               \(DBConstants.TableMusic.tableName).\(DBConstants.TableMusic.colRowId),
                \(DBConstants.TableArtist.colArtist),
                \(DBConstants.TableMusic.colTitle),
                \(DBConstants.TableMusic.colTrack),
@@ -36,9 +52,9 @@ class MusicsViewModel: NSObject, ObservableObject {
                \(DBConstants.TableMusic.colFilePath)
             FROM
                \(DBConstants.TableMusic.tableName)
-               INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
-               INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
-               INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
+               INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+               INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
+               INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.tableName).\(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
             ORDER BY
                \(DBConstants.TableMusic.colTitle),
                \(DBConstants.TableArtist.colArtist)
@@ -74,11 +90,7 @@ class MusicsViewModel: NSObject, ObservableObject {
             }
             sqlite3_finalize(queryStatement)
             self.musics = musicList
-            if sqlite3_close(database) != SQLITE_OK {
-                print("Erro ao fechar banco de dados!")
-            }
-        } else {
-            print("Erro ao abrir banco de dados!")
+            CloseDb(database: database)
         }
     }
     

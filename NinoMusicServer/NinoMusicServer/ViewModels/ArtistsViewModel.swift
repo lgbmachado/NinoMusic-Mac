@@ -15,9 +15,25 @@ class ArtistsViewModel: NSObject, ObservableObject {
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
     
-    func reloadArtists() {
+    private func OpenDb() -> OpaquePointer? {
         var database: OpaquePointer?
         if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
+            return database
+        }
+        print("Erro ao abrir banco de dados!")
+        return nil
+    }
+    
+    private func CloseDb(database: OpaquePointer?) {
+        if let database = database {
+            if sqlite3_close(database) != SQLITE_OK {
+                print("Erro ao fechar banco de dados!")
+            }
+        }
+    }
+    
+    func reloadArtists() {
+        if let database = OpenDb() {
             let sqlArtist = """
         SELECT DISTINCT
            \(DBConstants.TableMusic.colIdArtist),
@@ -25,8 +41,8 @@ class ArtistsViewModel: NSObject, ObservableObject {
            \(DBConstants.TableGenre.colGenre)
         FROM
            \(DBConstants.TableMusic.tableName)
-           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
-           INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
+           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+           INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.tableName).\(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
         ORDER BY
            \(DBConstants.TableArtist.colArtist),
            \(DBConstants.TableMusic.colTrack)
@@ -46,13 +62,13 @@ class ArtistsViewModel: NSObject, ObservableObject {
                     
                     let sqlAlbuns = """
         SELECT DISTINCT
-           \(DBConstants.TableAlbum.colRowId),
+           \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId),
            \(DBConstants.TableAlbum.colAlbum),
            \(DBConstants.TableAlbum.colYear)
         FROM
            \(DBConstants.TableMusic.tableName)
-           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
-           INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
+           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+           INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
         WHERE
            \(DBConstants.TableMusic.colIdArtist) = \(idArtist)
         ORDER BY
@@ -126,11 +142,7 @@ class ArtistsViewModel: NSObject, ObservableObject {
             }
             sqlite3_finalize(queryStatement1)
             self.artists = artistList
-            if sqlite3_close(database) != SQLITE_OK {
-                print("Erro ao fechar banco de dados!")
-            }
-        } else {
-            print("Erro ao abrir banco de dados!")
+            CloseDb(database: database)
         }
     }
     
@@ -148,7 +160,7 @@ class ArtistsViewModel: NSObject, ObservableObject {
                             self.musicSelected.musicTitle = item.musicTitle
                             self.musicSelected.genre = artist.genre
                             self.musicSelected.duration = item.duration
-                            self.musicSelected.filePath = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
+                            self.musicSelected.filePath = item.filePath
                             return
                         }
                     }

@@ -8,6 +8,7 @@
 import Foundation
 import GCDWebServer
 import ID3TagEditor
+import SQLite3
 
 enum ServerComand: String {
     case playMusic = "playMusic"
@@ -21,7 +22,14 @@ class ServerViewModel: ObservableObject {
     
     private let webServer = GCDWebServer()
     private let serverPort:UInt = 8080
-    private let musicDb = Database()
+    private var database: OpaquePointer?
+    
+    init() {
+        print("Path banco de dados (Music Server): \(DBConstants.databasePath)")
+        if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
+        } else {
+        }
+    }
     
     func startMusicServer() {
         webServer.addDefaultHandler(forMethod: "GET", request: GCDWebServerRequest.self, processBlock: {request in
@@ -62,7 +70,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            self.musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
+            getMusicById(id: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -96,7 +104,7 @@ class ServerViewModel: ObservableObject {
     
     private func listMusic() -> GCDWebServerDataResponse {
         var data = Data()
-        self.musicDb.listMusicsRemote { musicsList in
+        listMusicsRemote { musicsList in
             if let musicsList = musicsList {
                 do {
                     data = try JSONEncoder().encode(musicsList)
@@ -115,7 +123,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            self.musicDb.getMusicById(id: Int(param) ?? 0, completion: { path in
+            getMusicById(id: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -175,5 +183,85 @@ class ServerViewModel: ObservableObject {
                                    descr: "Enviada dados do servidor."), at: 0)
         return GCDWebServerDataResponse(data: data, contentType: "application/json")
     }
+    
+    func listMusicsRemote(completion: @escaping ([Music]?) -> ()) {
+        let sql = """
+        SELECT
+           \(DBConstants.TableMusic.tableName).\(DBConstants.TableMusic.colRowId),
+           \(DBConstants.TableArtist.colArtist),
+           \(DBConstants.TableMusic.colTitle),
+           \(DBConstants.TableMusic.colTrack),
+           \(DBConstants.TableMusic.colDuration),
+           \(DBConstants.TableAlbum.colAlbum),
+           \(DBConstants.TableGenre.colGenre),
+           \(DBConstants.TableAlbum.colYear)
+        FROM
+           \(DBConstants.TableMusic.tableName)
+           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+           INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
+           INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.tableName).\(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
+        ORDER BY
+           \(DBConstants.TableMusic.colTitle),
+           \(DBConstants.TableArtist.colArtist)
+        """
+        var queryStatement: OpaquePointer?
+        var musicListRemote = [Music]()
+        var seq = 0
+    
+        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                seq += 1
+                let idServer = Int(sqlite3_column_int(queryStatement, 0))
+                let artist = String(cString: sqlite3_column_text(queryStatement, 1))
+                let album = String(cString: sqlite3_column_text(queryStatement, 5))
+                let year = String(cString: sqlite3_column_text(queryStatement, 7))
+                let track = Int(sqlite3_column_int(queryStatement, 3))
+                let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
+                let genre = String(cString: sqlite3_column_text(queryStatement, 6))
+                let duration = Int(sqlite3_column_int(queryStatement, 4))
+    
+                musicListRemote.append(Music(seq: seq,
+                                             idServer: idServer,
+                                             artist: artist,
+                                             album: album,
+                                             year: year,
+                                             track: track,
+                                             musicTitle: musicTitle,
+                                             genre: genre,
+                                             duration: duration,
+                                             filePath: ""))
+            }
+        }
+        sqlite3_finalize(queryStatement)
+        completion(musicListRemote)
+    }
+    
+    func getMusicById(id: Int, completion: @escaping (String?) -> ()) {
+        let sql = """
+        SELECT
+           \(DBConstants.TableMusic.colFilePath)
+        FROM
+           \(DBConstants.TableMusic.tableName)
+        WHERE
+           \(DBConstants.TableMusic.colRowId) = \(id)
+        """
+        var queryStatement: OpaquePointer?
+        var result = ""
+    
+        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                result = String(cString: sqlite3_column_text(queryStatement, 0))
+            }
+        }
+        sqlite3_finalize(queryStatement)
+        completion(result)
+    }
+    
+    func closeDatabase() {
+        if sqlite3_close(self.database) != SQLITE_OK {
+            print("error closing database")
+        }
+    }
+    
     
 }

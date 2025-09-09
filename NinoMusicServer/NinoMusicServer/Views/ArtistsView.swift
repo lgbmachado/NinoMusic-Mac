@@ -110,9 +110,8 @@ struct AlbumView: View {
                 }
             }
             .onChange(of: selection) { oldSelected, newSelected in
-                artistsViewModel.setIdSelection(selection: (newSelected ?? UUID()) ?? UUID())
-                let music = artistsViewModel.musicSelected
-                musicPlayerViewModel.setMusicSelected(music: music)
+                artistsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
+                musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
             }
         }
     }

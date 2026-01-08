@@ -106,10 +106,10 @@ struct FileView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Arquivo")
+            Text(LocalizedStringKey("text_file"))
                 .font(.caption2)
                 .padding(.bottom, -7)
-            TextField("Nome do Arquivo", text: $musicsViewModel.fileSelected)
+            TextField(LocalizedStringKey("text_file_name"), text: $musicsViewModel.fileSelected)
             Spacer()
         }
     }

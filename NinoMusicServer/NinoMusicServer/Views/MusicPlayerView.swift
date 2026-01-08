@@ -13,6 +13,7 @@ struct MusicPlayerView: View {
     
     @State private var isMovingSlider = false
     @State var dragGestureValue: DragGesture.Value?
+    @State private var showingLyrics = false
     
     var body: some View {
         
@@ -39,7 +40,7 @@ struct MusicPlayerView: View {
                 })
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
-                Spacer(minLength: 30)
+                Spacer(minLength: 15)
                 VStack {
 //                    Slider(value: $musicsPlayerViewModel.position, in: 0...self.musicsViewModel.duration, onEditingChanged: { editing in
 //                        isMovingSlider = editing
@@ -52,8 +53,8 @@ struct MusicPlayerView: View {
 //                        .font(.caption2)
                 }
                 
-                Spacer(minLength: 30)
-            Image(nsImage: Id3TagUtils.getImageCover(path: self.musicsPlayerViewModel.currentMusic?.filePath ?? ""))
+                Spacer(minLength: 15)
+                Image(nsImage: musicsPlayerViewModel.getImageCover())
                     .resizable()
                     .frame(width: 49, height: 49, alignment: .bottom)
                     .scaledToFit()
@@ -65,8 +66,19 @@ struct MusicPlayerView: View {
                     Text(verbatim: musicsPlayerViewModel.currentMusic?.artist ?? "")
                         .font(.caption2)
                 }
-                
+                Spacer(minLength: 15)
+                Button(String(), systemImage: "music.note.tv", action: {
+                    if musicsPlayerViewModel.currentMusic?.hasLyric ?? false {
+                        showingLyrics.toggle()
+                    }
+                })
+                .font(.system(size: 30))
+                .buttonStyle(.borderless)
             }
+        }
+        .sheet(isPresented: $showingLyrics) {
+            LyricView(lyricText: musicsPlayerViewModel.getLyrics())
+            
         }
     }
 }

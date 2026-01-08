@@ -44,6 +44,12 @@ struct MusicsView: View {
                     .width(50)
                 TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
                     .width(170)
+                TableColumn(LocalizedStringKey("text_lyric")){ music in
+                    if music.hasLyric {
+                        Image(systemName: "music.note.tv")
+                    }
+                }
+                .width(50)
             }
             
             .padding()
@@ -55,7 +61,7 @@ struct MusicsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigation) {
                     MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
-//                    ToolbarMusicsView(musicsViewModel: musicsViewModel, selection: $selection)
+                    //                    ToolbarMusicsView(musicsViewModel: musicsViewModel, selection: $selection)
                 }
             }
             .onAppear() {
@@ -70,12 +76,12 @@ struct MusicsView: View {
 //struct ToolbarMusicsView: View {
 //    @ObservedObject var musicsViewModel: MusicsViewModel
 //    @Binding var selection: Music.ID?
-//    
+//
 //    @State private var isMovingSlider = false
 //    @State var dragGestureValue: DragGesture.Value?
-//    
+//
 //    var body: some View {
-//        
+//
 //        VStack {
 //            HStack {
 //                Button(String(), systemImage: "backward.circle", action: {
@@ -107,7 +113,7 @@ struct MusicsView: View {
 //                    Text(verbatim: self.musicsViewModel.isPlaying ? "\(self.musicsViewModel.timePosition) / \(self.musicsViewModel.timeDuration)" : "00:00 / 00:00")
 //                        .font(.caption2)
 //                }
-//                
+//
 //                Spacer(minLength: 30)
 //                Image(nsImage: Id3TagUtils.getImageCover(path: self.musicsViewModel.musicSelected.filePath))
 //                    .resizable()
@@ -121,11 +127,11 @@ struct MusicsView: View {
 //                    Text(verbatim: musicsViewModel.musicSelected.artist)
 //                        .font(.caption2)
 //                }
-//                
+//
 //            }
 //        }
 //    }
-//    
+//
 //}
 
 

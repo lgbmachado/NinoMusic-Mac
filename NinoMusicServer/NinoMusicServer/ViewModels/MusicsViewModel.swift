@@ -49,7 +49,8 @@ class MusicsViewModel: NSObject, ObservableObject {
                \(DBConstants.TableGenre.colGenre),
                \(DBConstants.TableMusic.colDuration),
                \(DBConstants.TableAlbum.colYear),
-               \(DBConstants.TableMusic.colFilePath)
+               \(DBConstants.TableMusic.colFilePath),
+               \(DBConstants.TableMusic.colHasLyrics)
             FROM
                \(DBConstants.TableMusic.tableName)
                INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
@@ -75,6 +76,7 @@ class MusicsViewModel: NSObject, ObservableObject {
                     let genre = String(cString: sqlite3_column_text(queryStatement, 5))
                     let duration = Int(sqlite3_column_int(queryStatement, 6))
                     let filePath = String(cString: sqlite3_column_text(queryStatement, 8))
+                    let hasLyric = Int(sqlite3_column_int(queryStatement, 9)) == 1
                     
                     musicList.append(Music(seq: seq,
                                            idServer: idServer,
@@ -85,7 +87,8 @@ class MusicsViewModel: NSObject, ObservableObject {
                                            musicTitle: musicTitle,
                                            genre: genre,
                                            duration: duration,
-                                           filePath: filePath))
+                                           filePath: filePath,
+                                           hasLyric: hasLyric))
                 }
             }
             sqlite3_finalize(queryStatement)

@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import AVFAudio
+import AppKit
 
 enum NavigationKind {
     case next
@@ -92,14 +93,14 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     }
     
     func navigateSongs(kind: NavigationKind) {
-        //        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
-        //        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
-        //            self.currentMusic?.id = selected.id
-        //            self.currentMusic = selected
-        //            self.player?.stop()
-        //            self.isPlaying = false
-        //            playPauseSong()
-        //        }
+//        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
+//        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
+//            self.currentMusic?.id = selected.id
+//            self.currentMusic = selected
+//            self.player?.stop()
+//            self.isPlaying = false
+//            playPauseSong()
+//        }
     }
     
     func setMusicPosition(newPosition: Double) {
@@ -176,5 +177,13 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     //        }
     //    }
     //}
+    
+    func getImageCover() -> NSImage {
+        return Id3TagUtils.getImageCover(path: self.currentMusic?.filePath ?? "")
+    }
+    
+    func getLyrics() -> String {
+        return Id3TagUtils.getLyrics(path: self.currentMusic?.filePath ?? "")
+    }
     
 }

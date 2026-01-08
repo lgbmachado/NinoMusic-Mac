@@ -28,4 +28,21 @@ public class Id3TagUtils {
         }
         return NSImage()
     }
+    
+    static func getLyrics(path: String) -> String {
+        let id3TagEditor: ID3TagEditor = ID3TagEditor()
+        do {
+            let id3Tag = try id3TagEditor.read(from: path.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
+            
+            if let frame = id3Tag?.frames[.unsynchronizedLyrics(.unknown)] {
+                if let textFrame = frame as? ID3FrameWithStringContent {
+                    return textFrame.content
+                }
+            }
+        }
+        catch {
+            print(error)
+        }
+        return String()
+    }
 }

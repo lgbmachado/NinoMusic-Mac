@@ -131,7 +131,7 @@ class MusicFiles {
                                         let id3Tag = try id3TagEditor.read(from: fileURL.path)
                                         
                                         let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
-                                        let album = ((id3Tag?.frames[ .album] as? ID3FrameWithStringContent)?.content ?? String()) as String
+                                        let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
                                         let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int
                                         let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
                                         let duration = await getDuration(url: fileURL)
@@ -139,14 +139,22 @@ class MusicFiles {
                                         let genre = ((id3Tag?.frames[.genre] as? ID3FrameGenre)?.description ?? String()) as String
                                         let filePath = fileURL.absoluteString
                                         
+                                        var hasLyric = false
+                                        if let frame = id3Tag?.frames[.unsynchronizedLyrics(.unknown)] {
+                                            if let textFrame = frame as? ID3FrameWithStringContent {
+                                                hasLyric = !textFrame.content.isEmpty
+                                            }
+                                        }
+
                                         if AddMusic(filePath: filePath,
-                                                                 musicTitle: musicTitle,
-                                                                 artist: artist,
-                                                                 album: album,
-                                                                 year: year,
-                                                                 track: track,
-                                                                 duration: duration,
-                                                                 genre: genre) {
+                                                    musicTitle: musicTitle,
+                                                    artist: artist,
+                                                    album: album,
+                                                    year: year,
+                                                    track: track,
+                                                    duration: duration,
+                                                    genre: genre,
+                                                    hasLyric: hasLyric) {
                                             
                                             if count % 49 == 0 {
                                                 delegate?.musicLoading(musicsLoaded: count, totalTime: totalTime)
@@ -301,14 +309,14 @@ class MusicFiles {
         return count > 0
     }
     
-    func AddMusic(filePath: String, musicTitle: String, artist: String, album: String, year: Int, track: Int, duration: Int, genre: String) -> Bool{
+    func AddMusic(filePath: String, musicTitle: String, artist: String, album: String, year: Int, track: Int, duration: Int, genre: String, hasLyric: Bool) -> Bool{
         let idArtist = getRowId(table: DBConstants.TableArtist.tableName, column1: DBConstants.TableArtist.colArtist, value1: artist)
         let idAlbum = getRowId(table: DBConstants.TableAlbum.tableName, column1: DBConstants.TableAlbum.colAlbum, value1: album, column2: DBConstants.TableAlbum.colYear, value2: String(year))
         let idGenre = getRowId(table: DBConstants.TableGenre.tableName, column1: DBConstants.TableGenre.colGenre, value1: genre)
         var result = false
         
         var queryStatement: OpaquePointer?
-        let sql = "INSERT INTO \(DBConstants.TableMusic.tableName) (\(DBConstants.TableMusic.colFilePath), \(DBConstants.TableMusic.colIdArtist), \(DBConstants.TableMusic.colTrack), \(DBConstants.TableMusic.colDuration), \(DBConstants.TableMusic.colIdAlbum), \(DBConstants.TableMusic.colTitle), \(DBConstants.TableMusic.colIdGenre)) VALUES (\"\(filePath)\", \(idArtist), \(track), \(duration), \(idAlbum), \"\(musicTitle.replacingOccurrences(of: "\"", with: "'"))\", \(idGenre) );"
+        let sql = "INSERT INTO \(DBConstants.TableMusic.tableName) (\(DBConstants.TableMusic.colFilePath), \(DBConstants.TableMusic.colIdArtist), \(DBConstants.TableMusic.colTrack), \(DBConstants.TableMusic.colDuration), \(DBConstants.TableMusic.colIdAlbum), \(DBConstants.TableMusic.colTitle), \(DBConstants.TableMusic.colIdGenre), \(DBConstants.TableMusic.colHasLyrics)) VALUES (\"\(filePath)\", \(idArtist), \(track), \(duration), \(idAlbum), \"\(musicTitle.replacingOccurrences(of: "\"", with: "'"))\", \(idGenre), \(hasLyric ? 1 : 0) );"
         if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
             if sqlite3_step(queryStatement) == SQLITE_DONE {
                 result = true
@@ -338,7 +346,8 @@ class MusicFiles {
         \(DBConstants.TableMusic.colDuration) INT,
         \(DBConstants.TableMusic.colTrack) INT,
         \(DBConstants.TableMusic.colTitle) CHAR(255),
-        \(DBConstants.TableMusic.colIdGenre) INT);
+        \(DBConstants.TableMusic.colIdGenre) INT,
+        \(DBConstants.TableMusic.colHasLyrics) BOOLEAN);
         """
         if createTable(sql: sqlCreateTableMusics) {
             

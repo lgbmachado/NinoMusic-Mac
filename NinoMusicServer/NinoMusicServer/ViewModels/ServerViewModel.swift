@@ -194,7 +194,8 @@ class ServerViewModel: ObservableObject {
            \(DBConstants.TableMusic.colDuration),
            \(DBConstants.TableAlbum.colAlbum),
            \(DBConstants.TableGenre.colGenre),
-           \(DBConstants.TableAlbum.colYear)
+           \(DBConstants.TableAlbum.colYear),
+           \(DBConstants.TableMusic.colHasLyrics)
         FROM
            \(DBConstants.TableMusic.tableName)
            INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
@@ -219,6 +220,7 @@ class ServerViewModel: ObservableObject {
                 let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
                 let genre = String(cString: sqlite3_column_text(queryStatement, 6))
                 let duration = Int(sqlite3_column_int(queryStatement, 4))
+                let hasLyric = Int(sqlite3_column_int(queryStatement, 8)) == 1
     
                 musicListRemote.append(Music(seq: seq,
                                              idServer: idServer,
@@ -229,7 +231,8 @@ class ServerViewModel: ObservableObject {
                                              musicTitle: musicTitle,
                                              genre: genre,
                                              duration: duration,
-                                             filePath: ""))
+                                             filePath: "",
+                                             hasLyric: hasLyric))
             }
         }
         sqlite3_finalize(queryStatement)

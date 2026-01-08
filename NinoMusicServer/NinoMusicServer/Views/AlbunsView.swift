@@ -54,7 +54,7 @@ struct AlbunsView: View {
                 .width(40)
                 .alignment(.trailing)
                 TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
-                TableColumn("Duração") { music in
+                TableColumn(LocalizedStringKey("text_duration")) { music in
                     Text(String().secondsToTime(seconds: music.duration))
                 }
             }

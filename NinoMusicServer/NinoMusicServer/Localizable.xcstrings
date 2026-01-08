@@ -4,14 +4,59 @@
     "%lld" : {
 
     },
-    "Arquivo" : {
-
+    "text_file" : {
+      "comment" : "Texto \"Arquivo\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivo"
+          }
+        }
+      }
     },
-    "Duração" : {
-
+    "text_duration" : {
+      "comment" : "Texto \"Duração\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duração"
+          }
+        }
+      }
     },
-    "Nome do Arquivo" : {
-
+    "text_file_name" : {
+      "comment" : "Texto \"Nome do Arquivo\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File Name"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome do Arquivo"
+          }
+        }
+      }
     },
     "text_album" : {
       "comment" : "Texto \"Álbum\".",
@@ -135,6 +180,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Artistas"
+          }
+        }
+      }
+    },
+    "text_close" : {
+      "comment" : "Texto \"Fechar\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar"
           }
         }
       }
@@ -333,6 +396,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Biblioteca"
+          }
+        }
+      }
+    },
+    "text_lyric" : {
+      "comment" : "Texto “Letra”.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lyric"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letra"
           }
         }
       }
@@ -734,5 +815,5 @@
       }
     }
   },
-  "version" : "1.0"
+  "version" : "1.1"
 }

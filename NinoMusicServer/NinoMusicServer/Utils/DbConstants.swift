@@ -48,5 +48,6 @@ struct DBConstants {
         static let colIdGenre = "IdGenre"
         static let colDuration = "Duration"
         static let colFilePath = "FilePath"
+        static let colHasLyrics = "HasLyrics"
     }
 }

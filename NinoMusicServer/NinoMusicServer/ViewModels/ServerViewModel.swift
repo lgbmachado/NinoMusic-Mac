@@ -12,7 +12,7 @@ import SQLite3
 
 enum ServerComand: String {
     case playMusic = "playMusic"
-    case listMusic = "listMusics"
+    case listMusic = "listMusic"
     case getCover = "getCover"
     case serverInfo = "serverInfo"
 }
@@ -71,7 +71,7 @@ class ServerViewModel: ObservableObject {
         if arrayParam.count > 1 {
             let param = arrayParam[1]
             getMusicById(id: Int(param) ?? 0, completion: { path in
-                if let path = (path! as NSString).removingPercentEncoding {
+                if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
                         if let handler = FileHandle.init(forReadingAtPath: url.path) {

@@ -14,6 +14,7 @@ enum ServerComand: String {
     case playMusic = "playMusic"
     case listMusic = "listMusic"
     case getCover = "getCover"
+    case getLyric = "getLyric"
     case serverInfo = "serverInfo"
 }
 
@@ -42,6 +43,8 @@ class ServerViewModel: ObservableObject {
                 return self.listMusic()
             case .getCover:
                 return self.getCover(arrayParam: arrayParam)
+            case .getLyric:
+                return self.getLyric(arrayParam: arrayParam)
             case .serverInfo:
                 return self.getServerInfo()
                 
@@ -139,6 +142,58 @@ class ServerViewModel: ObservableObject {
                                 self.logs.insert(ServerLog(dateTime: Date.now,
                                                            type: .error,
                                                            descr: "Falha ao obter capa do álbum do arquivo \"\(url.lastPathComponent)\"!"), at: 0)
+                                result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALHA AO LER ARQUIVO</p></body></html>")!
+                            }
+                        } catch {
+                            self.logs.insert(ServerLog(dateTime: Date.now,
+                                                       type: .error,
+                                                       descr: "Falha ler arquivo \"\(url.lastPathComponent)\"!"), at: 0)
+                            print(error)
+                        }
+                    } else {
+                        self.logs.insert(ServerLog(dateTime: Date.now,
+                                                   type: .error,
+                                                   descr: "Arquivo \"\(url.lastPathComponent)\" não encontrado!"), at: 0)
+                        result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: ARQUIVO NÃO ENCONTRADO</p></body></html>")!
+                    }
+                }
+            })
+        } else {
+            self.logs.insert(ServerLog(dateTime: Date.now,
+                                       type: .error,
+                                       descr: "Solicitação sem parâmetro!"), at: 0)
+            result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALTA PARÂMETRO</p></body></html>")!
+        }
+        return result
+    }
+    
+    private func getLyric(arrayParam: [String.SubSequence]) -> GCDWebServerDataResponse {
+        var result = GCDWebServerDataResponse()
+        if arrayParam.count > 1 {
+            let param = arrayParam[1]
+            getMusicById(id: Int(param) ?? 0, completion: { path in
+                if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
+                    let url = URL(fileURLWithPath: path)
+                    if FileManager.default.fileExists(atPath: url.path) {
+                        let id3TagEditor: ID3TagEditor = ID3TagEditor()
+                        do {
+                            let id3Tag = try id3TagEditor.read(from: url.path)
+                            if let frame = id3Tag?.frames[.unsynchronizedLyrics(.unknown)] {
+                                if let textString = (frame as? ID3FrameWithStringContent)?.content {
+                                    self.logs.insert(ServerLog(dateTime: Date.now,
+                                                               type: .info,
+                                                               descr: "Enviada letra da música."), at: 0)
+                                    result = GCDWebServerDataResponse(data: textString.data(using: .utf8) ?? Data(), contentType: "text/plain")
+                                } else {
+                                    self.logs.insert(ServerLog(dateTime: Date.now,
+                                                               type: .error,
+                                                               descr: "Falha ao obter a letra da música do arquivo\"\(url.lastPathComponent)\"!"), at: 0)
+                                    result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALHA AO LER ARQUIVO</p></body></html>")!
+                                }
+                            } else {
+                                self.logs.insert(ServerLog(dateTime: Date.now,
+                                                           type: .error,
+                                                           descr: "Falha ao obter a letra da música do arquivo\"\(url.lastPathComponent)\"!"), at: 0)
                                 result = GCDWebServerDataResponse(html: "<html><body><p>ERRO: FALHA AO LER ARQUIVO</p></body></html>")!
                             }
                         } catch {

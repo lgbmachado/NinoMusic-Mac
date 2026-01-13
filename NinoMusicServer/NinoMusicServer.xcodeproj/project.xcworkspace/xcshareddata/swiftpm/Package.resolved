@@ -1,6 +1,15 @@
 {
-  "originHash" : "2aeebb7034b70d30222a2b47febf6ce7a893ed5a6def2b5dacca33750eb6b997",
+  "originHash" : "981836bcc191b817bc5669b38dd44980a9b143255329d217c1a6a557fa6617b9",
   "pins" : [
+    {
+      "identity" : "gcdwebserver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/yene/GCDWebServer.git",
+      "state" : {
+        "revision" : "c2f837b30038ef716b77225f40cc8d104b6ff645",
+        "version" : "3.5.7"
+      }
+    },
     {
       "identity" : "id3tageditor",
       "kind" : "remoteSourceControl",

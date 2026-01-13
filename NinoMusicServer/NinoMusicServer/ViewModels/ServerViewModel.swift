@@ -9,6 +9,7 @@ import Foundation
 import GCDWebServer
 import ID3TagEditor
 import SQLite3
+import AppKit
 
 enum ServerComand: String {
     case playMusic = "playMusic"

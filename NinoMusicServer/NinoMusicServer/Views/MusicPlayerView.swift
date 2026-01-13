@@ -54,7 +54,7 @@ struct MusicPlayerView: View {
                 }
                 
                 Spacer(minLength: 15)
-                Image(nsImage: musicsPlayerViewModel.getImageCover())
+                Image(nsImage: musicsPlayerViewModel.getImageCover() ?? NSImage())
                     .resizable()
                     .frame(width: 49, height: 49, alignment: .bottom)
                     .scaledToFit()
@@ -77,7 +77,7 @@ struct MusicPlayerView: View {
             }
         }
         .sheet(isPresented: $showingLyrics) {
-            LyricView(lyricText: musicsPlayerViewModel.getLyrics())
+            LyricView(lyricText: musicsPlayerViewModel.getLyrics() ?? "Falha ao obter letra da música \"\(musicsPlayerViewModel.currentMusic?.musicTitle ?? "Desconhecida")\".")
             
         }
     }

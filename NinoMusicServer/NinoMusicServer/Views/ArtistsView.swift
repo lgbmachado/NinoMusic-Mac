@@ -84,7 +84,7 @@ struct AlbumView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
-                Image(nsImage: Id3TagUtils.getImageCover(path: album?.musics.first?.filePath ?? ""))
+                Image(nsImage: Id3TagUtils.getImageCover(path: album?.musics.first?.filePath ?? "") ?? NSImage())
                     .resizable()
                     .frame(width: 75, height: 75, alignment: .bottom)
                     .scaledToFit()

@@ -14,22 +14,22 @@ public class Id3TagUtils {
     
     private let id3TagEditor = ID3TagEditor()
     
-    static func getImageCover(path: String) -> NSImage {
+    static func getImageCover(path: String) -> NSImage? {
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
         do {
             let id3Tag = try id3TagEditor.read(from: path.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
             
             if let coverImage = id3Tag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
-                return NSImage(data: coverImage.picture) ?? NSImage()
+                return NSImage(data: coverImage.picture)
             }
         }
         catch {
             print(error)
         }
-        return NSImage()
+        return nil
     }
     
-    static func getLyrics(path: String) -> String {
+    static func getLyrics(path: String) -> String? {
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
         do {
             let id3Tag = try id3TagEditor.read(from: path.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")

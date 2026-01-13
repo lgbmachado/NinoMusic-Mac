@@ -18,7 +18,7 @@ struct AlbunsView: View {
     
     var body: some View {
         VStack {
-            Image(nsImage: Id3TagUtils.getImageCover(path: albunsViewModel.filePathCover))
+            Image(nsImage: Id3TagUtils.getImageCover(path: albunsViewModel.filePathCover) ?? NSImage())
                 .resizable()
                 .frame(width: 300, height: 300, alignment: .bottom)
                 .scaledToFit()

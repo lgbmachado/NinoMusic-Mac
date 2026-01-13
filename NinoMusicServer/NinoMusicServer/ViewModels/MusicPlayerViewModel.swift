@@ -178,11 +178,11 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     //    }
     //}
     
-    func getImageCover() -> NSImage {
+    func getImageCover() -> NSImage? {
         return Id3TagUtils.getImageCover(path: self.currentMusic?.filePath ?? "")
     }
     
-    func getLyrics() -> String {
+    func getLyrics() -> String? {
         return Id3TagUtils.getLyrics(path: self.currentMusic?.filePath ?? "")
     }
     

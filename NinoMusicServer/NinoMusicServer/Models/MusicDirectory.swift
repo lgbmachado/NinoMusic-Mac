@@ -13,4 +13,6 @@ struct MusicDirectory: Codable,
     var id = UUID()
     let name: String
     let path: String
+    let musicCount: Int
+    let totalTime: TimeInterval
 }

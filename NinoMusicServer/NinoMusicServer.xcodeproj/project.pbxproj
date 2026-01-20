@@ -18,8 +18,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3FAF95412D6CAD2D0044D81B /* NinoMusicServer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = NinoMusicServer;
 			sourceTree = "<group>";
 		};
@@ -43,7 +41,6 @@
 			children = (
 				3FAF95412D6CAD2D0044D81B /* NinoMusicServer */,
 				3FAF95402D6CAD2D0044D81B /* Products */,
-				8AF4C4A009FC549ADD7901C3 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -53,13 +50,6 @@
 				3FAF953F2D6CAD2D0044D81B /* NinoMusicServer.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		8AF4C4A009FC549ADD7901C3 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

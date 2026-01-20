@@ -66,9 +66,9 @@ struct ToolbarLibraryView: View {
             
             
             VStack(alignment: .leading, spacing: 6) {
-                Text(verbatim: !self.libraryViewModel.isLoading && self.libraryViewModel.totalMusics > 0 ? "Músicas:  \(self.libraryViewModel.totalMusics)" : "")
+                Text(verbatim: self.libraryViewModel.totalMusics > 0 ? "Músicas:  \(self.libraryViewModel.totalMusics)" : "")
                     .font(.title3)
-                Text(verbatim: !self.libraryViewModel.isLoading  && self.libraryViewModel.totalMusics > 0 ? "Tempo: \(getTotalMusicTime(interval: self.libraryViewModel.totalTime))" : "")
+                Text(verbatim: self.libraryViewModel.totalMusics > 0 ? "Tempo: \( self.libraryViewModel.totalTime.timeIntervalToString() ))" : "")
                     .font(.title3)
             }
             .padding(.top, 5)
@@ -117,52 +117,6 @@ struct ToolbarLibraryView: View {
             return
         }
     }
-    
-    func getTotalMusicTime(interval: TimeInterval) -> String {
-        
-        var result = ""
-        var seconds = Int(interval)
-        
-        var months: Int = 0
-        if seconds >= 2592000 {
-            months = seconds / 2592000
-            if months > 0 {
-                result += "\(months) \(months == 1 ? "mês" : "meses") "
-            }
-            seconds -= months * 2592000
-        }
-        
-        var days: Int = 0
-        if seconds >= 86400 {
-            days = seconds / 86400
-            if days > 0 {
-                result += "\(days) \(days == 1 ? "dia" : "dias") "
-            }
-            seconds -= days * 86400
-        }
-        
-        var hours: Int = 0
-        if seconds >= 3600 {
-            hours = seconds / 3600
-            if hours > 0 {
-                result += "\(hours) \(hours == 1 ? "hora" : "horas") "
-            }
-            seconds -= hours * 3600
-        }
-        
-        var minutes: Int = 0
-        if seconds >= 60 {
-            minutes = seconds / 60
-            if minutes > 0 {
-                result += "\(minutes) \(minutes == 1 ? "minuto" : "minutos") "
-            }
-            seconds -= minutes * 60
-        }
-        if seconds > 0 {
-            result += "e \(seconds) \(seconds == 1 ? "segundo" : "segundos")"
-        }
-        return result
-    }
 }
 
 
@@ -198,14 +152,21 @@ struct DirectoryRowView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(diretory.name)
+            Label(diretory.name, systemImage: "play.fill")
                 .foregroundColor(.primary)
                 .font(.headline)
-            HStack(spacing: 3) {
-                Label(diretory.path, systemImage: "folder")
-            }
-            .foregroundColor(.secondary)
-            .font(.subheadline)
+            Label(diretory.path, systemImage: "folder")
+                .foregroundColor(.secondary)
+                .font(.subheadline)
+                .padding(.leading, 20)
+            Label("\(diretory.musicCount) musica(s).", systemImage: "arrow.counterclockwise")
+                .foregroundColor(.secondary)
+                .font(.subheadline)
+                .padding(.leading, 20)
+            Label(diretory.totalTime.timeIntervalToString(), systemImage: "clock")
+                .foregroundColor(.secondary)
+                .font(.subheadline)
+                .padding(.leading, 20)
         }
     }
 }

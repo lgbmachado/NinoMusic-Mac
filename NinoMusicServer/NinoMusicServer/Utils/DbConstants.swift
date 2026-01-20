@@ -30,6 +30,8 @@ struct DBConstants {
         static let colRowId = "RowId"
         static let colDirName = "Name"
         static let colDirPath = "DirPath"
+        static let colMusicsCount = "MusicsCount"
+        static let colTotalTime = "TotalTime"
     }
     
     struct TableGenre {

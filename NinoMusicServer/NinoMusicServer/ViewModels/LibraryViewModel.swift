@@ -12,7 +12,6 @@ import SQLite3
 
 class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     
-    @Published var musics: [Music] = []
     @Published var totalMusics: Int = 0
     @Published var totalTime: TimeInterval = 0
     @Published var isLoading: Bool = false
@@ -24,14 +23,16 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     init() {
         self.musicFiles.delegate = self
         self.directories = self.musicFiles.directories
-        self.musics = self.musicFiles.musics
+        self.totalMusics = self.directories.reduce(0) { $0 + $1.musicCount }
+        self.totalTime = self.directories.reduce(0.0) { $0 + $1.totalTime }
     }
      
     func addDirectory(dirPath: String) async {
         self.isLoading = true
         await self.musicFiles.addDirectory(dirPath: dirPath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
         self.directories = self.musicFiles.directories
-        self.musics = self.musicFiles.musics
+        self.totalMusics = self.directories.reduce(0) { $0 + $1.musicCount }
+        self.totalTime = self.directories.reduce(0.0) { $0 + $1.totalTime }
         self.isLoading = false
     }
     
@@ -40,9 +41,8 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
         if let dir = musicFiles.directories.first(where: { $0.id == selection }) {
             await self.musicFiles.deleteDirectory(dirName: dir.name)
             self.directories = self.musicFiles.directories
-            self.musics = self.musicFiles.musics
-            self.totalTime = self.musicFiles.totalTime
-            self.totalMusics = self.musicFiles.musics.count
+            self.totalMusics = self.directories.reduce(0) { $0 + $1.musicCount }
+            self.totalTime = self.directories.reduce(0.0) { $0 + $1.totalTime }
             self.isLoading = false
         } else {
             self.isLoading = false
@@ -76,13 +76,12 @@ class MusicFiles {
     var totalTime: TimeInterval = 0
     
     init() {
-        self.directories = getDirectories()
-        
         print("Path banco de dados (Library): \(DBConstants.databasePath)")
         if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
             CreateTables()
         } else {
         }
+        self.directories = getDirectories()
     }
     
     func addDirectory(dirPath: String) async {
@@ -98,8 +97,6 @@ class MusicFiles {
         if deleteDirectory(dirName: dirName) {
             self.directories = self.getDirectories()
             await updateMusicsDatabase { _ in
-//                self.musics = self.musicDb.getMusics()
-//                self.albuns = self.musicDb.getAlbuns()
                 self.saveServerInfo()
             }
         }
@@ -108,6 +105,8 @@ class MusicFiles {
     private func updateMusicsDatabase(completion: @escaping (Int?) -> ()) async {
         cleanMusicsTables()
         for dir in self.directories {
+            var countDir = 0
+            var totalTimeDir = 0.0
             let url = URL(fileURLWithPath: dir.path)
             var directories = [URL]()
             directories.append(url)
@@ -160,7 +159,9 @@ class MusicFiles {
                                                 delegate?.musicLoading(musicsLoaded: count, totalTime: totalTime)
                                             }
                                             count += 1
+                                            countDir += 1
                                             totalTime += Double(duration)
+                                            totalTimeDir += Double(duration)
                                         }
                                     }
                                     catch {
@@ -172,6 +173,9 @@ class MusicFiles {
                     }
                 }
                 completion(count)
+            }
+            if !updateDirData(dirPath: dir.path, countDir: countDir, totalTimeDir: totalTimeDir) {
+                print("Falha ao atualizar diretório.")
             }
         }
     }
@@ -200,12 +204,27 @@ class MusicFiles {
         }
     }
     
+    func updateDirData(dirPath: String, countDir: Int, totalTimeDir: Double) -> Bool{
+        var result = false
+        var queryStatement: OpaquePointer?
+        let sql = "UPDATE \(DBConstants.TableDiretory.tableName) SET \(DBConstants.TableDiretory.colMusicsCount) = \(countDir), \(DBConstants.TableDiretory.colTotalTime) = \(totalTimeDir) WHERE \(DBConstants.TableDiretory.colDirPath) = \"\(dirPath)\";"
+        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+            if sqlite3_step(queryStatement) == SQLITE_DONE {
+                result = true
+            }
+        }
+        sqlite3_finalize(queryStatement)
+        return result
+    }
+    
     func getDirectories() -> [MusicDirectory] {
         let sql = """
         SELECT
            \(DBConstants.TableDiretory.colRowId),
            \(DBConstants.TableDiretory.colDirName),
-           \(DBConstants.TableDiretory.colDirPath)
+           \(DBConstants.TableDiretory.colDirPath),
+           \(DBConstants.TableDiretory.colMusicsCount),
+           \(DBConstants.TableDiretory.colTotalTime)
         FROM
            \(DBConstants.TableDiretory.tableName)
         ORDER BY
@@ -220,8 +239,10 @@ class MusicFiles {
                 count += 1
                 let dirName = String(cString: sqlite3_column_text(queryStatement, 1))
                 let dirPath = String(cString: sqlite3_column_text(queryStatement, 2))
+                let musicsCount = Int(sqlite3_column_int(queryStatement, 3))
+                let totalTime = Double(String(cString: sqlite3_column_text(queryStatement, 4))) ?? 0.0
                 
-                dirList.append(MusicDirectory(name: dirName, path: dirPath))
+                dirList.append(MusicDirectory(name: dirName, path: dirPath, musicCount: musicsCount, totalTime: totalTime))
             }
         }
         sqlite3_finalize(queryStatement)
@@ -240,10 +261,11 @@ class MusicFiles {
         var result = false
         
         var queryStatement: OpaquePointer?
-        let sql = "INSERT INTO \(DBConstants.TableDiretory.tableName) (\(DBConstants.TableDiretory.colDirPath)) VALUES (\"\(dirPath)\");"
+        let sql = "INSERT INTO \(DBConstants.TableDiretory.tableName) (\(DBConstants.TableDiretory.colDirPath),\(DBConstants.TableDiretory.colMusicsCount),\(DBConstants.TableDiretory.colTotalTime)) VALUES (\"\(dirPath)\",0, 0.0);"
         if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
             if sqlite3_step(queryStatement) == SQLITE_DONE {
                 result = true
+                self.directories.append(MusicDirectory(name: "", path: dirPath, musicCount: 0, totalTime: 0.0))
             }
         }
         sqlite3_finalize(queryStatement)
@@ -330,7 +352,9 @@ class MusicFiles {
         let sqlCreateTableDir = """
         CREATE TABLE IF NOT EXISTS \(DBConstants.TableDiretory.tableName) (
         \(DBConstants.TableDiretory.colDirPath) CHAR(255) PRIMARY KEY NOT NULL,
-        \(DBConstants.TableDiretory.colDirName) CHAR(75));
+        \(DBConstants.TableDiretory.colDirName) CHAR(75),
+        \(DBConstants.TableDiretory.colMusicsCount) INT,
+        \(DBConstants.TableDiretory.colTotalTime) REAL);
         """
         if createTable(sql: sqlCreateTableDir) {
             
@@ -493,7 +517,4 @@ class MusicFiles {
         return result
     }
 }
-
-//class Database {
-//
 

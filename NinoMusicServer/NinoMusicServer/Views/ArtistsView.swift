@@ -16,8 +16,8 @@ struct Node: Identifiable {
 
 // MARK: - View
 struct ArtistsView: View {
+    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
     @ObservedObject var artistsViewModel: ArtistsViewModel
-    @EnvironmentObject var musicPlayerViewModel: MusicPlayerViewModel
     
     @State var selection: Music.ID? = nil
     
@@ -121,7 +121,7 @@ struct AlbumView: View {
 struct HierarchicalListView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            ArtistsView(artistsViewModel: ArtistsViewModel())
+            ArtistsView(musicPlayerViewModel: MusicPlayerViewModel(), artistsViewModel: ArtistsViewModel())
         }
     }
 }

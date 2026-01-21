@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AlbunsView: View {
-    @EnvironmentObject var musicPlayerViewModel: MusicPlayerViewModel
+    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
     @ObservedObject var albunsViewModel: AlbunsViewModel
     @State var selection: Music.ID? = nil
     
@@ -20,7 +20,7 @@ struct AlbunsView: View {
         VStack {
             Image(nsImage: Id3TagUtils.getImageCover(path: albunsViewModel.filePathCover) ?? NSImage())
                 .resizable()
-                .frame(width: 300, height: 300, alignment: .bottom)
+                .frame(width: 250, height: 250, alignment: .bottom)
                 .scaledToFit()
                 .aspectRatio(contentMode: .fit)
                 .border(.black)
@@ -73,6 +73,8 @@ struct AlbunsView: View {
         }
         .onAppear() {
             albunsViewModel.reloadAlbuns()
+            albunsViewModel.albumSelected = Album.emptyAlbum
+            albunsViewModel.goToNextAlbum()
         }
     }
     
@@ -80,5 +82,5 @@ struct AlbunsView: View {
 }
 
 #Preview {
-    AlbunsView(albunsViewModel: AlbunsViewModel())
+    AlbunsView(musicPlayerViewModel: MusicPlayerViewModel(), albunsViewModel: AlbunsViewModel())
 }

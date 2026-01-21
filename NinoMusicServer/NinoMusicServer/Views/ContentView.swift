@@ -27,13 +27,13 @@ struct ContentView: View {
                 LibraryView(musicsViewModel: musicsViewModel, libraryViewModel: libraryViewModel)
                     .navigationTitle(String())
             case .musics:
-                MusicsView(musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel)
+                MusicsContentView(musicContentViewType: .musics, musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel, artistsViewModel: artistsViewModel, albunsViewModel: albunsViewModel)
                     .navigationTitle(String())
             case .artists:
-                ArtistsView(artistsViewModel: artistsViewModel)
+                MusicsContentView(musicContentViewType: .artists, musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel, artistsViewModel: artistsViewModel, albunsViewModel: albunsViewModel)
                     .navigationTitle(String())
             case .albuns:
-                AlbunsView(albunsViewModel: albunsViewModel)
+                MusicsContentView(musicContentViewType: .albuns, musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel, artistsViewModel: artistsViewModel, albunsViewModel: albunsViewModel)
                     .navigationTitle(String())
             case .tags:
                 TagEditorView(musicsViewModel: musicsViewModel)

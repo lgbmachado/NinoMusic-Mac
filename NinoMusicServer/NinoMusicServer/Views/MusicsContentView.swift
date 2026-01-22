@@ -30,11 +30,7 @@ struct MusicsContentView: View {
     @ObservedObject var musicsViewModel: MusicsViewModel
     @ObservedObject var artistsViewModel: ArtistsViewModel
     @ObservedObject var albunsViewModel: AlbunsViewModel
-    
-//    init(musicContentViewType: MusicContentViewType) {
-//        self.musicContentViewType = musicContentViewType
-//    }
-    
+
     var body: some View {
         switch musicContentViewType {
         case .musics:

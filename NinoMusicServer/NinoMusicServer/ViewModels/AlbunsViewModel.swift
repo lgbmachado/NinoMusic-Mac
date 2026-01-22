@@ -34,6 +34,14 @@ class AlbunsViewModel: NSObject, ObservableObject {
             }
         }
     }
+
+    func navigateSongs(kind: NavigationKind) {
+        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
+        if let selected = self.albumSelected.musics.first(where: {$0.seq == searchCount}) {
+            self.idMusicSelected = selected.id
+            self.setIdSelection(selection: self.idMusicSelected)
+        }
+    }
     
     func reloadAlbuns() {
         if let database = OpenDb() {

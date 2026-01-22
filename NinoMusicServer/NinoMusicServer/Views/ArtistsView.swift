@@ -14,7 +14,7 @@ struct Node: Identifiable {
     var children: [Node]?
 }
 
-// MARK: - View
+// MARK: - Artist View
 struct ArtistsView: View {
     @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
     @ObservedObject var artistsViewModel: ArtistsViewModel
@@ -40,9 +40,9 @@ struct ArtistsView: View {
         List {
             OutlineGroup(listData, children: \.children) { node in
                 if node.children == nil {
-                    AlbumView(artistsViewModel: self.artistsViewModel,
-                              musicPlayerViewModel: musicPlayerViewModel,
-                              node: node)
+                    ArtistAlbumView(artistsViewModel: self.artistsViewModel,
+                                    musicPlayerViewModel: self.musicPlayerViewModel,
+                                    node: node)
                 } else {
                     Label(node.name, systemImage: node.children == nil ? "opticaldisc" : "music.microphone")
                 }
@@ -57,15 +57,43 @@ struct ArtistsView: View {
         }
         .onAppear() {
             artistsViewModel.reloadArtists()
+            NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
+                                                   object: nil,
+                                                   queue: .main) { notification in
+                self.nextTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+            }
+            NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
+                                                   object: nil,
+                                                   queue: .main) { notification in
+                self.previousTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+            }
+        }
+    }
+    
+    private func nextTapped(originNotification: MusicContentViewType?) {
+        if originNotification == .artists {
+            self.artistsViewModel.navigateSongs(kind: .next)
+            self.musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
+            self.musicPlayerViewModel.originCurrentMusic = .artists
+            self.selection = artistsViewModel.idMusicSelected
+        }
+    }
+
+    private func previousTapped(originNotification: MusicContentViewType?) {
+        if originNotification == .artists {
+            self.artistsViewModel.navigateSongs(kind: .previus)
+            self.musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
+            self.musicPlayerViewModel.originCurrentMusic = .artists
+            self.selection = artistsViewModel.idMusicSelected
         }
     }
 }
 
-// MARK: ToolbarMusicsView
-struct AlbumView: View {
+// MARK: - Artist Album View
+struct ArtistAlbumView: View {
     @ObservedObject var artistsViewModel: ArtistsViewModel
     @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
-    @State var selection: ArtistMusic.ID? = nil
+
     var node: Node
     var album: ArtistAlbum? {
         for artist in artistsViewModel.artists {
@@ -76,9 +104,6 @@ struct AlbumView: View {
             }
         }
         return ArtistAlbum.emptyAlbum
-    }
-    var musics: [ArtistMusic] {
-        album?.musics ?? []
     }
     
     var body: some View {
@@ -98,6 +123,36 @@ struct AlbumView: View {
             .frame(maxWidth: 300, alignment: .leading)
             .padding()
             
+            ArtistAlbumMusicView(artistsViewModel: self.artistsViewModel,
+                                 musicPlayerViewModel: self.musicPlayerViewModel,
+                                 artistSelected: node.name,
+                                 albumNameSelected: album?.album ?? "",
+                                 albumYearSelected: album?.year ?? "")
+        }
+    }
+}
+
+struct ArtistAlbumMusicView: View {
+    @ObservedObject var artistsViewModel: ArtistsViewModel
+    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
+    var artistSelected: String
+    var albumNameSelected: String
+    var albumYearSelected: String
+    @State var selection: ArtistMusic.ID? = nil
+
+    var musics: [ArtistMusic] {
+        var result = [ArtistMusic]()
+        for artist in artistsViewModel.artists {
+            for album in artist.albuns {
+                if album.album == albumNameSelected && album.year == albumYearSelected {
+                    result = album.musics
+                }
+            }
+        }
+        return result
+    }
+    
+    var body: some View {
             Table(musics, selection: $selection) {
                 TableColumn(LocalizedStringKey("text_track")) { music in
                     Text("\(music.track)")
@@ -109,11 +164,14 @@ struct AlbumView: View {
                     Text(String().secondsToTime(seconds: music.duration))
                 }
             }
+            .onAppear {
+
+            }
             .onChange(of: selection) { oldSelected, newSelected in
                 artistsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
                 musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
+                musicPlayerViewModel.originCurrentMusic = .artists
             }
-        }
     }
 }
 

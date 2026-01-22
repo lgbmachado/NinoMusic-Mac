@@ -14,6 +14,8 @@ class ArtistsViewModel: NSObject, ObservableObject {
     @Published var idMusicSelected: Music.ID = UUID()
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
+    @Published var albumSelected: ArtistAlbum = ArtistAlbum.emptyAlbum
+    @Published var artistSelected: Artist = Artist.emptyArtist
     
     private func OpenDb() -> OpaquePointer? {
         var database: OpaquePointer?
@@ -28,6 +30,17 @@ class ArtistsViewModel: NSObject, ObservableObject {
         if let database = database {
             if sqlite3_close(database) != SQLITE_OK {
                 print("Erro ao fechar banco de dados!")
+            }
+        }
+    }
+    
+    func navigateSongs(kind: NavigationKind) {
+        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
+        for music in self.albumSelected.musics {
+            if music.seq == searchCount {
+                self.idMusicSelected = music.id
+                self.setIdSelection(selection: self.idMusicSelected)
+                return
             }
         }
     }
@@ -148,22 +161,25 @@ class ArtistsViewModel: NSObject, ObservableObject {
     
     func setIdSelection(selection: Music.ID) {
         for artist in self.artists {
-                    for album in artist.albuns {
-                        if let item = album.musics.first(where: { $0.id == selection }) {
-                            self.musicSelected.id = item.id ?? UUID()
-                            self.musicSelected.seq = item.seq
-                            self.musicSelected.idServer = item.idServer
-                            self.musicSelected.artist = artist.artist
-                            self.musicSelected.album = album.album
-                            self.musicSelected.year = album.year
-                            self.musicSelected.track = item.track
-                            self.musicSelected.musicTitle = item.musicTitle
-                            self.musicSelected.genre = artist.genre
-                            self.musicSelected.duration = item.duration
-                            self.musicSelected.filePath = item.filePath
-                            return
-                        }
-                    }
+            for album in artist.albuns {
+                if let item = album.musics.first(where: { $0.id == selection }) {
+                    self.artistSelected = artist
+                    self.albumSelected = album
+                    
+                    self.musicSelected.id = item.id
+                    self.musicSelected.seq = item.seq
+                    self.musicSelected.idServer = item.idServer
+                    self.musicSelected.artist = artist.artist
+                    self.musicSelected.album = album.album
+                    self.musicSelected.year = album.year
+                    self.musicSelected.track = item.track
+                    self.musicSelected.musicTitle = item.musicTitle
+                    self.musicSelected.genre = artist.genre
+                    self.musicSelected.duration = item.duration
+                    self.musicSelected.filePath = item.filePath
+                    return
                 }
+            }
+        }
     }
 }

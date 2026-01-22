@@ -17,6 +17,7 @@ enum NavigationKind {
 
 class MusicPlayerViewModel: NSObject, ObservableObject {
     @Published var currentMusic: Music?
+    @Published var originCurrentMusic: MusicContentViewType?
     @Published var isPlaying: Bool = false
     @Published var duration: Double = 0
     @Published var position: Double = 0
@@ -92,33 +93,11 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
         // Lógica para parar reprodução
     }
     
-    func navigateSongs(kind: NavigationKind) {
-//        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
-//        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
-//            self.currentMusic?.id = selected.id
-//            self.currentMusic = selected
-//            self.player?.stop()
-//            self.isPlaying = false
-//            playPauseSong()
-//        }
-    }
-    
     func setMusicPosition(newPosition: Double) {
         self.player?.pause()
         self.player?.currentTime = newPosition
         self.player?.play()
     }
-    
-    //    func navigateSongs(kind: NavigationKind) {
-    //        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
-    //        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
-    //            self.idMusicSelected = selected.id
-    //            self.musicSelected = selected
-    //            self.player?.stop()
-    //            self.isPlaying = false
-    //            playPauseSong()
-    //        }
-    //    }
     
     //    func playPauseSong() {
     //        if !self.isPlaying {

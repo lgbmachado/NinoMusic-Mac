@@ -8,11 +8,6 @@
 import AVFAudio
 import SQLite3
 
-//enum NavigationKind {
-//    case next
-//    case previus
-//}
-
 class MusicsViewModel: NSObject, ObservableObject {
     
     @Published var musics: [Music] = []
@@ -34,6 +29,14 @@ class MusicsViewModel: NSObject, ObservableObject {
             if sqlite3_close(database) != SQLITE_OK {
                 print("Erro ao fechar banco de dados!")
             }
+        }
+    }
+    
+    func navigateSongs(kind: NavigationKind) {
+        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
+        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
+            self.idMusicSelected = selected.id
+            self.musicSelected = selected
         }
     }
     

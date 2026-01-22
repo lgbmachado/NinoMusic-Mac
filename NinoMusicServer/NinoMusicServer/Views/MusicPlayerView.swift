@@ -20,8 +20,9 @@ struct MusicPlayerView: View {
         VStack {
             HStack {
                 Button(String(), systemImage: "backward.circle", action: {
-                    self.musicsPlayerViewModel.navigateSongs(kind: .previus)
-//                    selection = self.musicsViewModel.idMusicSelected
+                    NotificationCenter.default.post(name: Notification.Name("previousTapped"),
+                                                    object: nil,
+                                                    userInfo: ["origin" : musicsPlayerViewModel.originCurrentMusic as Any])
                 })
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
@@ -36,11 +37,20 @@ struct MusicPlayerView: View {
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
                 Button(String(), systemImage: "forward.circle", action: {
-//                    self.musicsViewModel.navigateSongs(kind: .next)
+                    NotificationCenter.default.post(name: Notification.Name("nextTapped"),
+                                                    object: nil,
+                                                    userInfo: ["origin" : musicsPlayerViewModel.originCurrentMusic as Any])
                 })
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
                 Spacer(minLength: 15)
+                Button(String(), systemImage: "music.note.tv", action: {
+                    if musicsPlayerViewModel.currentMusic?.hasLyric ?? false {
+                        showingLyrics.toggle()
+                    }
+                })
+                .font(.system(size: 30))
+                .buttonStyle(.borderless)
                 VStack {
 //                    Slider(value: $musicsPlayerViewModel.position, in: 0...self.musicsViewModel.duration, onEditingChanged: { editing in
 //                        isMovingSlider = editing
@@ -66,14 +76,6 @@ struct MusicPlayerView: View {
                     Text(verbatim: musicsPlayerViewModel.currentMusic?.artist ?? "")
                         .font(.caption2)
                 }
-                Spacer(minLength: 15)
-                Button(String(), systemImage: "music.note.tv", action: {
-                    if musicsPlayerViewModel.currentMusic?.hasLyric ?? false {
-                        showingLyrics.toggle()
-                    }
-                })
-                .font(.system(size: 30))
-                .buttonStyle(.borderless)
             }
         }
         .sheet(isPresented: $showingLyrics) {

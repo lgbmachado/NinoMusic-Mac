@@ -63,6 +63,7 @@ struct AlbunsView: View {
                 albunsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
                 let music = albunsViewModel.musicSelected
                 musicPlayerViewModel.setMusicSelected(music: music)
+                musicPlayerViewModel.originCurrentMusic = .albuns
             }
         }
         .padding()
@@ -72,13 +73,40 @@ struct AlbunsView: View {
             }
         }
         .onAppear() {
+            NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
+                                                   object: nil,
+                                                   queue: .main) { notification in
+                self.nextTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+            }
+            NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
+                                                   object: nil,
+                                                   queue: .main) { notification in
+                self.previousTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+            }
             albunsViewModel.reloadAlbuns()
             albunsViewModel.albumSelected = Album.emptyAlbum
             albunsViewModel.goToNextAlbum()
         }
     }
     
+    private func nextTapped(originNotification: MusicContentViewType?) {
+        if originNotification == .albuns {
+            self.albunsViewModel.navigateSongs(kind: .next)
+            self.musicPlayerViewModel.setMusicSelected(music: albunsViewModel.musicSelected)
+            self.musicPlayerViewModel.originCurrentMusic = .albuns
+            self.selection = albunsViewModel.idMusicSelected
+        }
+    }
 
+    private func previousTapped(originNotification: MusicContentViewType?) {
+        if originNotification == .albuns {
+            self.albunsViewModel.navigateSongs(kind: .previus)
+            self.musicPlayerViewModel.setMusicSelected(music: albunsViewModel.musicSelected)
+            self.musicPlayerViewModel.originCurrentMusic = .albuns
+            self.selection = albunsViewModel.idMusicSelected
+        }
+    }
+    
 }
 
 #Preview {

@@ -49,7 +49,6 @@ struct TagEditorView: View {
         }
         .padding()
         .onChange(of: selection) { oldSelected, newSelected in
-            musicsViewModel.setIdSelection(selection: newSelected ?? UUID())
         }
         .toolbar{
             ToolbarItem(placement: .primaryAction) {

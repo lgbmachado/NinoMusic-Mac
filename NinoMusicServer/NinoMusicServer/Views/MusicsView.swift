@@ -14,19 +14,6 @@ struct MusicsView: View {
     @State private var sortOrder = [KeyPathComparator(\Music.seq)]
     @State private var searchTerm: String = ""
     
-//    var tableData: [Music] {
-//        if searchTerm.isEmpty {
-//            return musicsViewModel.musics.sorted(using: sortOrder)
-//        } else {
-//            return musicsViewModel.musics
-//                .filter { $0.musicTitle.lowercased().contains(searchTerm.lowercased()) ||
-//                    $0.artist.lowercased().contains(searchTerm.lowercased()) ||
-//                    $0.album.lowercased().contains(searchTerm.lowercased()) ||
-//                    $0.genre.lowercased().contains(searchTerm.lowercased())}
-//                .sorted(using: sortOrder)
-//        }
-//    }
-    
     var body: some View {
         ScrollViewReader { proxy in
             Table(musicsViewModel.musics, selection: $musicsViewModel.idMusicSelected, sortOrder: $sortOrder) {
@@ -52,7 +39,7 @@ struct MusicsView: View {
             
             .padding()
             .onChange(of: musicsViewModel.idMusicSelected) { oldSelected, newSelected in
-                self.musicsViewModel.setIdSelection(selection: newSelected ?? UUID())
+                self.musicsViewModel.setIdSelection(originNotification: .musics, selection: newSelected ?? UUID())
                 self.musicPlayerViewModel.setMusicSelected(music: musicsViewModel.musicSelected)
                 self.musicPlayerViewModel.originCurrentMusic = .musics
                 proxy.scrollTo(musicsViewModel.idMusicSelected , anchor: .center)

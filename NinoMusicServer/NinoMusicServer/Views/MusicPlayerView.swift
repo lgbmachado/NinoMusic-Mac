@@ -52,15 +52,15 @@ struct MusicPlayerView: View {
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
                 VStack {
-//                    Slider(value: $musicsPlayerViewModel.position, in: 0...self.musicsViewModel.duration, onEditingChanged: { editing in
-//                        isMovingSlider = editing
-//                        if !isMovingSlider {
-//                            self.musicsPlayerViewModel.setMusicPosition(newPosition: musicsViewModel.position)
-//                        }
-//                    })
-//                        .frame(width: 200, height: 20)
-//                    Text(verbatim: self.musicsViewModel.isPlaying ? "\(self.musicsViewModel.timePosition) / \(self.musicsViewModel.timeDuration)" : "00:00 / 00:00")
-//                        .font(.caption2)
+                    Slider(value: $musicsPlayerViewModel.position, in: 0...musicsPlayerViewModel.duration, onEditingChanged: { editing in
+                        isMovingSlider = editing
+                        if !isMovingSlider {
+                            self.musicsPlayerViewModel.setMusicPosition(newPosition: musicsPlayerViewModel.position)
+                        }
+                    })
+                        .frame(width: 200, height: 20)
+                    Text(verbatim: musicsPlayerViewModel.isPlaying ? "\(musicsPlayerViewModel.timePosition) / \(musicsPlayerViewModel.timeDuration)" : "00:00 / 00:00")
+                        .font(.caption2)
                 }
                 
                 Spacer(minLength: 15)

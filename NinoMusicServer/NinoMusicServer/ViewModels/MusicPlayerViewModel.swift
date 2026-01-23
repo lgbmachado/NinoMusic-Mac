@@ -87,64 +87,6 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
         self.player?.play()
     }
     
- //    func playPauseSong() {
- //        if !self.isPlaying {
- //            if let url = URL(string: self.musicSelected.filePath) {
- //                do {
- //                    self.player = try AVAudioPlayer(contentsOf: url)
- //                    self.player?.delegate  = self
- //                    self.player?.prepareToPlay()
- //
- //                    self.duration = player?.duration ?? 0
- //
- //                    let ti = NSInteger(player?.duration ?? 0)
- //                    let seconds = ti % 60
- //                    let minutes = (ti / 60) % 60
- //                    self.timeDuration = String(format: "%0.2d:%0.2d",minutes,seconds)
- //
- //                    self.player?.isMeteringEnabled = true
- //                    self.player?.play()
- //                    self.isPlaying = true
- //
- //                    Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
- //                        self.position = self.player?.currentTime ?? 0
- //                        let seconds = NSInteger(self.position) % 60
- //                        self.timePosition = "\(String().secondsToTime(seconds: seconds))"
- //
- //                        if !self.isPlaying {
- //                            timer.invalidate()
- //                            self.timeDuration = "00:00"
- //                            self.timePosition = "00:00"
- //                        }
- //                    }
- //                } catch let error as NSError {
- //                    print(error.description)
- //                }
- //            }
- //        } else {
- //            self.player?.pause()
- //            self.isPlaying = false
- //        }
- //    }
- 
- //    func setMusicPosition(newPosition: Double) {
- //        self.player?.pause()
- //        self.player?.currentTime = newPosition
- //        self.player?.play()
- //    }
- 
- //extension MusicsViewModel: AVAudioPlayerDelegate {
- //
- //    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
- //        if flag {
- //            self.player?.stop()
- //            self.isPlaying = false
- //            navigateSongs(kind: .next)
- //            playPauseSong()
- //        }
- //    }
- //}
-    
     func getImageCover() -> NSImage? {
         return Id3TagUtils.getImageCover(path: self.currentMusic?.filePath ?? "")
     }
@@ -152,5 +94,15 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     func getLyrics() -> String? {
         return Id3TagUtils.getLyrics(path: self.currentMusic?.filePath ?? "")
     }
-    
+}
+
+extension MusicPlayerViewModel: AVAudioPlayerDelegate {
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        if flag {
+            self.player?.stop()
+            self.isPlaying = false
+            //TODO: Implementar esquema para avançar para a próxima música
+        }
+    }
 }

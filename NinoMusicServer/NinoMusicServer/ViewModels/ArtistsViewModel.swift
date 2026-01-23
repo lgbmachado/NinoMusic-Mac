@@ -8,14 +8,69 @@
 import Foundation
 import SQLite3
 
+struct Node: Identifiable {
+    var id: UUID?
+    let name: String
+    var children: [Node]?
+    var musics: [ArtistMusic]?
+}
+
 class ArtistsViewModel: NSObject, ObservableObject {
-    
+    let musicPlayerViewModel: MusicPlayerViewModel
     @Published var artists: [Artist] = []
-    @Published var idMusicSelected: Music.ID = UUID()
+    @Published var idMusicSelected: Music.ID? = nil
+    @Published var idAlbumSelected: ArtistAlbum.ID? = nil
+    @Published var idArtistSelected: Artist.ID? = nil
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
     @Published var albumSelected: ArtistAlbum = ArtistAlbum.emptyAlbum
     @Published var artistSelected: Artist = Artist.emptyArtist
+    
+    init(musicPlayerViewModel: MusicPlayerViewModel) {
+        self.musicPlayerViewModel = musicPlayerViewModel
+        super.init()
+        NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self else { return }
+            self.navigateSongs(kind: .next, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+        }
+        NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self else { return }
+            self.navigateSongs(kind: .previus, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+        }
+    }
+    
+    private func navigateSongs(kind: NavigationKind, originNotification: MusicContentViewType?) {
+        if originNotification == .artists {
+            let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
+            if let selected = self.albumSelected.musics.first(where: {$0.seq == searchCount}) {
+                self.idMusicSelected = selected.id
+                self.setIdSelection(selection: self.idMusicSelected ?? UUID())
+                musicPlayerViewModel.setMusicSelected(music: self.musicSelected)
+                musicPlayerViewModel.originCurrentMusic = .albuns
+            }
+        }
+    }
+    
+    func getNodes() -> [Node] {
+        var nodes = [Node]()
+        for artist in self.artists {
+            var node = Node(id: artist.id, name: artist.artist)
+            node.children = [Node]()
+            node.musics = nil
+            for album in artist.albuns {
+                var subNode = Node(id: album.id, name: album.album)
+                subNode.children = nil
+                subNode.musics = album.musics
+                node.children?.append(subNode)
+            }
+            nodes.append(node)
+        }
+        return nodes
+    }
     
     private func OpenDb() -> OpaquePointer? {
         var database: OpaquePointer?
@@ -34,13 +89,26 @@ class ArtistsViewModel: NSObject, ObservableObject {
         }
     }
     
-    func navigateSongs(kind: NavigationKind) {
-        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
-        for music in self.albumSelected.musics {
-            if music.seq == searchCount {
-                self.idMusicSelected = music.id
-                self.setIdSelection(selection: self.idMusicSelected)
-                return
+    func setIdSelection(selection: Music.ID) {
+        for artist in self.artists {
+            for album in artist.albuns {
+                if let item = album.musics.first(where: { $0.id == selection }) {
+                    self.artistSelected = artist
+                    self.albumSelected = album
+                    
+                    self.musicSelected.id = item.id
+                    self.musicSelected.seq = item.seq
+                    self.musicSelected.idServer = item.idServer
+                    self.musicSelected.artist = artist.artist
+                    self.musicSelected.album = album.album
+                    self.musicSelected.year = album.year
+                    self.musicSelected.track = item.track
+                    self.musicSelected.musicTitle = item.musicTitle
+                    self.musicSelected.genre = artist.genre
+                    self.musicSelected.duration = item.duration
+                    self.musicSelected.filePath = item.filePath
+                    return
+                }
             }
         }
     }
@@ -69,32 +137,34 @@ class ArtistsViewModel: NSObject, ObservableObject {
             
             if sqlite3_prepare_v2(database, sqlArtist, -1, &queryStatement1, nil) == SQLITE_OK {
                 while(sqlite3_step(queryStatement1) == SQLITE_ROW) {
+                    seqArtist += 1
+                    
                     let idArtist = String(cString: sqlite3_column_text(queryStatement1, 0))
                     let artist = String(cString: sqlite3_column_text(queryStatement1, 1))
                     let genre = String(cString: sqlite3_column_text(queryStatement1, 2))
                     
                     let sqlAlbuns = """
-        SELECT DISTINCT
-           \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId),
-           \(DBConstants.TableAlbum.colAlbum),
-           \(DBConstants.TableAlbum.colYear)
-        FROM
-           \(DBConstants.TableMusic.tableName)
-           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
-           INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
-        WHERE
-           \(DBConstants.TableMusic.colIdArtist) = \(idArtist)
-        ORDER BY
-           \(DBConstants.TableAlbum.colYear),
-           \(DBConstants.TableAlbum.colAlbum)
-           
-        """
+                           SELECT DISTINCT
+                              \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId),
+                              \(DBConstants.TableAlbum.colAlbum),
+                              \(DBConstants.TableAlbum.colYear)
+                           FROM
+                              \(DBConstants.TableMusic.tableName)
+                              INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+                              INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
+                           WHERE
+                              \(DBConstants.TableMusic.colIdArtist) = \(idArtist)
+                           ORDER BY
+                              \(DBConstants.TableAlbum.colYear),
+                              \(DBConstants.TableAlbum.colAlbum)
+                           
+                           """
                     var queryStatement2: OpaquePointer?
                     var musicList = [ArtistMusic]()
-                    seqAlbum += 1
                     
                     if sqlite3_prepare_v2(database, sqlAlbuns, -1, &queryStatement2, nil) == SQLITE_OK {
                         while(sqlite3_step(queryStatement2) == SQLITE_ROW) {
+                            seqAlbum += 1
                             
                             let idAlbum = String(cString: sqlite3_column_text(queryStatement2, 0))
                             let album = String(cString: sqlite3_column_text(queryStatement2, 1))
@@ -136,7 +206,6 @@ class ArtistsViewModel: NSObject, ObservableObject {
                                                                  filePath: filePath))
                                 }
                             }
-                            seqMusic = 0
                             albumList.append(ArtistAlbum(seq: seqAlbum,
                                                          album: album,
                                                          year: year,
@@ -145,7 +214,6 @@ class ArtistsViewModel: NSObject, ObservableObject {
                             sqlite3_finalize(queryStatement3)
                         }
                     }
-                    seqArtist += 1
                     artistList.append(Artist(seq: seqArtist,
                                              artist: artist,
                                              genre: genre,
@@ -156,30 +224,6 @@ class ArtistsViewModel: NSObject, ObservableObject {
             sqlite3_finalize(queryStatement1)
             self.artists = artistList
             CloseDb(database: database)
-        }
-    }
-    
-    func setIdSelection(selection: Music.ID) {
-        for artist in self.artists {
-            for album in artist.albuns {
-                if let item = album.musics.first(where: { $0.id == selection }) {
-                    self.artistSelected = artist
-                    self.albumSelected = album
-                    
-                    self.musicSelected.id = item.id
-                    self.musicSelected.seq = item.seq
-                    self.musicSelected.idServer = item.idServer
-                    self.musicSelected.artist = artist.artist
-                    self.musicSelected.album = album.album
-                    self.musicSelected.year = album.year
-                    self.musicSelected.track = item.track
-                    self.musicSelected.musicTitle = item.musicTitle
-                    self.musicSelected.genre = artist.genre
-                    self.musicSelected.duration = item.duration
-                    self.musicSelected.filePath = item.filePath
-                    return
-                }
-            }
         }
     }
 }

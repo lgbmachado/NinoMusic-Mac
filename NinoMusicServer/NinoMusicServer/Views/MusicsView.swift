@@ -14,18 +14,18 @@ struct MusicsView: View {
     @State private var sortOrder = [KeyPathComparator(\Music.seq)]
     @State private var searchTerm: String = ""
     
-    var tableData: [Music] {
-        if searchTerm.isEmpty {
-            return musicsViewModel.musics.sorted(using: sortOrder)
-        } else {
-            return musicsViewModel.musics
-                .filter { $0.musicTitle.lowercased().contains(searchTerm.lowercased()) ||
-                    $0.artist.lowercased().contains(searchTerm.lowercased()) ||
-                    $0.album.lowercased().contains(searchTerm.lowercased()) ||
-                    $0.genre.lowercased().contains(searchTerm.lowercased())}
-                .sorted(using: sortOrder)
-        }
-    }
+//    var tableData: [Music] {
+//        if searchTerm.isEmpty {
+//            return musicsViewModel.musics.sorted(using: sortOrder)
+//        } else {
+//            return musicsViewModel.musics
+//                .filter { $0.musicTitle.lowercased().contains(searchTerm.lowercased()) ||
+//                    $0.artist.lowercased().contains(searchTerm.lowercased()) ||
+//                    $0.album.lowercased().contains(searchTerm.lowercased()) ||
+//                    $0.genre.lowercased().contains(searchTerm.lowercased())}
+//                .sorted(using: sortOrder)
+//        }
+//    }
     
     var body: some View {
         ScrollViewReader { proxy in

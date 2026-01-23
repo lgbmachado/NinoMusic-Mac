@@ -21,7 +21,7 @@ struct NinoMusicServerApp: App {
         self.musicPlayerViewModel = MusicPlayerViewModel()
         self.libraryViewModel = LibraryViewModel()
         self.musicsViewModel = MusicsViewModel(musicPlayerViewModel: musicPlayerViewModel)
-        self.artistsViewModel = ArtistsViewModel()
+        self.artistsViewModel = ArtistsViewModel(musicPlayerViewModel: musicPlayerViewModel)
         self.albunsViewModel = AlbunsViewModel(musicPlayerViewModel: musicPlayerViewModel)
         self.serverViewModel = ServerViewModel()
     }

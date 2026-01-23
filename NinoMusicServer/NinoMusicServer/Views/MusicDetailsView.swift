@@ -117,5 +117,5 @@ struct FileView: View {
 
 
 #Preview {
-    MusicDetailsView(musicsViewModel: MusicsViewModel())
+    MusicDetailsView(musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
 }

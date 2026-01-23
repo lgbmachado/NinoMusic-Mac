@@ -8,14 +8,9 @@
 import SwiftUI
 
 struct AlbunsView: View {
-    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
-    @ObservedObject var albunsViewModel: AlbunsViewModel
-    @State var selection: Music.ID? = nil
-    
-    var tableData: [AlbumMusic] {
-        return albunsViewModel.albumSelected.musics
-    }
-    
+    @StateObject var musicPlayerViewModel: MusicPlayerViewModel
+    @StateObject var albunsViewModel: AlbunsViewModel
+
     var body: some View {
         VStack {
             Image(nsImage: Id3TagUtils.getImageCover(path: albunsViewModel.filePathCover) ?? NSImage())
@@ -47,7 +42,7 @@ struct AlbunsView: View {
                 .font(.system(size: 30))
                 .frame(width: 300, height: 50, alignment: .center)
             }
-            Table(tableData, selection: $selection) {
+            Table(albunsViewModel.albumSelected.musics, selection: $albunsViewModel.idMusicSelected) {
                 TableColumn(LocalizedStringKey("text_track")) { music in
                     Text("\(music.track)")
                 }
@@ -59,7 +54,7 @@ struct AlbunsView: View {
                 }
             }
             .padding()
-            .onChange(of: selection) { oldSelected, newSelected in
+            .onChange(of: albunsViewModel.idMusicSelected) { oldSelected, newSelected in
                 albunsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
                 let music = albunsViewModel.musicSelected
                 musicPlayerViewModel.setMusicSelected(music: music)
@@ -69,46 +64,17 @@ struct AlbunsView: View {
         .padding()
         .toolbar {
             ToolbarItem(placement: .navigation) {
-                MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
+                MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $albunsViewModel.idMusicSelected)
             }
         }
         .onAppear() {
-            NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
-                                                   object: nil,
-                                                   queue: .main) { notification in
-                self.nextTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-            }
-            NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
-                                                   object: nil,
-                                                   queue: .main) { notification in
-                self.previousTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-            }
             albunsViewModel.reloadAlbuns()
             albunsViewModel.albumSelected = Album.emptyAlbum
             albunsViewModel.goToNextAlbum()
         }
     }
-    
-    private func nextTapped(originNotification: MusicContentViewType?) {
-        if originNotification == .albuns {
-            self.albunsViewModel.navigateSongs(kind: .next)
-            self.musicPlayerViewModel.setMusicSelected(music: albunsViewModel.musicSelected)
-            self.musicPlayerViewModel.originCurrentMusic = .albuns
-            self.selection = albunsViewModel.idMusicSelected
-        }
-    }
-
-    private func previousTapped(originNotification: MusicContentViewType?) {
-        if originNotification == .albuns {
-            self.albunsViewModel.navigateSongs(kind: .previus)
-            self.musicPlayerViewModel.setMusicSelected(music: albunsViewModel.musicSelected)
-            self.musicPlayerViewModel.originCurrentMusic = .albuns
-            self.selection = albunsViewModel.idMusicSelected
-        }
-    }
-    
 }
 
 #Preview {
-    AlbunsView(musicPlayerViewModel: MusicPlayerViewModel(), albunsViewModel: AlbunsViewModel())
+    AlbunsView(musicPlayerViewModel: MusicPlayerViewModel(), albunsViewModel: AlbunsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
 }

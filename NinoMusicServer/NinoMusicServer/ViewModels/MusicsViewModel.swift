@@ -5,15 +5,45 @@
 //  Created by Luiz Guilherme Machado on 12/03/25.
 //
 
-import AVFAudio
+import SwiftUI
 import SQLite3
+internal import Combine
 
 class MusicsViewModel: NSObject, ObservableObject {
-    
+    let musicPlayerViewModel: MusicPlayerViewModel
     @Published var musics: [Music] = []
-    @Published var idMusicSelected: Music.ID = UUID()
+    @Published var idMusicSelected: Music.ID? = nil
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
+    
+    init(musicPlayerViewModel: MusicPlayerViewModel) {
+        self.musicPlayerViewModel = musicPlayerViewModel
+        super.init()
+        NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self else { return }
+            self.navigateSongs(kind: .next, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+        }
+        NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self else { return }
+            self.navigateSongs(kind: .previus, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+        }
+    }
+    
+    private func navigateSongs(kind: NavigationKind, originNotification: MusicContentViewType?) {
+        if originNotification == .musics {
+            let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
+            if let selected = self.musics.first(where: {$0.seq == searchCount}) {
+                self.idMusicSelected = selected.id
+                self.musicSelected = selected
+                musicPlayerViewModel.setMusicSelected(music: selected)
+                musicPlayerViewModel.originCurrentMusic = .musics
+            }
+        }
+    }
     
     private func OpenDb() -> OpaquePointer? {
         var database: OpaquePointer?
@@ -31,15 +61,7 @@ class MusicsViewModel: NSObject, ObservableObject {
             }
         }
     }
-    
-    func navigateSongs(kind: NavigationKind) {
-        let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
-        if let selected = self.musics.first(where: {$0.seq == searchCount}) {
-            self.idMusicSelected = selected.id
-            self.musicSelected = selected
-        }
-    }
-    
+        
     func reloadMusics() {
         if let database = OpenDb() {
             let sql = """

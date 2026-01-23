@@ -71,5 +71,5 @@ struct TagEditorView: View {
 }
 
 #Preview {
-    TagEditorView(musicsViewModel: MusicsViewModel())
+    TagEditorView(musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
 }

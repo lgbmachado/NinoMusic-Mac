@@ -9,12 +9,10 @@ import SwiftUI
 
 // MARK: MusicsView
 struct MusicsView: View {
-    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
-    @ObservedObject var musicsViewModel: MusicsViewModel
-    
+    @StateObject var musicPlayerViewModel: MusicPlayerViewModel
+    @StateObject var musicsViewModel: MusicsViewModel
     @State private var sortOrder = [KeyPathComparator(\Music.seq)]
     @State private var searchTerm: String = ""
-    @State var selection: Music.ID? = nil
     
     var tableData: [Music] {
         if searchTerm.isEmpty {
@@ -31,7 +29,7 @@ struct MusicsView: View {
     
     var body: some View {
         ScrollViewReader { proxy in
-            Table(tableData, selection: $selection, sortOrder: $sortOrder) {
+            Table(musicsViewModel.musics, selection: $musicsViewModel.idMusicSelected, sortOrder: $sortOrder) {
                 TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
                 TableColumn(LocalizedStringKey("text_artists"), value: \.artist)
                 TableColumn(LocalizedStringKey("text_album"), value: \.album)
@@ -53,7 +51,7 @@ struct MusicsView: View {
             }
             
             .padding()
-            .onChange(of: selection) { oldSelected, newSelected in
+            .onChange(of: musicsViewModel.idMusicSelected) { oldSelected, newSelected in
                 self.musicsViewModel.setIdSelection(selection: newSelected ?? UUID())
                 self.musicPlayerViewModel.setMusicSelected(music: musicsViewModel.musicSelected)
                 self.musicPlayerViewModel.originCurrentMusic = .musics
@@ -61,46 +59,18 @@ struct MusicsView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigation) {
-                    MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
+                    MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $musicsViewModel.idMusicSelected)
                 }
             }
             .onAppear() {
-                NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
-                                                       object: nil,
-                                                       queue: .main) { notification in
-                    self.nextTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-                }
-                NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
-                                                       object: nil,
-                                                       queue: .main) { notification in
-                    self.previousTapped(originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-                }
                 musicsViewModel.reloadMusics()
             }
             .searchable(text: $searchTerm)
         }
     }
-        
-    private func nextTapped(originNotification: MusicContentViewType?) {
-        if originNotification == .musics {
-            self.musicsViewModel.navigateSongs(kind: .next)
-            self.musicPlayerViewModel.setMusicSelected(music: musicsViewModel.musicSelected)
-            self.musicPlayerViewModel.originCurrentMusic = .musics
-            self.selection = musicsViewModel.idMusicSelected
-        }
-    }
-
-    private func previousTapped(originNotification: MusicContentViewType?) {
-        if originNotification == .musics {
-            self.musicsViewModel.navigateSongs(kind: .previus)
-            self.musicPlayerViewModel.setMusicSelected(music: musicsViewModel.musicSelected)
-            self.musicPlayerViewModel.originCurrentMusic = .musics
-            self.selection = musicsViewModel.idMusicSelected
-        }
-    }
-    
 }
 
 #Preview {
-    MusicsView(musicPlayerViewModel: MusicPlayerViewModel(), musicsViewModel: MusicsViewModel())
+    MusicsView(musicPlayerViewModel: MusicPlayerViewModel(), musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
 }
+

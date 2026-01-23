@@ -52,5 +52,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(musicPlayerViewModel: MusicPlayerViewModel(), libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(), artistsViewModel: ArtistsViewModel(), albunsViewModel: AlbunsViewModel(), serverViewModel: ServerViewModel())
+    ContentView(musicPlayerViewModel: MusicPlayerViewModel(), libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()), artistsViewModel: ArtistsViewModel(), albunsViewModel: AlbunsViewModel(musicPlayerViewModel: MusicPlayerViewModel()), serverViewModel: ServerViewModel())
 }

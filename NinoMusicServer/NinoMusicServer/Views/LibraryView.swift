@@ -172,5 +172,5 @@ struct DirectoryRowView: View {
 }
 
 #Preview {
-    LibraryView(musicsViewModel: MusicsViewModel(), libraryViewModel: LibraryViewModel())
+    LibraryView(musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()), libraryViewModel: LibraryViewModel())
 }

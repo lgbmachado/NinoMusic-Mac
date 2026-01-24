@@ -6,7 +6,6 @@
 //
 
 import Foundation
-internal import Combine
 import AVFAudio
 import AppKit
 
@@ -26,6 +25,10 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     
     private var player: AVAudioPlayer?
     
+    override init() {
+        self.player = AVAudioPlayer()
+    }
+    
     func setMusicSelected(music: Music) {
         currentMusic = music
     }
@@ -35,6 +38,9 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
         
         if let url = URL(string: self.currentMusic?.filePath ?? "") {
             do {
+                if let player = self.player, player.isPlaying {
+                    player.stop()
+                }
                 self.player = try AVAudioPlayer(contentsOf: url)
                 self.player?.prepareToPlay()
                 
@@ -77,6 +83,7 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     }
     
     func stop() {
+        self.player?.stop()
         self.isPlaying = false
         self.currentMusic = nil
     }

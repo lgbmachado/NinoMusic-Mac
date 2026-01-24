@@ -55,7 +55,7 @@ struct AlbunsView: View {
             }
             .padding()
             .onChange(of: albunsViewModel.idMusicSelected) { oldSelected, newSelected in
-                albunsViewModel.setIdSelection(originNotification: .albuns, selection: (newSelected ?? UUID()))
+                albunsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
                 let music = albunsViewModel.musicSelected
                 musicPlayerViewModel.setMusicSelected(music: music)
                 musicPlayerViewModel.originCurrentMusic = .albuns

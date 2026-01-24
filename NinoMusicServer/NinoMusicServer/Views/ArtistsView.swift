@@ -101,7 +101,7 @@ struct ArtistAlbumMusicView: View {
 
             }
             .onChange(of: artistsViewModel.idMusicSelected) { oldSelected, newSelected in
-                artistsViewModel.setIdSelection(originNotification: .artists, selection: (newSelected ?? UUID()))
+                artistsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
                 musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
                 musicPlayerViewModel.originCurrentMusic = .artists
             }

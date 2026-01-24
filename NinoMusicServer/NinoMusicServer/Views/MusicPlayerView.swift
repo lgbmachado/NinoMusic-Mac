@@ -23,6 +23,9 @@ struct MusicPlayerView: View {
                     NotificationCenter.default.post(name: Notification.Name("previousTapped"),
                                                     object: nil,
                                                     userInfo: ["origin" : musicsPlayerViewModel.originCurrentMusic as Any])
+                    if self.musicsPlayerViewModel.isPlaying {
+                        self.musicsPlayerViewModel.play()
+                    }
                 })
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)
@@ -40,6 +43,9 @@ struct MusicPlayerView: View {
                     NotificationCenter.default.post(name: Notification.Name("nextTapped"),
                                                     object: nil,
                                                     userInfo: ["origin" : musicsPlayerViewModel.originCurrentMusic as Any])
+                    if self.musicsPlayerViewModel.isPlaying {
+                        self.musicsPlayerViewModel.play()
+                    }
                 })
                 .font(.system(size: 30))
                 .buttonStyle(.borderless)

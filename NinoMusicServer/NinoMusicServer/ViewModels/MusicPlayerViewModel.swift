@@ -42,6 +42,7 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
                     player.stop()
                 }
                 self.player = try AVAudioPlayer(contentsOf: url)
+                self.player?.delegate = self
                 self.player?.prepareToPlay()
                 
                 self.duration = player?.duration ?? 0
@@ -107,9 +108,10 @@ extension MusicPlayerViewModel: AVAudioPlayerDelegate {
 
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
         if flag {
-            self.player?.stop()
-            self.isPlaying = false
-            //TODO: Implementar esquema para avançar para a próxima música
+            NotificationCenter.default.post(name: Notification.Name("nextTapped"),
+                                            object: nil,
+                                            userInfo: ["origin" : self.originCurrentMusic as Any])
+            self.play()
         }
     }
 }

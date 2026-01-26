@@ -62,6 +62,7 @@ struct MusicPlayerView: View {
                         isMovingSlider = editing
                         if !isMovingSlider {
                             self.musicsPlayerViewModel.setMusicPosition(newPosition: musicsPlayerViewModel.position)
+                            print(musicsPlayerViewModel.position)
                         }
                     })
                         .frame(width: 200, height: 20)

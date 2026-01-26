@@ -8,34 +8,13 @@
 import Foundation
 import SQLite3
 
-class AlbunsViewModel: NSObject, ObservableObject {
-    let musicPlayerViewModel: MusicPlayerViewModel
+class AlbunsViewModel: BaseViewModel {
     @Published var albuns: [Album] = []
     @Published var idAlbumSelected: Album.ID = UUID()
     @Published var filePathCover: String = String()
-    @Published var idMusicSelected: Music.ID? = nil
-    @Published var fileSelected: String = String()
-    @Published var musicSelected: Music = Music.emptyMusic
     @Published var albumSelected: Album = Album.emptyAlbum
     
-    init(musicPlayerViewModel: MusicPlayerViewModel) {
-        self.musicPlayerViewModel = musicPlayerViewModel
-        super.init()
-        NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
-                                               object: nil,
-                                               queue: .main) { [weak self] notification in
-            guard let self = self else { return }
-            self.navigateSongs(kind: .next, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-        }
-        NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
-                                               object: nil,
-                                               queue: .main) { [weak self] notification in
-            guard let self = self else { return }
-            self.navigateSongs(kind: .previus, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-        }
-    }
-    
-    private func navigateSongs(kind: NavigationKind, originNotification: MusicContentViewType?) {
+    override func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .albuns {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
             if let selected = self.albumSelected.musics.first(where: {$0.seq == searchCount}) {
@@ -79,23 +58,6 @@ class AlbunsViewModel: NSObject, ObservableObject {
                 self.musicSelected.genre = album.genre
                 self.musicSelected.duration = item.duration
                 self.musicSelected.filePath = item.filePath
-            }
-        }
-    }
-    
-    private func OpenDb() -> OpaquePointer? {
-        var database: OpaquePointer?
-        if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
-            return database
-        }
-        print("Erro ao abrir banco de dados!")
-        return nil
-    }
-    
-    private func CloseDb(database: OpaquePointer?) {
-        if let database = database {
-            if sqlite3_close(database) != SQLITE_OK {
-                print("Erro ao fechar banco de dados!")
             }
         }
     }

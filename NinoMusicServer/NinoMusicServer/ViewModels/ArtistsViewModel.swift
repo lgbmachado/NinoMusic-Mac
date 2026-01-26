@@ -15,35 +15,14 @@ struct Node: Identifiable {
     var musics: [ArtistMusic]?
 }
 
-class ArtistsViewModel: NSObject, ObservableObject {
-    let musicPlayerViewModel: MusicPlayerViewModel
+class ArtistsViewModel: BaseViewModel {
     @Published var artists: [Artist] = []
-    @Published var idMusicSelected: Music.ID? = nil
     @Published var idAlbumSelected: ArtistAlbum.ID? = nil
     @Published var idArtistSelected: Artist.ID? = nil
-    @Published var fileSelected: String = String()
-    @Published var musicSelected: Music = Music.emptyMusic
     @Published var albumSelected: ArtistAlbum = ArtistAlbum.emptyAlbum
     @Published var artistSelected: Artist = Artist.emptyArtist
-    
-    init(musicPlayerViewModel: MusicPlayerViewModel) {
-        self.musicPlayerViewModel = musicPlayerViewModel
-        super.init()
-        NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
-                                               object: nil,
-                                               queue: .main) { [weak self] notification in
-            guard let self = self else { return }
-            self.navigateSongs(kind: .next, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-        }
-        NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
-                                               object: nil,
-                                               queue: .main) { [weak self] notification in
-            guard let self = self else { return }
-            self.navigateSongs(kind: .previus, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
-        }
-    }
-    
-    private func navigateSongs(kind: NavigationKind, originNotification: MusicContentViewType?) {
+        
+    override func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .artists {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
             if let selected = self.albumSelected.musics.first(where: {$0.seq == searchCount}) {
@@ -70,23 +49,6 @@ class ArtistsViewModel: NSObject, ObservableObject {
             nodes.append(node)
         }
         return nodes
-    }
-    
-    private func OpenDb() -> OpaquePointer? {
-        var database: OpaquePointer?
-        if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
-            return database
-        }
-        print("Erro ao abrir banco de dados!")
-        return nil
-    }
-    
-    private func CloseDb(database: OpaquePointer?) {
-        if let database = database {
-            if sqlite3_close(database) != SQLITE_OK {
-                print("Erro ao fechar banco de dados!")
-            }
-        }
     }
     
     func setIdSelection(selection: Music.ID) {

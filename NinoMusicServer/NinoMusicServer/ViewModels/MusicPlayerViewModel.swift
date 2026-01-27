@@ -46,11 +46,7 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
                 self.player?.prepareToPlay()
                 
                 self.duration = player?.duration ?? 0
-                
-                let ti = NSInteger(player?.duration ?? 0)
-                let seconds = ti % 60
-                let minutes = (ti / 60) % 60
-                self.timeDuration = String(format: "%0.2d:%0.2d",minutes,seconds)
+                self.timeDuration = String().secondsToTime(seconds: Int(self.duration))
                 
                 self.player?.isMeteringEnabled = true
                 self.player?.play()
@@ -58,9 +54,7 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
                 
                 Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
                     self.position = self.player?.currentTime ?? 0
-                    let seconds = NSInteger(self.position) % 60
-                    self.timePosition = "\(String().secondsToTime(seconds: seconds))"
-                    
+                    self.timePosition = String().secondsToTime(seconds: Int(self.position))
                     if !self.isPlaying {
                         timer.invalidate()
                         self.timeDuration = "00:00"
@@ -92,6 +86,8 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     func setMusicPosition(newPosition: Double) {
         self.player?.pause()
         self.player?.currentTime = newPosition
+        self.position = self.player?.currentTime ?? 0
+        self.timePosition = String().secondsToTime(seconds: Int(self.position))
         self.player?.play()
     }
     

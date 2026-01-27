@@ -10,7 +10,7 @@ import SQLite3
 
 class MusicsViewModel: BaseViewModel {
     @Published var musics: [Music] = []
-        
+    
     override func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .musics {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
@@ -22,10 +22,9 @@ class MusicsViewModel: BaseViewModel {
             }
         }
     }
-        
+    
     func reloadMusics() {
-        if let database = OpenDb() {
-            let sql = """
+        let sql = """
             SELECT
                \(DBConstants.TableMusic.tableName).\(DBConstants.TableMusic.colRowId),
                \(DBConstants.TableArtist.colArtist),
@@ -46,41 +45,43 @@ class MusicsViewModel: BaseViewModel {
                \(DBConstants.TableMusic.colTitle),
                \(DBConstants.TableArtist.colArtist)
             """
-            var queryStatement: OpaquePointer?
-            var musicList = [Music]()
-            var seq = 0
-            
-            if sqlite3_prepare_v2(database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-                while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+        var musicList = [Music]()
+        var seq = 0
+        
+        do {
+            if let rows = try self.helper?.executeQuery(query: sql) {
+                for row in rows {
                     seq += 1
-                    let idServer = Int(sqlite3_column_int(queryStatement, 0))
-                    let artist = String(cString: sqlite3_column_text(queryStatement, 1))
-                    let album = String(cString: sqlite3_column_text(queryStatement, 4))
-                    let year = String(cString: sqlite3_column_text(queryStatement, 7))
-                    let track = Int(sqlite3_column_int(queryStatement, 3))
-                    let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
-                    let genre = String(cString: sqlite3_column_text(queryStatement, 5))
-                    let duration = Int(sqlite3_column_int(queryStatement, 6))
-                    let filePath = String(cString: sqlite3_column_text(queryStatement, 8))
-                    let hasLyric = Int(sqlite3_column_int(queryStatement, 9)) == 1
-                    
-                    musicList.append(Music(seq: seq,
-                                           idServer: idServer,
-                                           artist: artist,
-                                           album: album,
-                                           year: year,
-                                           track: track,
-                                           musicTitle: musicTitle,
-                                           genre: genre,
-                                           duration: duration,
-                                           filePath: filePath,
-                                           hasLyric: hasLyric))
+                    if
+                        let idServer = row[DBConstants.TableMusic.colRowId] as? Int,
+                        let artist = row[DBConstants.TableArtist.colArtist] as? String,
+                        let album = row[DBConstants.TableAlbum.colAlbum] as? String,
+                        let year = row[DBConstants.TableAlbum.colYear] as? String,
+                        let track = row[DBConstants.TableMusic.colTrack] as? Int,
+                        let musicTitle = row[DBConstants.TableMusic.colTitle] as? String,
+                        let genre = row[DBConstants.TableGenre.colGenre] as? String,
+                        let duration = row[DBConstants.TableMusic.colRowId] as? Int,
+                        let filePath = row[DBConstants.TableMusic.colFilePath] as? String,
+                        let hasLyric = row[DBConstants.TableMusic.colHasLyrics] as? Int
+                    {
+                        musicList.append(Music(seq: seq,
+                                               idServer: idServer,
+                                               artist: artist,
+                                               album: album,
+                                               year: year,
+                                               track: track,
+                                               musicTitle: musicTitle,
+                                               genre: genre,
+                                               duration: duration,
+                                               filePath: filePath,
+                                               hasLyric: hasLyric == 1))
+                    }
                 }
             }
-            sqlite3_finalize(queryStatement)
-            self.musics = musicList
-            CloseDb(database: database)
+        } catch {
+            print(error)
         }
+        self.musics = musicList
     }
     
     func setIdSelection(selection: Music.ID) {

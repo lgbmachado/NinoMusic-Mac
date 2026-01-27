@@ -10,6 +10,7 @@ import SQLite3
 
 class BaseViewModel: NSObject, ObservableObject {
     let musicPlayerViewModel: MusicPlayerViewModel
+    let helper = DbHelper(path: DBConstants.databasePath)
     @Published var idMusicSelected: Music.ID? = nil
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic

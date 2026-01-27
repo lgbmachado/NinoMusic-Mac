@@ -21,7 +21,7 @@ class ArtistsViewModel: BaseViewModel {
     @Published var idArtistSelected: Artist.ID? = nil
     @Published var albumSelected: ArtistAlbum = ArtistAlbum.emptyAlbum
     @Published var artistSelected: Artist = Artist.emptyArtist
-        
+    
     override func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .artists {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
@@ -76,116 +76,120 @@ class ArtistsViewModel: BaseViewModel {
     }
     
     func reloadArtists() {
-        if let database = OpenDb() {
-            let sqlArtist = """
-        SELECT DISTINCT
-           \(DBConstants.TableMusic.colIdArtist),
-           \(DBConstants.TableArtist.colArtist),
-           \(DBConstants.TableGenre.colGenre)
-        FROM
-           \(DBConstants.TableMusic.tableName)
-           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
-           INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.tableName).\(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
-        ORDER BY
-           \(DBConstants.TableArtist.colArtist),
-           \(DBConstants.TableMusic.colTrack)
-        """
-            var queryStatement1: OpaquePointer?
-            var artistList = [Artist]()
-            var albumList = [ArtistAlbum]()
-            var seqArtist = 0
-            var seqAlbum = 0
-            var seqMusic = 0
-            
-            if sqlite3_prepare_v2(database, sqlArtist, -1, &queryStatement1, nil) == SQLITE_OK {
-                while(sqlite3_step(queryStatement1) == SQLITE_ROW) {
-                    seqArtist += 1
-                    
-                    let idArtist = String(cString: sqlite3_column_text(queryStatement1, 0))
-                    let artist = String(cString: sqlite3_column_text(queryStatement1, 1))
-                    let genre = String(cString: sqlite3_column_text(queryStatement1, 2))
-                    
-                    let sqlAlbuns = """
-                           SELECT DISTINCT
-                              \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId),
-                              \(DBConstants.TableAlbum.colAlbum),
-                              \(DBConstants.TableAlbum.colYear)
-                           FROM
-                              \(DBConstants.TableMusic.tableName)
-                              INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
-                              INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
-                           WHERE
-                              \(DBConstants.TableMusic.colIdArtist) = \(idArtist)
-                           ORDER BY
-                              \(DBConstants.TableAlbum.colYear),
-                              \(DBConstants.TableAlbum.colAlbum)
-                           
-                           """
-                    var queryStatement2: OpaquePointer?
-                    var musicList = [ArtistMusic]()
-                    
-                    if sqlite3_prepare_v2(database, sqlAlbuns, -1, &queryStatement2, nil) == SQLITE_OK {
-                        while(sqlite3_step(queryStatement2) == SQLITE_ROW) {
-                            seqAlbum += 1
-                            
-                            let idAlbum = String(cString: sqlite3_column_text(queryStatement2, 0))
-                            let album = String(cString: sqlite3_column_text(queryStatement2, 1))
-                            let year = String(cString: sqlite3_column_text(queryStatement2, 2))
-                            
-                            let sqlMusics = """
-                SELECT
-                   \(DBConstants.TableMusic.colRowId),
-                   \(DBConstants.TableMusic.colTrack),
-                   \(DBConstants.TableMusic.colTitle),
-                   \(DBConstants.TableMusic.colDuration),
-                   \(DBConstants.TableMusic.colFilePath)
-                FROM
-                   \(DBConstants.TableMusic.tableName)
-                WHERE
-                   \(DBConstants.TableMusic.colIdAlbum) = \(idAlbum) AND 
-                   \(DBConstants.TableMusic.colIdArtist) = \(idArtist) 
-                ORDER BY
-                   \(DBConstants.TableMusic.colTrack),
-                   \(DBConstants.TableMusic.colTitle)
-                """
-                            
-                            var queryStatement3: OpaquePointer?
-                            if sqlite3_prepare_v2(database, sqlMusics, -1, &queryStatement3, nil) == SQLITE_OK {
-                                while(sqlite3_step(queryStatement3) == SQLITE_ROW) {
-                                    seqMusic += 1
-                                    
-                                    let idServer = Int(sqlite3_column_int(queryStatement3, 0))
-                                    let track = Int(sqlite3_column_int(queryStatement3, 1))
-                                    let musicTitle = String(cString: sqlite3_column_text(queryStatement3, 2))
-                                    let duration = Int(sqlite3_column_int(queryStatement3, 3))
-                                    let filePath = String(cString: sqlite3_column_text(queryStatement3, 4))
-                                    
-                                    musicList.append(ArtistMusic(seq: seqMusic,
-                                                                 idServer: idServer,
-                                                                 track: track,
-                                                                 musicTitle: musicTitle,
-                                                                 duration: duration,
-                                                                 filePath: filePath))
+        let sqlArtist = """
+    SELECT DISTINCT
+       \(DBConstants.TableMusic.colIdArtist),
+       \(DBConstants.TableArtist.colArtist),
+       \(DBConstants.TableGenre.colGenre)
+    FROM
+       \(DBConstants.TableMusic.tableName)
+       INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+       INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.tableName).\(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
+    ORDER BY
+       \(DBConstants.TableArtist.colArtist),
+       \(DBConstants.TableMusic.colTrack)
+    """
+        var artistList = [Artist]()
+        var artistAlbumList = [ArtistAlbum]()
+        var artistMusicList = [ArtistMusic]()
+        var seqArtist = 0
+        var seqAlbum = 0
+        var seqMusic = 0
+        do {
+            if let rowsArtists = try self.helper?.executeQuery(query: sqlArtist) {
+                for rowArtist in rowsArtists {
+                    if let idArtist = rowArtist[DBConstants.TableMusic.colIdArtist] as? Int,
+                       let artist = rowArtist[DBConstants.TableArtist.colArtist] as? String,
+                       let genre = rowArtist[DBConstants.TableGenre.colGenre] as? String
+                    {
+                        seqArtist += 1
+                        let sqlAlbuns = """
+                               SELECT DISTINCT
+                                  \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId),
+                                  \(DBConstants.TableAlbum.colAlbum),
+                                  \(DBConstants.TableAlbum.colYear)
+                               FROM
+                                  \(DBConstants.TableMusic.tableName)
+                                  INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
+                                  INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
+                               WHERE
+                                  \(DBConstants.TableMusic.colIdArtist) = \(idArtist)
+                               ORDER BY
+                                  \(DBConstants.TableAlbum.colYear),
+                                  \(DBConstants.TableAlbum.colAlbum)
+                               
+                               """
+                        seqAlbum = 0
+                        do {
+                            if let rowsAlbuns = try self.helper?.executeQuery(query: sqlAlbuns) {
+                                for rowAlbum in rowsAlbuns {
+                                    if let idAlbum = rowAlbum[DBConstants.TableAlbum.colRowId] as? Int,
+                                       let album = rowAlbum[DBConstants.TableAlbum.colAlbum] as? String,
+                                       let year = rowAlbum[DBConstants.TableAlbum.colYear] as? String
+                                    {
+                                        let sqlMusics = """
+                                                 SELECT
+                                                    \(DBConstants.TableMusic.colRowId),
+                                                    \(DBConstants.TableMusic.colTrack),
+                                                    \(DBConstants.TableMusic.colTitle),
+                                                    \(DBConstants.TableMusic.colDuration),
+                                                    \(DBConstants.TableMusic.colFilePath)
+                                                 FROM
+                                                    \(DBConstants.TableMusic.tableName)
+                                                 WHERE
+                                                    \(DBConstants.TableMusic.colIdAlbum) = \(idAlbum) AND 
+                                                    \(DBConstants.TableMusic.colIdArtist) = \(idArtist) 
+                                                 ORDER BY
+                                                    \(DBConstants.TableMusic.colTrack),
+                                                    \(DBConstants.TableMusic.colTitle)
+                                                 """
+                                        do {
+                                            if let rowsMusicsAlbum = try self.helper?.executeQuery(query: sqlMusics) {
+                                                seqMusic = 0
+                                                for rowMusicAlbum in rowsMusicsAlbum {
+                                                    if let idServer = rowMusicAlbum[DBConstants.TableMusic.colRowId] as? Int,
+                                                       let track = rowMusicAlbum[DBConstants.TableMusic.colTrack] as? Int,
+                                                       let musicTitle = rowMusicAlbum[DBConstants.TableMusic.colTitle] as? String,
+                                                       let duration = rowMusicAlbum[DBConstants.TableMusic.colDuration] as? Int,
+                                                       let filePath = rowMusicAlbum[DBConstants.TableMusic.colFilePath] as? String
+                                                    {
+                                                        seqMusic += 1
+                                                        artistMusicList.append(ArtistMusic(seq: seqMusic,
+                                                                                           idServer: idServer,
+                                                                                           track: track,
+                                                                                           musicTitle: musicTitle,
+                                                                                           duration: duration,
+                                                                                           filePath: filePath))
+                                                    }
+                                                }
+                                                seqAlbum += 1
+                                                artistAlbumList.append(ArtistAlbum(seq: seqAlbum,
+                                                                                   album: album,
+                                                                                   year: year,
+                                                                                   musics: artistMusicList))
+                                                
+                                                artistMusicList.removeAll()
+                                            }
+                                        } catch {
+                                            print(error)
+                                        }
+                                    }
                                 }
+                                artistList.append(Artist(seq: seqArtist,
+                                                         artist: artist,
+                                                         genre: genre,
+                                                         albuns: artistAlbumList))
+                                artistAlbumList.removeAll()
                             }
-                            albumList.append(ArtistAlbum(seq: seqAlbum,
-                                                         album: album,
-                                                         year: year,
-                                                         musics: musicList))
-                            musicList.removeAll()
-                            sqlite3_finalize(queryStatement3)
+                        } catch {
+                            print(error)
                         }
                     }
-                    artistList.append(Artist(seq: seqArtist,
-                                             artist: artist,
-                                             genre: genre,
-                                             albuns: albumList))
-                    albumList.removeAll()
                 }
             }
-            sqlite3_finalize(queryStatement1)
-            self.artists = artistList
-            CloseDb(database: database)
+        } catch {
+            print(error)
         }
+        self.artists = artistList
     }
 }

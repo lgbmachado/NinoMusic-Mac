@@ -14,7 +14,7 @@ struct DBConstants {
 
     struct TableAlbum {
         static let tableName = "Albuns"
-        static let colRowId = "RowId"
+        static let colRowId = "rowid"
         static let colAlbum = "Album"
         static let colYear = "Year"
     }
@@ -42,7 +42,7 @@ struct DBConstants {
 
     struct TableMusic {
         static let tableName = "Musics"
-        static let colRowId = "RowId"
+        static let colRowId = "rowid"
         static let colTitle = "Title"
         static let colIdArtist = "IdArtist"
         static let colIdAlbum = "IdAlbum"

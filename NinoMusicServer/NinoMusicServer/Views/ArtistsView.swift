@@ -12,7 +12,7 @@ struct ArtistsView: View {
     @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
     @ObservedObject var artistsViewModel: ArtistsViewModel
     
-    @State var selection: Music.ID? = nil
+    @State var selection: UUID? = nil
         
     var body: some View {
         List {
@@ -105,14 +105,5 @@ struct ArtistAlbumMusicView: View {
                 musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
                 musicPlayerViewModel.originCurrentMusic = .artists
             }
-    }
-}
-
-// MARK: - Preview
-struct HierarchicalListView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            ArtistsView(musicPlayerViewModel: MusicPlayerViewModel(), artistsViewModel: ArtistsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
-        }
     }
 }

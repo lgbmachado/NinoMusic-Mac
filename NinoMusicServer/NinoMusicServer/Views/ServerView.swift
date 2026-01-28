@@ -79,8 +79,3 @@ struct ServerView: View {
         return dateFormatter.string(from: date)
     }
 }
-
-
-#Preview {
-    ServerView(serverViewModel: ServerViewModel())
-}

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MusicPlayerView: View {
     @ObservedObject var musicsPlayerViewModel: MusicPlayerViewModel
-    @Binding var selection: Music.ID?
+    @Binding var selection: UUID?
     
     @State private var isMovingSlider = false
     @State var dragGestureValue: DragGesture.Value?

@@ -74,7 +74,3 @@ struct AlbunsView: View {
         }
     }
 }
-
-#Preview {
-    AlbunsView(musicPlayerViewModel: MusicPlayerViewModel(), albunsViewModel: AlbunsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
-}

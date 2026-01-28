@@ -12,7 +12,7 @@ struct TagEditorView: View {
     
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
     @State private var searchTerm: String = ""
-    @State var selection: Music.ID? = nil
+    @State var selection: UUID? = nil
 
     var tableData: [Music] {
         if searchTerm.isEmpty {
@@ -68,8 +68,4 @@ struct TagEditorView: View {
         }
         .searchable(text: $searchTerm)
     }
-}
-
-#Preview {
-    TagEditorView(musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
 }

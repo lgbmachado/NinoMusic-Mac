@@ -50,7 +50,3 @@ struct ContentView: View {
         }
     }
 }
-
-#Preview {
-    ContentView(musicPlayerViewModel: MusicPlayerViewModel(), libraryViewModel: LibraryViewModel(), musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()), artistsViewModel: ArtistsViewModel(musicPlayerViewModel: MusicPlayerViewModel()), albunsViewModel: AlbunsViewModel(musicPlayerViewModel: MusicPlayerViewModel()), serverViewModel: ServerViewModel())
-}

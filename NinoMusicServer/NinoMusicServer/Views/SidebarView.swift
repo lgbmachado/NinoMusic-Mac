@@ -21,7 +21,3 @@ struct SidebarView: View {
         
     }
 }
-
-#Preview {
-    SidebarView(selection: .constant(.musics))
-}

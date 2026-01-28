@@ -8,7 +8,7 @@
 import AVFoundation
 import Foundation
 import ID3TagEditor
-import SQLite3
+import SwiftData
 
 class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     
@@ -18,9 +18,10 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     
     @Published var directories = [MusicDirectory]()
     
-    private var musicFiles = MusicFiles()
+    private var musicFiles: MusicFiles
     
-    init() {
+    init(modelContext: ModelContext) {
+        self.musicFiles = MusicFiles(modelContext: modelContext)
         self.musicFiles.delegate = self
         self.directories = self.musicFiles.directories
         self.totalMusics = self.directories.reduce(0) { $0 + $1.musicCount }
@@ -64,40 +65,37 @@ protocol MusicFilesDelegate {
 }
 
 class MusicFiles {
-    
+    private let modelContext: ModelContext
     private var count = 0
-    private var database: OpaquePointer?
     
     var delegate: MusicFilesDelegate?
     var directories = [MusicDirectory]()
-    var musics = [Music]()
-    var albuns = [Album]()
-    var artists = [Artist]()
     var totalTime: TimeInterval = 0
     
-    init() {
-        print("Path banco de dados (Library): \(DBConstants.databasePath)")
-        if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
-            CreateTables()
-        } else {
-        }
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        print("Usando SwiftData para gerenciar biblioteca de músicas")
         self.directories = getDirectories()
     }
     
     func addDirectory(dirPath: String) async {
         if addDirectory(dirPath: dirPath) {
-            self.directories = getDirectories()
-            await updateMusicsDatabase { _ in
-                self.saveServerInfo()
+            if updateDirectoryNames() {
+                self.directories = getDirectories()
+                await updateMusicsDatabase { _ in
+                    self.saveServerInfo()
+                }
             }
         }
     }
     
     func deleteDirectory(dirName: String) async {
         if deleteDirectory(dirName: dirName) {
-            self.directories = self.getDirectories()
-            await updateMusicsDatabase { _ in
-                self.saveServerInfo()
+            if updateDirectoryNames() {
+                self.directories = getDirectories()
+                await updateMusicsDatabase { _ in
+                    self.saveServerInfo()
+                }
             }
         }
     }
@@ -131,7 +129,7 @@ class MusicFiles {
                                         
                                         let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
                                         let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
-                                        let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int
+                                        let year = String(((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int)
                                         let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
                                         let duration = await getDuration(url: fileURL)
                                         let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? String()) as String
@@ -145,7 +143,7 @@ class MusicFiles {
                                             }
                                         }
 
-                                        if AddMusic(filePath: filePath,
+                                        if addMusic(filePath: filePath,
                                                     musicTitle: musicTitle,
                                                     artist: artist,
                                                     album: album,
@@ -204,317 +202,230 @@ class MusicFiles {
         }
     }
     
-    func updateDirData(dirPath: String, countDir: Int, totalTimeDir: Double) -> Bool{
-        var result = false
-        var queryStatement: OpaquePointer?
-        let sql = "UPDATE \(DBConstants.TableDiretory.tableName) SET \(DBConstants.TableDiretory.colMusicsCount) = \(countDir), \(DBConstants.TableDiretory.colTotalTime) = \(totalTimeDir) WHERE \(DBConstants.TableDiretory.colDirPath) = \"\(dirPath)\";"
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            if sqlite3_step(queryStatement) == SQLITE_DONE {
-                result = true
+    func updateDirData(dirPath: String, countDir: Int, totalTimeDir: Double) -> Bool {
+        let descriptor = FetchDescriptor<MusicDirectory>(
+            predicate: #Predicate { $0.path == dirPath }
+        )
+        
+        do {
+            let directories = try modelContext.fetch(descriptor)
+            if let directory = directories.first {
+                directory.musicCount = countDir
+                directory.totalTime = totalTimeDir
+                try modelContext.save()
+                return true
             }
+        } catch {
+            print("Erro ao atualizar diretório: \(error)")
         }
-        sqlite3_finalize(queryStatement)
-        return result
+        return false
     }
     
     func getDirectories() -> [MusicDirectory] {
-        let sql = """
-        SELECT
-           \(DBConstants.TableDiretory.colRowId),
-           \(DBConstants.TableDiretory.colDirName),
-           \(DBConstants.TableDiretory.colDirPath),
-           \(DBConstants.TableDiretory.colMusicsCount),
-           \(DBConstants.TableDiretory.colTotalTime)
-        FROM
-           \(DBConstants.TableDiretory.tableName)
-        ORDER BY
-           \(DBConstants.TableDiretory.colDirName)
-        """
-        var queryStatement: OpaquePointer?
-        var dirList = [MusicDirectory]()
-        var count = 0
+        let descriptor = FetchDescriptor<MusicDirectory>(
+            sortBy: [SortDescriptor(\.name)]
+        )
         
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                count += 1
-                let dirName = String(cString: sqlite3_column_text(queryStatement, 1))
-                let dirPath = String(cString: sqlite3_column_text(queryStatement, 2))
-                let musicsCount = Int(sqlite3_column_int(queryStatement, 3))
-                let totalTime = Double(String(cString: sqlite3_column_text(queryStatement, 4))) ?? 0.0
-                
-                dirList.append(MusicDirectory(name: dirName, path: dirPath, musicCount: musicsCount, totalTime: totalTime))
-            }
+        do {
+            return try modelContext.fetch(descriptor)
+        } catch {
+            print("Erro ao buscar diretórios: \(error)")
+            return []
         }
-        sqlite3_finalize(queryStatement)
-        return dirList
     }
     
-    private func CreateTables() {
-        createTableDirectories()
-        createTableMusics()
-        createTableArtists()
-        createTableAlbuns()
-        createTableGenres()
-    }
-    
-    func addDirectory(dirPath: String) -> Bool{
-        var result = false
+    func addDirectory(dirPath: String) -> Bool {
+        let newDirectory = MusicDirectory(path: dirPath, musicCount: 0, totalTime: 0.0)
+        modelContext.insert(newDirectory)
         
-        var queryStatement: OpaquePointer?
-        let sql = "INSERT INTO \(DBConstants.TableDiretory.tableName) (\(DBConstants.TableDiretory.colDirPath),\(DBConstants.TableDiretory.colMusicsCount),\(DBConstants.TableDiretory.colTotalTime)) VALUES (\"\(dirPath)\",0, 0.0);"
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            if sqlite3_step(queryStatement) == SQLITE_DONE {
-                result = true
-                self.directories.append(MusicDirectory(name: "", path: dirPath, musicCount: 0, totalTime: 0.0))
-            }
-        }
-        sqlite3_finalize(queryStatement)
-        
-        if updateRowsTableDirectories() {
-            result = true
-        }
-        
-        return result
-    }
-    
-    func cleanMusicsTables() {
-        if !deleteRowsTableAlbuns() {
-            
-        }
-        if !deleteRowsTableGenres() {
-            
-        }
-        if !deleteRowsTableArtists() {
-            
-        }
-        if !deleteRowsTableMusics() {
-            
+        do {
+            try modelContext.save()
+            return true
+        } catch {
+            print("Erro ao adicionar diretório: \(error)")
+            return false
         }
     }
     
     func deleteDirectory(dirName: String) -> Bool {
-        var result = true
+        let descriptor = FetchDescriptor<MusicDirectory>(
+            predicate: #Predicate { $0.name == dirName }
+        )
         
-        var queryStatement: OpaquePointer?
-        let sqlDeleteRowsTableDirs = "DELETE FROM \(DBConstants.TableDiretory.tableName) WHERE \(DBConstants.TableDiretory.colDirName) = \"\(dirName)\";"
-        var deleteRowsTableStatement: OpaquePointer?
-        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTableDirs, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
-            if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
-                result = true
+        do {
+            let directories = try modelContext.fetch(descriptor)
+            for directory in directories {
+                modelContext.delete(directory)
             }
+            try modelContext.save()
+            return true
+        } catch {
+            print("Erro ao deletar diretório: \(error)")
+            return false
         }
-        sqlite3_finalize(queryStatement)
-        
-        if updateRowsTableDirectories() {
-            result = true
-        }
-        return result
     }
     
+    func cleanMusicsTables() {
+        do {
+            // Deletar todos os registros de Music
+            let musicDescriptor = FetchDescriptor<Music>()
+            let allMusics = try modelContext.fetch(musicDescriptor)
+            for music in allMusics {
+                modelContext.delete(music)
+            }
+            
+            // Deletar todos os álbuns
+            let albumDescriptor = FetchDescriptor<Album>()
+            let allAlbums = try modelContext.fetch(albumDescriptor)
+            for album in allAlbums {
+                modelContext.delete(album)
+            }
+            
+            // Deletar todos os artistas
+            let artistDescriptor = FetchDescriptor<Artist>()
+            let allArtists = try modelContext.fetch(artistDescriptor)
+            for artist in allArtists {
+                modelContext.delete(artist)
+            }
+            
+            try modelContext.save()
+        } catch {
+            print("Erro ao limpar tabelas: \(error)")
+        }
+    }
+       
     func musicExists(filePath: String) -> Bool {
-        let sql = """
-        SELECT
-           *
-        FROM
-           \(DBConstants.TableMusic.tableName)
-        WHERE
-           \(DBConstants.TableMusic.colFilePath) = \"\(filePath)\"
-        """
-        var queryStatement: OpaquePointer?
-        var count = 0
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                count += 1
-            }
-        }
-        sqlite3_finalize(queryStatement)
-        return count > 0
-    }
-    
-    func AddMusic(filePath: String, musicTitle: String, artist: String, album: String, year: Int, track: Int, duration: Int, genre: String, hasLyric: Bool) -> Bool{
-        let idArtist = getRowId(table: DBConstants.TableArtist.tableName, column1: DBConstants.TableArtist.colArtist, value1: artist)
-        let idAlbum = getRowId(table: DBConstants.TableAlbum.tableName, column1: DBConstants.TableAlbum.colAlbum, value1: album, column2: DBConstants.TableAlbum.colYear, value2: String(year))
-        let idGenre = getRowId(table: DBConstants.TableGenre.tableName, column1: DBConstants.TableGenre.colGenre, value1: genre)
-        var result = false
+        let descriptor = FetchDescriptor<Music>(
+            predicate: #Predicate { $0.filePath == filePath }
+        )
         
-        var queryStatement: OpaquePointer?
-        let sql = "INSERT INTO \(DBConstants.TableMusic.tableName) (\(DBConstants.TableMusic.colFilePath), \(DBConstants.TableMusic.colIdArtist), \(DBConstants.TableMusic.colTrack), \(DBConstants.TableMusic.colDuration), \(DBConstants.TableMusic.colIdAlbum), \(DBConstants.TableMusic.colTitle), \(DBConstants.TableMusic.colIdGenre), \(DBConstants.TableMusic.colHasLyrics)) VALUES (\"\(filePath)\", \(idArtist), \(track), \(duration), \(idAlbum), \"\(musicTitle.replacingOccurrences(of: "\"", with: "'"))\", \(idGenre), \(hasLyric ? 1 : 0) );"
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            if sqlite3_step(queryStatement) == SQLITE_DONE {
-                result = true
-            }
+        do {
+            let musics = try modelContext.fetch(descriptor)
+            return !musics.isEmpty
+        } catch {
+            print("Erro ao verificar existência de música: \(error)")
+            return false
         }
-        sqlite3_finalize(queryStatement)
-        return result
     }
     
-    private func createTableDirectories() {
-        let sqlCreateTableDir = """
-        CREATE TABLE IF NOT EXISTS \(DBConstants.TableDiretory.tableName) (
-        \(DBConstants.TableDiretory.colDirPath) CHAR(255) PRIMARY KEY NOT NULL,
-        \(DBConstants.TableDiretory.colDirName) CHAR(75),
-        \(DBConstants.TableDiretory.colMusicsCount) INT,
-        \(DBConstants.TableDiretory.colTotalTime) REAL);
-        """
-        if createTable(sql: sqlCreateTableDir) {
+    func addMusic(filePath: String, musicTitle: String, artist: String, album: String, year: String, track: Int, duration: Int, genre: String, hasLyric: Bool) -> Bool {
+        do {
+            // Criar ou buscar artista
+            var artistObj = try findOrCreateArtist(name: artist, genre: genre)
             
-        }
-    }
-    
-    private func createTableMusics() {
-        let sqlCreateTableMusics = """
-        CREATE TABLE IF NOT EXISTS \(DBConstants.TableMusic.tableName) (
-        \(DBConstants.TableMusic.colFilePath) CHAR(255) PRIMARY KEY NOT NULL,
-        \(DBConstants.TableMusic.colIdArtist) INT,
-        \(DBConstants.TableMusic.colIdAlbum) INT,
-        \(DBConstants.TableMusic.colDuration) INT,
-        \(DBConstants.TableMusic.colTrack) INT,
-        \(DBConstants.TableMusic.colTitle) CHAR(255),
-        \(DBConstants.TableMusic.colIdGenre) INT,
-        \(DBConstants.TableMusic.colHasLyrics) BOOLEAN);
-        """
-        if createTable(sql: sqlCreateTableMusics) {
+            // Criar ou buscar álbum
+            var albumObj = try findOrCreateAlbum(name: album, year: year, artist: artist, genre: genre)
             
-        }
-    }
-    
-    private func createTableArtists() {
-        let sqlCreateTableArtists = """
-        CREATE TABLE IF NOT EXISTS \(DBConstants.TableArtist.tableName) (
-        \(DBConstants.TableArtist.colArtist) CHAR(255) PRIMARY KEY NOT NULL);
-        """
-        if createTable(sql: sqlCreateTableArtists) {
+            // Criar música
+            let newMusic = Music(
+                idServer: 0,
+                artist: artist,
+                album: album,
+                year: year,
+                track: track,
+                musicTitle: musicTitle,
+                genre: genre,
+                duration: duration,
+                filePath: filePath,
+                hasLyric: hasLyric
+            )
             
-        }
-    }
-    
-    private func createTableAlbuns() {
-        let sqlCreateTableAlbuns = """
-        CREATE TABLE IF NOT EXISTS \(DBConstants.TableAlbum.tableName) (
-        \(DBConstants.TableAlbum.colAlbum) CHAR(255) PRIMARY KEY NOT NULL,
-        \(DBConstants.TableAlbum.colYear) CHAR(4));
-        """
-        if createTable(sql: sqlCreateTableAlbuns) {
+            modelContext.insert(newMusic)
             
-        }
-    }
-    
-    private func createTableGenres() {
-        let sqlCreateTableGenres = """
-        CREATE TABLE IF NOT EXISTS \(DBConstants.TableGenre.tableName) (
-        \(DBConstants.TableGenre.colGenre) CHAR(255) PRIMARY KEY NOT NULL);
-        """
-        if createTable(sql: sqlCreateTableGenres) {
+            // Adicionar música ao álbum
+            let albumMusic = AlbumMusic(
+                idServer: 0,
+                track: track,
+                musicTitle: musicTitle,
+                duration: duration,
+                filePath: filePath
+            )
+            modelContext.insert(albumMusic)
+            albumObj.musics.append(albumMusic)
             
-        }
-    }
-    
-    func getRowId(table: String, column1: String, value1: String, column2: String = "", value2: String = "") -> Int {
-        var queryStatement: OpaquePointer?
-        var sql = ""
-        if !column2.isEmpty && !value2.isEmpty {
-            sql = "SELECT RowId FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\" AND \(column2) = \"\(value2.replacingOccurrences(of: "\"", with: "'"))\";"
-        } else {
-            sql = "SELECT RowId FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\""
-        }
-        var result = 0
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            if sqlite3_step(queryStatement) == SQLITE_ROW {
-                result = Int(sqlite3_column_int(queryStatement, 0))
+            // Adicionar música ao artista
+            if let artistAlbum = artistObj.albuns.first(where: { $0.album == album }) {
+                let artistMusic = ArtistMusic(
+                    idServer: 0,
+                    track: track,
+                    musicTitle: musicTitle,
+                    duration: duration,
+                    filePath: filePath
+                )
+                modelContext.insert(artistMusic)
+                artistAlbum.musics.append(artistMusic)
             } else {
-                if column2 != "" && value2 != "" {
-                    sql = "INSERT INTO \(table) (\(column1), \(column2)) VALUES (\"\(value1.replacingOccurrences(of: "\"", with: "'"))\", \"\(value2.replacingOccurrences(of: "\"", with: "'"))\");"
-                } else {
-                    sql = "INSERT INTO \(table) (\(column1)) VALUES (\"\(value1.replacingOccurrences(of: "\"", with: "'"))\");"
-                }
-                if sqlite3_exec(self.database, sql, nil, nil, nil) == SQLITE_OK {
-                    result = Int(sqlite3_last_insert_rowid(self.database))
-                }
+                let newArtistAlbum = ArtistAlbum(album: album, year: year)
+                modelContext.insert(newArtistAlbum)
+                
+                let artistMusic = ArtistMusic(
+                    idServer: 0,
+                    track: track,
+                    musicTitle: musicTitle,
+                    duration: duration,
+                    filePath: filePath
+                )
+                modelContext.insert(artistMusic)
+                newArtistAlbum.musics.append(artistMusic)
+                artistObj.albuns.append(newArtistAlbum)
             }
+            
+            try modelContext.save()
+            return true
+        } catch {
+            print("Erro ao adicionar música: \(error)")
+            return false
         }
-        sqlite3_finalize(queryStatement)
-        return result
     }
     
-    private func updateRowsTableDirectories() -> Bool {
-        var result = true
+    private func findOrCreateArtist(name: String, genre: String) throws -> Artist {
+        let descriptor = FetchDescriptor<Artist>(
+            predicate: #Predicate { $0.artist == name }
+        )
         
-        var queryStatement: OpaquePointer?
-        let sql1 = """
-        SELECT
-           \(DBConstants.TableDiretory.colRowId)
-        FROM
-           \(DBConstants.TableDiretory.tableName)
-        """
-        var rowIdList = [String]()
-        if sqlite3_prepare_v2(self.database, sql1, -1, &queryStatement, nil) == SQLITE_OK {
-            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                rowIdList.append(String(cString: sqlite3_column_text(queryStatement, 0)))
-            }
+        let artists = try modelContext.fetch(descriptor)
+        if let existingArtist = artists.first {
+            return existingArtist
+        } else {
+            let newArtist = Artist(artist: name, genre: genre)
+            modelContext.insert(newArtist)
+            return newArtist
         }
-        sqlite3_finalize(queryStatement)
+    }
+    
+    private func findOrCreateAlbum(name: String, year: String, artist: String, genre: String) throws -> Album {
+        let descriptor = FetchDescriptor<Album>(
+            predicate: #Predicate { $0.album == name && $0.year == year && $0.artist == artist }
+        )
         
-        if rowIdList.count > 0 {
+        let albums = try modelContext.fetch(descriptor)
+        if let existingAlbum = albums.first {
+            return existingAlbum
+        } else {
+            let newAlbum = Album(album: name, artist: artist, year: year, genre: genre)
+            modelContext.insert(newAlbum)
+            return newAlbum
+        }
+    }
+    
+    private func updateDirectoryNames() -> Bool {
+        let descriptor = FetchDescriptor<MusicDirectory>(
+            sortBy: [SortDescriptor(\.path)]
+        )
+        
+        do {
+            let directories = try modelContext.fetch(descriptor)
             var count = 1
-            for rowId in rowIdList {
-                let sql2 = "UPDATE \(DBConstants.TableDiretory.tableName) SET \(DBConstants.TableDiretory.colDirName) = \"Dir \(String(format: "%02d", count))\" WHERE \(DBConstants.TableDiretory.colRowId) = \(rowId);"
-                if sqlite3_prepare_v2(self.database, sql2, -1, &queryStatement, nil) != SQLITE_OK {
-                    result = false
-                } else {
-                    if sqlite3_step(queryStatement) != SQLITE_DONE {
-                        result = false
-                    }
-                }
-                sqlite3_finalize(queryStatement)
+            for directory in directories {
+                directory.name = "Dir \(String(format: "%02d", count))"
                 count += 1
             }
+            try modelContext.save()
+            return true
+        } catch {
+            print("Erro ao atualizar nomes de diretórios: \(error)")
+            return false
         }
-        return result
-    }
-    
-    private func deleteRowsTableMusics() -> Bool {
-        return deleteRows(table: DBConstants.TableMusic.tableName)
-    }
-    
-    private func deleteRowsTableArtists() -> Bool {
-        return deleteRows(table: DBConstants.TableArtist.tableName )
-    }
-    
-    private func deleteRowsTableAlbuns() -> Bool {
-        return deleteRows(table: DBConstants.TableAlbum.tableName)
-    }
-    
-    private func deleteRowsTableGenres() -> Bool {
-        return deleteRows(table: DBConstants.TableGenre.tableName)
-    }
-    
-    private func deleteRowsTableDirectories() -> Bool {
-        return deleteRows(table: DBConstants.TableDiretory.tableName)
-    }
-    
-    private func createTable(sql: String) -> Bool {
-        var createTableStatement: OpaquePointer?
-        var result = false
-        if sqlite3_prepare_v2(self.database, sql, -1, &createTableStatement, nil) == SQLITE_OK {
-            if sqlite3_step(createTableStatement) == SQLITE_DONE {
-                result = true
-            }
-        }
-        sqlite3_finalize(createTableStatement)
-        return result
-    }
-    
-    private func deleteRows(table: String) -> Bool {
-        let sqlDeleteRowsTable = "DELETE FROM \(table);"
-        var deleteRowsTableStatement: OpaquePointer?
-        var result = false
-        if sqlite3_prepare_v2(self.database, sqlDeleteRowsTable, -1, &deleteRowsTableStatement, nil) == SQLITE_OK {
-            if sqlite3_step(deleteRowsTableStatement) == SQLITE_DONE {
-                result = true
-            }
-        }
-        sqlite3_finalize(deleteRowsTableStatement)
-        return result
     }
 }
 

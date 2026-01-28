@@ -8,7 +8,7 @@
 import Foundation
 import GCDWebServer
 import ID3TagEditor
-import SQLite3
+import SwiftData
 import AppKit
 
 enum ServerComand: String {
@@ -24,13 +24,11 @@ class ServerViewModel: ObservableObject {
     
     private let webServer = GCDWebServer()
     private let serverPort:UInt = 8080
-    private var database: OpaquePointer?
+    private let modelContext: ModelContext
     
-    init() {
-        print("Path banco de dados (Music Server): \(DBConstants.databasePath)")
-        if sqlite3_open_v2(DBConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
-        } else {
-        }
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        print("ServerViewModel inicializado com SwiftData")
     }
     
     func startMusicServer() {
@@ -217,86 +215,44 @@ class ServerViewModel: ObservableObject {
     }
     
     func listMusicsRemote(completion: @escaping ([Music]?) -> ()) {
-        let sql = """
-        SELECT
-           \(DBConstants.TableMusic.tableName).\(DBConstants.TableMusic.colRowId),
-           \(DBConstants.TableArtist.colArtist),
-           \(DBConstants.TableMusic.colTitle),
-           \(DBConstants.TableMusic.colTrack),
-           \(DBConstants.TableMusic.colDuration),
-           \(DBConstants.TableAlbum.colAlbum),
-           \(DBConstants.TableGenre.colGenre),
-           \(DBConstants.TableAlbum.colYear),
-           \(DBConstants.TableMusic.colHasLyrics)
-        FROM
-           \(DBConstants.TableMusic.tableName)
-           INNER JOIN \(DBConstants.TableArtist.tableName) ON \(DBConstants.TableArtist.tableName).\(DBConstants.TableArtist.colRowId) = \(DBConstants.TableMusic.colIdArtist)
-           INNER JOIN \(DBConstants.TableAlbum.tableName) ON \(DBConstants.TableAlbum.tableName).\(DBConstants.TableAlbum.colRowId) = \(DBConstants.TableMusic.colIdAlbum)
-           INNER JOIN \(DBConstants.TableGenre.tableName) ON \(DBConstants.TableGenre.tableName).\(DBConstants.TableGenre.colRowId) = \(DBConstants.TableMusic.colIdGenre)
-        ORDER BY
-           \(DBConstants.TableMusic.colTitle),
-           \(DBConstants.TableArtist.colArtist)
-        """
-        var queryStatement: OpaquePointer?
-        var musicListRemote = [Music]()
-        var seq = 0
-    
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                seq += 1
-                let idServer = Int(sqlite3_column_int(queryStatement, 0))
-                let artist = String(cString: sqlite3_column_text(queryStatement, 1))
-                let album = String(cString: sqlite3_column_text(queryStatement, 5))
-                let year = String(cString: sqlite3_column_text(queryStatement, 7))
-                let track = Int(sqlite3_column_int(queryStatement, 3))
-                let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
-                let genre = String(cString: sqlite3_column_text(queryStatement, 6))
-                let duration = Int(sqlite3_column_int(queryStatement, 4))
-                let hasLyric = Int(sqlite3_column_int(queryStatement, 8)) == 1
-    
-                musicListRemote.append(Music(seq: seq,
-                                             idServer: idServer,
-                                             artist: artist,
-                                             album: album,
-                                             year: year,
-                                             track: track,
-                                             musicTitle: musicTitle,
-                                             genre: genre,
-                                             duration: duration,
-                                             filePath: "",
-                                             hasLyric: hasLyric))
+        let descriptor = FetchDescriptor<Music>(
+            sortBy: [
+                SortDescriptor(\Music.musicTitle),
+                SortDescriptor(\Music.artist)
+            ]
+        )
+        
+        do {
+            var musicListRemote = try modelContext.fetch(descriptor)
+            
+            // Adicionar sequência às músicas
+            for (index, music) in musicListRemote.enumerated() {
+                music.seq = index + 1
             }
+            
+            completion(musicListRemote)
+        } catch {
+            print("Erro ao buscar músicas: \(error)")
+            completion(nil)
         }
-        sqlite3_finalize(queryStatement)
-        completion(musicListRemote)
     }
     
     func getMusicById(id: Int, completion: @escaping (String?) -> ()) {
-        let sql = """
-        SELECT
-           \(DBConstants.TableMusic.colFilePath)
-        FROM
-           \(DBConstants.TableMusic.tableName)
-        WHERE
-           \(DBConstants.TableMusic.colRowId) = \(id)
-        """
-        var queryStatement: OpaquePointer?
-        var result = ""
-    
-        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
-            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
-                result = String(cString: sqlite3_column_text(queryStatement, 0))
+        let descriptor = FetchDescriptor<Music>(
+            predicate: #Predicate { $0.idServer == id }
+        )
+        
+        do {
+            let musics = try modelContext.fetch(descriptor)
+            if let music = musics.first {
+                completion(music.filePath)
+            } else {
+                completion(nil)
             }
-        }
-        sqlite3_finalize(queryStatement)
-        completion(result)
-    }
-    
-    func closeDatabase() {
-        if sqlite3_close(self.database) != SQLITE_OK {
-            print("error closing database")
+        } catch {
+            print("Erro ao buscar música por ID: \(error)")
+            completion(nil)
         }
     }
-    
     
 }

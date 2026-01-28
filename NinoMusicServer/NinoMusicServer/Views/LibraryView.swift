@@ -41,7 +41,7 @@ struct ToolbarLibraryView: View {
     @ObservedObject var musicsViewModel: MusicsViewModel
     @ObservedObject var libraryViewModel: LibraryViewModel
     
-    @Binding var selection: Music.ID?
+    @Binding var selection: UUID?
     
     @State private var showAlert1 = false
     @State private var showAlert2 = false
@@ -169,8 +169,4 @@ struct DirectoryRowView: View {
                 .padding(.leading, 20)
         }
     }
-}
-
-#Preview {
-    LibraryView(musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()), libraryViewModel: LibraryViewModel())
 }

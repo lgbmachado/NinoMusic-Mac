@@ -114,8 +114,3 @@ struct FileView: View {
         }
     }
 }
-
-
-#Preview {
-    MusicDetailsView(musicsViewModel: MusicsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
-}

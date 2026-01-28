@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct NinoMusicServerApp: App {
@@ -17,13 +18,34 @@ struct NinoMusicServerApp: App {
     var albunsViewModel: AlbunsViewModel
     var serverViewModel: ServerViewModel
     
+    let modelContainer: ModelContainer
+    
     init() {
+        // Configurar SwiftData ModelContainer
+        let schema = Schema([
+            Music.self,
+            Album.self,
+            AlbumMusic.self,
+            Artist.self,
+            ArtistAlbum.self,
+            ArtistMusic.self,
+            MusicDirectory.self
+        ])
+        
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        
+        do {
+            modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Não foi possível criar o ModelContainer: \(error)")
+        }
+        
         self.musicPlayerViewModel = MusicPlayerViewModel()
-        self.libraryViewModel = LibraryViewModel()
-        self.musicsViewModel = MusicsViewModel(musicPlayerViewModel: musicPlayerViewModel)
-        self.artistsViewModel = ArtistsViewModel(musicPlayerViewModel: musicPlayerViewModel)
-        self.albunsViewModel = AlbunsViewModel(musicPlayerViewModel: musicPlayerViewModel)
-        self.serverViewModel = ServerViewModel()
+        self.libraryViewModel = LibraryViewModel(modelContext: modelContainer.mainContext)
+        self.musicsViewModel = MusicsViewModel(musicPlayerViewModel: musicPlayerViewModel, modelContext: modelContainer.mainContext)
+        self.artistsViewModel = ArtistsViewModel(musicPlayerViewModel: musicPlayerViewModel, modelContext: modelContainer.mainContext)
+        self.albunsViewModel = AlbunsViewModel(musicPlayerViewModel: musicPlayerViewModel, modelContext: modelContainer.mainContext)
+        self.serverViewModel = ServerViewModel(modelContext: modelContainer.mainContext)
     }
     
     var body: some Scene {
@@ -35,6 +57,7 @@ struct NinoMusicServerApp: App {
                         albunsViewModel: albunsViewModel,
                         serverViewModel: serverViewModel)
             .environmentObject(musicPlayerViewModel)
+            .modelContainer(modelContainer)
         }
     }
 }

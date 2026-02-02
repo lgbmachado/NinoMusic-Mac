@@ -72,7 +72,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            getMusicById(id: Int(param) ?? 0, completion: { path in
+            getMusicById(seq: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -125,7 +125,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            getMusicById(id: Int(param) ?? 0, completion: { path in
+            getMusicById(seq: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -161,7 +161,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            getMusicById(id: Int(param) ?? 0, completion: { path in
+            getMusicById(seq: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -237,9 +237,9 @@ class ServerViewModel: ObservableObject {
         }
     }
     
-    func getMusicById(id: Int, completion: @escaping (String?) -> ()) {
+    func getMusicById(seq: Int, completion: @escaping (String?) -> ()) {
         let descriptor = FetchDescriptor<Music>(
-            predicate: #Predicate { $0.idServer == id }
+            predicate: #Predicate { $0.seq == seq }
         )
         
         do {

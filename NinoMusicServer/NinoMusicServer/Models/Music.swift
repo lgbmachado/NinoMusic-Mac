@@ -12,7 +12,6 @@ import SwiftData
 final class Music:Encodable {
     @Attribute(.unique) var id: UUID
     var seq: Int
-    var idServer: Int
     var artist: String
     var album: String
     var year: String
@@ -26,7 +25,6 @@ final class Music:Encodable {
     init(id: UUID = UUID(), seq: Int = 0, idServer: Int = 0, artist: String = "", album: String = "", year: String = "", track: Int = 0, musicTitle: String = "", genre: String = "", duration: Int = 0, filePath: String = "", hasLyric: Bool = false) {
         self.id = id
         self.seq = seq
-        self.idServer = idServer
         self.artist = artist
         self.album = album
         self.year = year
@@ -57,7 +55,6 @@ final class Music:Encodable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(seq, forKey: .seq)
-        try container.encode(idServer, forKey: .idServer)
         try container.encode(artist, forKey: .artist)
         try container.encode(album, forKey: .album)
         try container.encode(year, forKey: .year)

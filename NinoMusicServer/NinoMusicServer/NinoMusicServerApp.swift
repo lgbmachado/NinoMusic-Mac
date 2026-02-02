@@ -31,11 +31,10 @@ struct NinoMusicServerApp: App {
             ArtistMusic.self,
             MusicDirectory.self
         ])
-        
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        
+        let storeURL = URL.documentsDirectory.appending(path: "music.db")
+        let configuration = ModelConfiguration(url: storeURL)
         do {
-            modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            modelContainer = try ModelContainer(for: schema, configurations: [configuration])
         } catch {
             fatalError("Não foi possível criar o ModelContainer: \(error)")
         }
@@ -61,3 +60,4 @@ struct NinoMusicServerApp: App {
         }
     }
 }
+

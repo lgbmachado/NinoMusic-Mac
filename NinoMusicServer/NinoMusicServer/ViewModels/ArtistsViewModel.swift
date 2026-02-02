@@ -60,7 +60,6 @@ class ArtistsViewModel: BaseViewModel {
                     
                     self.musicSelected.id = item.id
                     self.musicSelected.seq = item.seq
-                    self.musicSelected.idServer = item.idServer
                     self.musicSelected.artist = artist.artist
                     self.musicSelected.album = album.album
                     self.musicSelected.year = album.year

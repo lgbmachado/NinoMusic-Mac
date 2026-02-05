@@ -7,14 +7,26 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 class AlbunsViewModel: BaseViewModel {
     @Published var albuns: [Album] = []
+    @Published var covers: [AlbumCover] = []
     @Published var idAlbumSelected: Album.ID = UUID()
     @Published var filePathCover: String = String()
     @Published var albumSelected: Album = Album.emptyAlbum
+    @Published var indexAlbumSelected: Int = 0 {
+        didSet {
+            if indexAlbumSelected >= 0 && indexAlbumSelected < self.albuns.count {
+                let selected = self.albuns[indexAlbumSelected]
+                self.idAlbumSelected = selected.id
+                self.albumSelected = selected
+                self.filePathCover = self.albumSelected.musics.first?.filePath ?? ""
+            }
+        }
+    }
     
-    override func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
+    override func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .albuns {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
             if let selected = self.albumSelected.musics.first(where: {$0.seq == searchCount}) {
@@ -25,25 +37,7 @@ class AlbunsViewModel: BaseViewModel {
             }
         }
     }
-    
-    func goToPreviusAlbum() {
-        let searchCount = albumSelected.seq  - 1
-        if let selected = self.albuns.first(where: {$0.seq == searchCount}) {
-            self.idAlbumSelected = selected.id
-            self.albumSelected = selected
-            self.filePathCover = albumSelected.musics.first?.filePath ?? ""
-        }
-    }
-    
-    func goToNextAlbum() {
-        let searchCount = albumSelected.seq  + 1
-        if let selected = self.albuns.first(where: {$0.seq == searchCount}) {
-            self.idAlbumSelected = selected.id
-            self.albumSelected = selected
-            self.filePathCover = self.albumSelected.musics.first?.filePath ?? ""
-        }
-    }
-    
+
     func setIdSelection(selection: UUID) {
         for album in albuns {
             if let item = album.musics.first(where: { $0.id == selection }) {
@@ -93,6 +87,16 @@ class AlbunsViewModel: BaseViewModel {
                 }
                 
                 return album
+            }
+            self.covers.removeAll()
+            for album in self.albuns {
+                let id = album.id
+                var image = NSImage()
+                if let pathCover = album.musics.first?.filePath {
+                    image = Id3TagUtils.getImageCover(path: pathCover) ?? NSImage()
+                }
+                self.covers.append(AlbumCover(id: id,
+                                              cover: Image(nsImage: image)))
             }
         } catch {
             print("Erro ao buscar álbuns: \(error)")

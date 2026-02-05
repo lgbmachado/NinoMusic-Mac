@@ -23,13 +23,13 @@ class BaseViewModel: NSObject, ObservableObject {
                                                object: nil,
                                                queue: .main) { [weak self] notification in
             guard let self = self else { return }
-            self.onNavigate(kind: .next, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+            self.onNavigateMusics(kind: .next, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
         }
         NotificationCenter.default.addObserver(forName: Notification.Name("previousTapped"),
                                                object: nil,
                                                queue: .main) { [weak self] notification in
             guard let self = self else { return }
-            self.onNavigate(kind: .previus, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
+            self.onNavigateMusics(kind: .previus, originNotification: notification.userInfo?["origin"] as? MusicContentViewType)
         }
     }
     
@@ -37,7 +37,7 @@ class BaseViewModel: NSObject, ObservableObject {
         NotificationCenter.default.removeObserver(self)
     }
     
-    func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
+    func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
     }
 }
 

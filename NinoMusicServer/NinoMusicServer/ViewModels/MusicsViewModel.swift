@@ -11,7 +11,7 @@ import SwiftData
 class MusicsViewModel: BaseViewModel {
     @Published var musics: [Music] = []
     
-    override func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
+    override func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .musics {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
             if let selected = self.musics.first(where: {$0.seq == searchCount}) {

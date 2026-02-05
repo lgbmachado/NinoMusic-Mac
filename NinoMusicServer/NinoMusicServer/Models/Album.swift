@@ -55,3 +55,8 @@ final class AlbumMusic {
     
     static let emptyMusic = AlbumMusic()
 }
+
+struct AlbumCover: Identifiable {
+    var id: UUID
+    var cover: Image?
+}

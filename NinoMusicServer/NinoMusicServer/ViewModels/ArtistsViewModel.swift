@@ -22,7 +22,7 @@ class ArtistsViewModel: BaseViewModel {
     @Published var albumSelected: ArtistAlbum = ArtistAlbum.emptyAlbum
     @Published var artistSelected: Artist = Artist.emptyArtist
     
-    override func onNavigate(kind: NavigationKind, originNotification: MusicContentViewType?) {
+    override func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .artists {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
             if let selected = self.albumSelected.musics.first(where: {$0.seq == searchCount}) {

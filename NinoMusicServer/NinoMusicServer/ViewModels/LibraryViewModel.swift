@@ -131,7 +131,7 @@ class MusicFiles {
                                         let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
                                         let year = String(((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int)
                                         let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
-                                        let duration = await getDuration(url: fileURL)
+                                        let duration = await Id3TagUtils.getDuration(url: fileURL)
                                         let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? String()) as String
                                         let genre = ((id3Tag?.frames[.genre] as? ID3FrameGenre)?.description ?? String()) as String
                                         let filePath = fileURL.absoluteString
@@ -175,16 +175,6 @@ class MusicFiles {
             if !updateDirData(dirPath: dir.path, countDir: countDir, totalTimeDir: totalTimeDir) {
                 print("Falha ao atualizar diretório.")
             }
-        }
-    }
-
-    private func getDuration(url: URL) async -> Int {
-        do {
-            let audioAsset = AVURLAsset.init(url: url, options: nil)
-            let duration = try await audioAsset.load(.duration)
-            return ("\(CMTimeGetSeconds(duration))" as NSString).integerValue
-        } catch {
-            return 0
         }
     }
     

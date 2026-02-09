@@ -7,11 +7,29 @@
 
 import SwiftUI
 
+enum MusicContentViewType: Identifiable, CaseIterable, Hashable {
+    case musics
+    case artists
+    case albuns
+
+    var id: String {
+        switch self {
+        case .musics:
+            "musics"
+        case .artists:
+            "artists"
+        case .albuns:
+            "albuns"
+        }
+    }
+}
+
 struct ContentView: View {
     @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
     
     @ObservedObject var libraryViewModel: LibraryViewModel
     @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
     @ObservedObject var artistsViewModel: ArtistsViewModel
     @ObservedObject var albunsViewModel: AlbunsViewModel
     @ObservedObject var serverViewModel: ServerViewModel
@@ -27,16 +45,16 @@ struct ContentView: View {
                 LibraryView(musicsViewModel: musicsViewModel, libraryViewModel: libraryViewModel)
                     .navigationTitle(String())
             case .musics:
-                MusicsContentView(musicContentViewType: .musics, musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel, artistsViewModel: artistsViewModel, albunsViewModel: albunsViewModel)
+                MusicsView(musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel)
                     .navigationTitle(String())
             case .artists:
-                MusicsContentView(musicContentViewType: .artists, musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel, artistsViewModel: artistsViewModel, albunsViewModel: albunsViewModel)
+                ArtistsView(musicPlayerViewModel: musicPlayerViewModel, artistsViewModel: artistsViewModel)
                     .navigationTitle(String())
             case .albuns:
-                MusicsContentView(musicContentViewType: .albuns, musicPlayerViewModel: musicPlayerViewModel, musicsViewModel: musicsViewModel, artistsViewModel: artistsViewModel, albunsViewModel: albunsViewModel)
+                AlbunsView(musicPlayerViewModel: musicPlayerViewModel, albunsViewModel: albunsViewModel)
                     .navigationTitle(String())
             case .tags:
-                TagEditorView(musicsViewModel: musicsViewModel)
+                TagEditorView(tagEditorViewModel: tagEditorViewModel)
                     .navigationTitle(String())
             case .server:
                 ServerView(serverViewModel: serverViewModel)

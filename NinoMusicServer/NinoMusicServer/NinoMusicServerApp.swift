@@ -14,6 +14,7 @@ struct NinoMusicServerApp: App {
     var musicPlayerViewModel: MusicPlayerViewModel
     var libraryViewModel: LibraryViewModel
     var musicsViewModel: MusicsViewModel
+    var tagEditorViewModel: TagEditorViewModel
     var artistsViewModel: ArtistsViewModel
     var albunsViewModel: AlbunsViewModel
     var serverViewModel: ServerViewModel
@@ -42,6 +43,7 @@ struct NinoMusicServerApp: App {
         self.musicPlayerViewModel = MusicPlayerViewModel()
         self.libraryViewModel = LibraryViewModel(modelContext: modelContainer.mainContext)
         self.musicsViewModel = MusicsViewModel(musicPlayerViewModel: musicPlayerViewModel, modelContext: modelContainer.mainContext)
+        self.tagEditorViewModel = TagEditorViewModel(musicPlayerViewModel: musicPlayerViewModel, modelContext: modelContainer.mainContext)
         self.artistsViewModel = ArtistsViewModel(musicPlayerViewModel: musicPlayerViewModel, modelContext: modelContainer.mainContext)
         self.albunsViewModel = AlbunsViewModel(musicPlayerViewModel: musicPlayerViewModel, modelContext: modelContainer.mainContext)
         self.serverViewModel = ServerViewModel(modelContext: modelContainer.mainContext)
@@ -52,6 +54,7 @@ struct NinoMusicServerApp: App {
             ContentView(musicPlayerViewModel: musicPlayerViewModel,
                         libraryViewModel: libraryViewModel,
                         musicsViewModel: musicsViewModel,
+                        tagEditorViewModel: tagEditorViewModel,
                         artistsViewModel: artistsViewModel,
                         albunsViewModel: albunsViewModel,
                         serverViewModel: serverViewModel)

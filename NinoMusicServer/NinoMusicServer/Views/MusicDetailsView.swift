@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct MusicDetailsView: View {
-    @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
     
     var body: some View {
         TabView {
-            TagView(musicsViewModel: musicsViewModel)
+            TagView(tagEditorViewModel: tagEditorViewModel)
                 .tabItem {
                     Image(systemName: "tag")
                     Text(LocalizedStringKey("text_tag"))
                 }
-            FileView(musicsViewModel: musicsViewModel)
+            FileView(tagEditorViewModel: tagEditorViewModel)
                 .tabItem {
                     Image(systemName: "folder")
                     Text(LocalizedStringKey("text_file"))
@@ -27,7 +27,7 @@ struct MusicDetailsView: View {
 }
 
 struct TagView: View {
-    @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
     
     let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -42,7 +42,7 @@ struct TagView: View {
                 .padding(.bottom, -7)
             TextField(
                 LocalizedStringKey("text_music_name"),
-                text: $musicsViewModel.musicSelected.musicTitle
+                text: $tagEditorViewModel.musicSelected.musicTitle
             )
             
             Text(LocalizedStringKey("text_artist"))
@@ -50,7 +50,7 @@ struct TagView: View {
                 .padding(.bottom, -7)
             TextField(
                 LocalizedStringKey("text_artist_name"),
-                text: $musicsViewModel.musicSelected.artist
+                text: $tagEditorViewModel.musicSelected.artist
             )
             
             Text(LocalizedStringKey("text_album"))
@@ -58,15 +58,15 @@ struct TagView: View {
                 .padding(.bottom, -7)
             TextField(
                 LocalizedStringKey("text_album_name"),
-                text: $musicsViewModel.musicSelected.album
+                text: $tagEditorViewModel.musicSelected.album
             )
             
             Text(LocalizedStringKey("text_year"))
                 .font(.caption2)
                 .padding(.bottom, -7)
             TextField(LocalizedStringKey("text_year"),
-                      text: $musicsViewModel.musicSelected.year)
-            .onChange(of: musicsViewModel.musicSelected.year) { newValue in
+                      text: $tagEditorViewModel.musicSelected.year)
+            .onChange(of: tagEditorViewModel.musicSelected.year) { newValue in
                 
             }
             
@@ -75,7 +75,7 @@ struct TagView: View {
                 .padding(.bottom, -7)
             TextField(
                 LocalizedStringKey("text_track_number"),
-                value: $musicsViewModel.musicSelected.track, formatter: formatter
+                value: $tagEditorViewModel.musicSelected.track, formatter: formatter
             )
             
             Text(LocalizedStringKey("text_genre"))
@@ -83,13 +83,13 @@ struct TagView: View {
                 .padding(.bottom, -7)
             TextField(
                 LocalizedStringKey("text_music_genre"),
-                text: $musicsViewModel.musicSelected.genre
+                text: $tagEditorViewModel.musicSelected.genre
             )
             
             Text(LocalizedStringKey("text_album_cover"))
                 .font(.caption2)
                 .padding(.bottom, -7)
-            Image(nsImage: Id3TagUtils.getImageCover(path: self.musicsViewModel.musicSelected.filePath) ?? NSImage())
+            Image(nsImage: Id3TagUtils.getImageCover(path: self.tagEditorViewModel.musicSelected.filePath) ?? NSImage())
                 .resizable()
                 .frame(width: .infinity, height: .infinity, alignment: .bottom)
                 .scaledToFit()
@@ -102,14 +102,14 @@ struct TagView: View {
 }
 
 struct FileView: View {
-    @ObservedObject var musicsViewModel: MusicsViewModel
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
 
     var body: some View {
         VStack(alignment: .leading) {
             Text(LocalizedStringKey("text_file"))
                 .font(.caption2)
                 .padding(.bottom, -7)
-            TextField(LocalizedStringKey("text_file_name"), text: $musicsViewModel.fileSelected)
+            TextField(LocalizedStringKey("text_file_name"), text: $tagEditorViewModel.fileSelected)
             Spacer()
         }
     }

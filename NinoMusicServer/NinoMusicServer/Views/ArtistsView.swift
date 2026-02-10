@@ -33,9 +33,6 @@ struct ArtistsView: View {
                 MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
             }
         }
-        .onAppear() {
-            artistsViewModel.reloadArtists()
-        }
     }
 }
 

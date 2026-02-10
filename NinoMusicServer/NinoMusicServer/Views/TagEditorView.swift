@@ -29,7 +29,7 @@ struct TagEditorView: View {
                 }
         }
         .onAppear() {
-            tagEditorViewModel.reloadMusicsFromLibrary()
+//            tagEditorViewModel.reloadMusicsFromLibrary()
         }
         .toolbar{
             ToolbarItem(placement: .primaryAction) {

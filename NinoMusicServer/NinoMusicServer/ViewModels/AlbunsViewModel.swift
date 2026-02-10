@@ -12,7 +12,6 @@ class AlbunsViewModel: BaseViewModel {
     @Published var albuns: [Album] = []
     @Published var covers: [AlbumCover] = []
     @Published var idAlbumSelected: Album.ID = UUID()
-    @Published var filePathCover: String = String()
     @Published var albumSelected: Album = Album.emptyAlbum
     @Published var indexAlbumSelected: Int = 0 {
         didSet {
@@ -20,7 +19,6 @@ class AlbunsViewModel: BaseViewModel {
                 let selected = self.albuns[indexAlbumSelected]
                 self.idAlbumSelected = selected.id
                 self.albumSelected = selected
-                self.filePathCover = self.albumSelected.musics.first?.filePath ?? ""
             }
         }
     }
@@ -75,6 +73,7 @@ class AlbunsViewModel: BaseViewModel {
                """
         var albumList = [Album]()
         var musicList = [AlbumMusic]()
+        var coversList = [AlbumCover]()
         var seqAlbum = 0
         do {
             if let rowsAlbuns = try self.helper?.sql(query: sqlAlbuns) {
@@ -122,14 +121,19 @@ class AlbunsViewModel: BaseViewModel {
                                 }
                                 seqMusic = 0
                                 seqAlbum += 1
-                                albumList.append(Album(seq: seqAlbum,
-                                                       album: album,
-                                                       artist: artist,
-                                                       year: year,
-                                                       genre: genre,
-                                                       musics: musicList))
+                                let album = Album(seq: seqAlbum,
+                                                  album: album,
+                                                  artist: artist,
+                                                  year: year,
+                                                  genre: genre,
+                                                  musics: musicList)
+                                albumList.append(album)
                                 
-                                
+                                var image = NSImage()
+                                if let pathCover = musicList.first?.filePath {
+                                    image = Id3TagUtils.getImageCover(path: pathCover) ?? NSImage()
+                                }
+                                coversList.append(AlbumCover(id: album.id, cover: Image(nsImage: image)))
                                 musicList.removeAll()
                             }
                         } catch {
@@ -142,17 +146,7 @@ class AlbunsViewModel: BaseViewModel {
             print(error)
         }
         self.albuns = albumList
-        
-        self.covers.removeAll()
-        for album in self.albuns {
-            let id = album.id
-            var image = NSImage()
-            if let pathCover = album.musics.first?.filePath {
-                image = Id3TagUtils.getImageCover(path: pathCover) ?? NSImage()
-            }
-            self.covers.append(AlbumCover(id: id,
-                                          cover: Image(nsImage: image)))
-        }
+        self.covers = coversList
     }
 }
 

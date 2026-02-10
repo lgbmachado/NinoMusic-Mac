@@ -8,7 +8,7 @@
 import Foundation
 import GCDWebServer
 import ID3TagEditor
-import SwiftData
+import SQLite3
 import AppKit
 
 enum ServerComand: String {
@@ -24,11 +24,13 @@ class ServerViewModel: ObservableObject {
     
     private let webServer = GCDWebServer()
     private let serverPort:UInt = 8080
-    private let modelContext: ModelContext
+    private var database: OpaquePointer?
     
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        print("ServerViewModel inicializado com SwiftData")
+    init() {
+        print("Path banco de dados (Music Server): \(DbConstants.databasePath)")
+        if sqlite3_open_v2(DbConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
+        } else {
+        }
     }
     
     func startMusicServer() {
@@ -72,7 +74,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            getMusicById(seq: Int(param) ?? 0, completion: { path in
+            getMusicById(id: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -125,7 +127,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            getMusicById(seq: Int(param) ?? 0, completion: { path in
+            getMusicById(id: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -161,7 +163,7 @@ class ServerViewModel: ObservableObject {
         var result = GCDWebServerDataResponse()
         if arrayParam.count > 1 {
             let param = arrayParam[1]
-            getMusicById(seq: Int(param) ?? 0, completion: { path in
+            getMusicById(id: Int(param) ?? 0, completion: { path in
                 if let path = (path! as NSString).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") {
                     let url = URL(fileURLWithPath: path)
                     if FileManager.default.fileExists(atPath: url.path) {
@@ -215,44 +217,86 @@ class ServerViewModel: ObservableObject {
     }
     
     func listMusicsRemote(completion: @escaping ([Music]?) -> ()) {
-        let descriptor = FetchDescriptor<Music>(
-            sortBy: [
-                SortDescriptor(\Music.musicTitle),
-                SortDescriptor(\Music.artist)
-            ]
-        )
-        
-        do {
-            var musicListRemote = try modelContext.fetch(descriptor)
-            
-            // Adicionar sequência às músicas
-            for (index, music) in musicListRemote.enumerated() {
-                music.seq = index + 1
+        let sql = """
+        SELECT
+           \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colRowId),
+           \(DbConstants.TableArtist.colArtist),
+           \(DbConstants.TableMusic.colTitle),
+           \(DbConstants.TableMusic.colTrack),
+           \(DbConstants.TableMusic.colDuration),
+           \(DbConstants.TableAlbum.colAlbum),
+           \(DbConstants.TableGenre.colGenre),
+           \(DbConstants.TableAlbum.colYear),
+           \(DbConstants.TableMusic.colHasLyrics)
+        FROM
+           \(DbConstants.TableMusic.tableName)
+           INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colRowId) = \(DbConstants.TableMusic.colIdArtist)
+           INNER JOIN \(DbConstants.TableAlbum.tableName) ON \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colRowId) = \(DbConstants.TableMusic.colIdAlbum)
+           INNER JOIN \(DbConstants.TableGenre.tableName) ON \(DbConstants.TableGenre.tableName).\(DbConstants.TableGenre.colRowId) = \(DbConstants.TableMusic.colIdGenre)
+        ORDER BY
+           \(DbConstants.TableMusic.colTitle),
+           \(DbConstants.TableArtist.colArtist)
+        """
+        var queryStatement: OpaquePointer?
+        var musicListRemote = [Music]()
+        var seq = 0
+    
+        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                seq += 1
+                let idServer = Int(sqlite3_column_int(queryStatement, 0))
+                let artist = String(cString: sqlite3_column_text(queryStatement, 1))
+                let album = String(cString: sqlite3_column_text(queryStatement, 5))
+                let year = String(cString: sqlite3_column_text(queryStatement, 7))
+                let track = Int(sqlite3_column_int(queryStatement, 3))
+                let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
+                let genre = String(cString: sqlite3_column_text(queryStatement, 6))
+                let duration = Int(sqlite3_column_int(queryStatement, 4))
+                let hasLyric = Int(sqlite3_column_int(queryStatement, 8)) == 1
+    
+                musicListRemote.append(Music(seq: seq,
+                                             idServer: idServer,
+                                             artist: artist,
+                                             album: album,
+                                             year: year,
+                                             track: track,
+                                             musicTitle: musicTitle,
+                                             genre: genre,
+                                             duration: duration,
+                                             filePath: "",
+                                             hasLyric: hasLyric))
             }
-            
-            completion(musicListRemote)
-        } catch {
-            print("Erro ao buscar músicas: \(error)")
-            completion(nil)
+        }
+        sqlite3_finalize(queryStatement)
+        completion(musicListRemote)
+    }
+    
+    func getMusicById(id: Int, completion: @escaping (String?) -> ()) {
+        let sql = """
+        SELECT
+           \(DbConstants.TableMusic.colFilePath)
+        FROM
+           \(DbConstants.TableMusic.tableName)
+        WHERE
+           \(DbConstants.TableMusic.colRowId) = \(id)
+        """
+        var queryStatement: OpaquePointer?
+        var result = ""
+    
+        if sqlite3_prepare_v2(self.database, sql, -1, &queryStatement, nil) == SQLITE_OK {
+            while(sqlite3_step(queryStatement) == SQLITE_ROW) {
+                result = String(cString: sqlite3_column_text(queryStatement, 0))
+            }
+        }
+        sqlite3_finalize(queryStatement)
+        completion(result)
+    }
+    
+    func closeDatabase() {
+        if sqlite3_close(self.database) != SQLITE_OK {
+            print("error closing database")
         }
     }
     
-    func getMusicById(seq: Int, completion: @escaping (String?) -> ()) {
-        let descriptor = FetchDescriptor<Music>(
-            predicate: #Predicate { $0.seq == seq }
-        )
-        
-        do {
-            let musics = try modelContext.fetch(descriptor)
-            if let music = musics.first {
-                completion(music.filePath)
-            } else {
-                completion(nil)
-            }
-        } catch {
-            print("Erro ao buscar música por ID: \(error)")
-            completion(nil)
-        }
-    }
     
 }

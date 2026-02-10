@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftData
 import SwiftUI
 
 class AlbunsViewModel: BaseViewModel {
@@ -37,7 +36,7 @@ class AlbunsViewModel: BaseViewModel {
             }
         }
     }
-
+    
     func setIdSelection(selection: UUID) {
         for album in albuns {
             if let item = album.musics.first(where: { $0.id == selection }) {
@@ -56,51 +55,103 @@ class AlbunsViewModel: BaseViewModel {
     }
     
     func reloadAlbuns() {
-        let descriptor = FetchDescriptor<Album>(
-            sortBy: [
-                SortDescriptor(\.album),
-                SortDescriptor(\.artist),
-                SortDescriptor(\.year)
-            ]
-        )
-        
+        let sqlAlbuns = """
+               SELECT DISTINCT
+                  \(DbConstants.TableMusic.colIdAlbum),
+                  \(DbConstants.TableAlbum.colAlbum),
+                  \(DbConstants.TableArtist.colArtist),
+                  \(DbConstants.TableAlbum.colYear),
+                  \(DbConstants.TableGenre.colGenre)
+               FROM
+                  \(DbConstants.TableMusic.tableName)
+                  INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colRowId) = \(DbConstants.TableMusic.colIdArtist)
+                  INNER JOIN \(DbConstants.TableAlbum.tableName) ON \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colRowId) = \(DbConstants.TableMusic.colIdAlbum)
+                  INNER JOIN \(DbConstants.TableGenre.tableName) ON \(DbConstants.TableGenre.tableName).\(DbConstants.TableGenre.colRowId) = \(DbConstants.TableMusic.colIdGenre)
+               ORDER BY
+                  \(DbConstants.TableAlbum.colAlbum),
+                  \(DbConstants.TableArtist.colArtist),
+                  \(DbConstants.TableAlbum.colYear),
+                  \(DbConstants.TableMusic.colTrack)
+               """
+        var albumList = [Album]()
+        var musicList = [AlbumMusic]()
+        var seqAlbum = 0
         do {
-            let fetchedAlbums = try modelContext.fetch(descriptor)
-            var seqAlbum = 0
-            self.albuns = fetchedAlbums.map { album in
-                seqAlbum += 1
-                album.seq = seqAlbum
-                
-                // Ordenar músicas do álbum
-                let sortedMusics = album.musics.sorted { music1, music2 in
-                    if music1.track != music2.track {
-                        return music1.track < music2.track
+            if let rowsAlbuns = try self.helper?.sql(query: sqlAlbuns) {
+                for rowAlbum in rowsAlbuns {
+                    if
+                        let idAlbum = rowAlbum[DbConstants.TableMusic.colIdAlbum] as? Int,
+                        let album = rowAlbum[DbConstants.TableAlbum.colAlbum] as? String,
+                        let artist = rowAlbum[DbConstants.TableArtist.colArtist] as? String,
+                        let year = rowAlbum[DbConstants.TableAlbum.colYear] as? String,
+                        let genre = rowAlbum[DbConstants.TableGenre.colGenre] as? String
+                    {
+                        let sqlMusics = """
+                           SELECT
+                              \(DbConstants.TableMusic.colRowId),
+                              \(DbConstants.TableMusic.colTrack),
+                              \(DbConstants.TableMusic.colTitle),
+                              \(DbConstants.TableMusic.colDuration),
+                              \(DbConstants.TableMusic.colFilePath)
+                           FROM
+                              \(DbConstants.TableMusic.tableName)
+                           WHERE
+                              \(DbConstants.TableMusic.colIdAlbum) = \(idAlbum) 
+                           ORDER BY
+                              \(DbConstants.TableMusic.colTrack),
+                              \(DbConstants.TableMusic.colTitle)
+                           """
+                        do {
+                            if let rowsMusicsAlbum = try self.helper?.sql(query: sqlMusics) {
+                                var seqMusic = 0
+                                for rowMusicAlbum in rowsMusicsAlbum {
+                                    if  let idServer = rowMusicAlbum[DbConstants.TableMusic.colRowId] as? Int,
+                                        let track = rowMusicAlbum[DbConstants.TableMusic.colTrack] as? Int,
+                                        let musicTitle = rowMusicAlbum[DbConstants.TableMusic.colTitle] as? String,
+                                        let duration = rowMusicAlbum[DbConstants.TableMusic.colDuration] as? Int,
+                                        let filePath = rowMusicAlbum[DbConstants.TableMusic.colFilePath] as? String
+                                    {
+                                        seqMusic += 1
+                                        musicList.append(AlbumMusic(seq: seqMusic,
+                                                                    idServer: idServer,
+                                                                    track: track,
+                                                                    musicTitle: musicTitle,
+                                                                    duration: duration,
+                                                                    filePath: filePath))
+                                    }
+                                }
+                                seqMusic = 0
+                                seqAlbum += 1
+                                albumList.append(Album(seq: seqAlbum,
+                                                       album: album,
+                                                       artist: artist,
+                                                       year: year,
+                                                       genre: genre,
+                                                       musics: musicList))
+                                
+                                
+                                musicList.removeAll()
+                            }
+                        } catch {
+                            print(error)
+                        }
                     }
-                    return music1.musicTitle < music2.musicTitle
                 }
-                
-                var seqMusic = 0
-                album.musics = sortedMusics.map { music in
-                    seqMusic += 1
-                    music.seq = seqMusic
-                    return music
-                }
-                
-                return album
-            }
-            self.covers.removeAll()
-            for album in self.albuns {
-                let id = album.id
-                var image = NSImage()
-                if let pathCover = album.musics.first?.filePath {
-                    image = Id3TagUtils.getImageCover(path: pathCover) ?? NSImage()
-                }
-                self.covers.append(AlbumCover(id: id,
-                                              cover: Image(nsImage: image)))
             }
         } catch {
-            print("Erro ao buscar álbuns: \(error)")
-            self.albuns = []
+            print(error)
+        }
+        self.albuns = albumList
+        
+        self.covers.removeAll()
+        for album in self.albuns {
+            let id = album.id
+            var image = NSImage()
+            if let pathCover = album.musics.first?.filePath {
+                image = Id3TagUtils.getImageCover(path: pathCover) ?? NSImage()
+            }
+            self.covers.append(AlbumCover(id: id,
+                                          cover: Image(nsImage: image)))
         }
     }
 }

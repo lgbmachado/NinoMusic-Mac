@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "MusicFiles.getDirectories():LibraryViewModel.swift">
+      </ContextState>
+      <ContextState
+         contextName = "MusicFiles.updateRowsTableDirectories():LibraryViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "DbConstants.TableDiretory.colRowId">
+            </PersistentString>
+            <PersistentString
+               value = "row[DbConstants.TableDiretory.colRowId]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "closure #1 in AlbunsView.body.getter:AlbunsView.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "albunsViewModel.covers">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MusicFiles.updateMusicsDatabase(completion:):LibraryViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.directories">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MusicFiles.init():LibraryViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.directories">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "AlbunsViewModel.indexAlbumSelected.didset:AlbunsViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "covers">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

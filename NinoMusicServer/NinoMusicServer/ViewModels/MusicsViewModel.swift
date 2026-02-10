@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftData
+import SQLite3
 
 class MusicsViewModel: BaseViewModel {
     @Published var musics: [Music] = []
@@ -24,25 +24,64 @@ class MusicsViewModel: BaseViewModel {
     }
     
     func reloadMusics() {
-        let descriptor = FetchDescriptor<Music>(
-            sortBy: [
-                SortDescriptor(\.musicTitle),
-                SortDescriptor(\.artist)
-            ]
-        )
+        let sql = """
+            SELECT
+               \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colRowId),
+               \(DbConstants.TableArtist.colArtist),
+               \(DbConstants.TableMusic.colTitle),
+               \(DbConstants.TableMusic.colTrack),
+               \(DbConstants.TableAlbum.colAlbum),
+               \(DbConstants.TableGenre.colGenre),
+               \(DbConstants.TableMusic.colDuration),
+               \(DbConstants.TableAlbum.colYear),
+               \(DbConstants.TableMusic.colFilePath),
+               \(DbConstants.TableMusic.colHasLyrics)
+            FROM
+               \(DbConstants.TableMusic.tableName)
+               INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colRowId) = \(DbConstants.TableMusic.colIdArtist)
+               INNER JOIN \(DbConstants.TableAlbum.tableName) ON \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colRowId) = \(DbConstants.TableMusic.colIdAlbum)
+               INNER JOIN \(DbConstants.TableGenre.tableName) ON \(DbConstants.TableGenre.tableName).\(DbConstants.TableGenre.colRowId) = \(DbConstants.TableMusic.colIdGenre)
+            ORDER BY
+               \(DbConstants.TableMusic.colTitle),
+               \(DbConstants.TableArtist.colArtist)
+            """
+        var musicList = [Music]()
+        var seq = 0
         
         do {
-            let fetchedMusics = try modelContext.fetch(descriptor)
-            var seq = 0
-            self.musics = fetchedMusics.map { music in
-                seq += 1
-                music.seq = seq
-                return music
+            if let rows = try self.helper?.sql(query: sql) {
+                for row in rows {
+                    seq += 1
+                    if
+                        let idServer = row[DbConstants.TableMusic.colRowId] as? Int,
+                        let artist = row[DbConstants.TableArtist.colArtist] as? String,
+                        let album = row[DbConstants.TableAlbum.colAlbum] as? String,
+                        let year = row[DbConstants.TableAlbum.colYear] as? String,
+                        let track = row[DbConstants.TableMusic.colTrack] as? Int,
+                        let musicTitle = row[DbConstants.TableMusic.colTitle] as? String,
+                        let genre = row[DbConstants.TableGenre.colGenre] as? String,
+                        let duration = row[DbConstants.TableMusic.colRowId] as? Int,
+                        let filePath = row[DbConstants.TableMusic.colFilePath] as? String,
+                        let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int
+                    {
+                        musicList.append(Music(seq: seq,
+                                               idServer: idServer,
+                                               artist: artist,
+                                               album: album,
+                                               year: year,
+                                               track: track,
+                                               musicTitle: musicTitle,
+                                               genre: genre,
+                                               duration: duration,
+                                               filePath: filePath,
+                                               hasLyric: hasLyric == 1))
+                    }
+                }
             }
         } catch {
-            print("Erro ao buscar músicas: \(error)")
-            self.musics = []
+            print(error)
         }
+        self.musics = musicList
     }
     
     func setIdSelection(selection: Music.ID) {

@@ -98,9 +98,5 @@ struct AlbunsView: View {
                 MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $albunsViewModel.idMusicSelected)
             }
         }
-        .onAppear() {
-            albunsViewModel.reloadAlbuns()
-            albunsViewModel.indexAlbumSelected = 0
-        }
     }
 }

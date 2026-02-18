@@ -65,6 +65,7 @@ struct ContentView: View {
             musicsViewModel.reloadMusics()
             artistsViewModel.reloadArtists()
             albunsViewModel.reloadAlbuns()
+            albunsViewModel.indexAlbumSelected = 0
         }
     }
 }

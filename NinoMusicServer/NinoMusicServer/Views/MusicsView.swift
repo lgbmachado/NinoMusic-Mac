@@ -49,9 +49,6 @@ struct MusicsView: View {
                     MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $musicsViewModel.idMusicSelected)
                 }
             }
-            .onAppear() {
-                musicsViewModel.reloadMusics()
-            }
             .searchable(text: $searchTerm)
         }
     }

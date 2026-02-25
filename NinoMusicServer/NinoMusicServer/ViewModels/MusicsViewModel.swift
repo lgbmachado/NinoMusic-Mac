@@ -23,7 +23,7 @@ class MusicsViewModel: BaseViewModel {
         }
     }
     
-    func reloadMusics() {
+    func reloadMusics() async {
         let sql = """
             SELECT
                \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colRowId),
@@ -45,43 +45,57 @@ class MusicsViewModel: BaseViewModel {
                \(DbConstants.TableMusic.colTitle),
                \(DbConstants.TableArtist.colArtist)
             """
-        var musicList = [Music]()
-        var seq = 0
-        
-        do {
-            if let rows = try self.helper?.sql(query: sql) {
-                for row in rows {
-                    seq += 1
-                    if
-                        let idServer = row[DbConstants.TableMusic.colRowId] as? Int,
-                        let artist = row[DbConstants.TableArtist.colArtist] as? String,
-                        let album = row[DbConstants.TableAlbum.colAlbum] as? String,
-                        let year = row[DbConstants.TableAlbum.colYear] as? String,
-                        let track = row[DbConstants.TableMusic.colTrack] as? Int,
-                        let musicTitle = row[DbConstants.TableMusic.colTitle] as? String,
-                        let genre = row[DbConstants.TableGenre.colGenre] as? String,
-                        let duration = row[DbConstants.TableMusic.colRowId] as? Int,
-                        let filePath = row[DbConstants.TableMusic.colFilePath] as? String,
-                        let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int
-                    {
-                        musicList.append(Music(seq: seq,
-                                               idServer: idServer,
-                                               artist: artist,
-                                               album: album,
-                                               year: year,
-                                               track: track,
-                                               musicTitle: musicTitle,
-                                               genre: genre,
-                                               duration: duration,
-                                               filePath: filePath,
-                                               hasLyric: hasLyric == 1))
-                    }
-                }
-            }
-        } catch {
-            print(error)
+        await MainActor.run {
+            self.isLoading = true
         }
-        self.musics = musicList
+
+        let musicList = await withCheckedContinuation { (continuation: CheckedContinuation<[Music], Never>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                var musicList = [Music]()
+                var seq = 0
+
+                do {
+                    if let rows = try self.helper?.sql(query: sql) {
+                        for row in rows {
+                            seq += 1
+                            if
+                                let idServer = row[DbConstants.TableMusic.colRowId] as? Int,
+                                let artist = row[DbConstants.TableArtist.colArtist] as? String,
+                                let album = row[DbConstants.TableAlbum.colAlbum] as? String,
+                                let year = row[DbConstants.TableAlbum.colYear] as? String,
+                                let track = row[DbConstants.TableMusic.colTrack] as? Int,
+                                let musicTitle = row[DbConstants.TableMusic.colTitle] as? String,
+                                let genre = row[DbConstants.TableGenre.colGenre] as? String,
+                                let duration = row[DbConstants.TableMusic.colRowId] as? Int,
+                                let filePath = row[DbConstants.TableMusic.colFilePath] as? String,
+                                let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int
+                            {
+                                musicList.append(Music(seq: seq,
+                                                       idServer: idServer,
+                                                       artist: artist,
+                                                       album: album,
+                                                       year: year,
+                                                       track: track,
+                                                       musicTitle: musicTitle,
+                                                       genre: genre,
+                                                       duration: duration,
+                                                       filePath: filePath,
+                                                       hasLyric: hasLyric == 1))
+                            }
+                        }
+                    }
+                } catch {
+                    print(error)
+                }
+
+                continuation.resume(returning: musicList)
+            }
+        }
+
+        await MainActor.run {
+            self.musics = musicList
+            self.isLoading = false
+        }
     }
     
     func setIdSelection(selection: Music.ID) {

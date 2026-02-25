@@ -55,6 +55,7 @@ struct ArtistMusic: Encodable, Decodable, Identifiable {
     var musicTitle: String
     let duration: Int
     var filePath: String
+    var hasLyric: Bool
     
     enum CodingKeys: String, CodingKey {
         case seq = "seq"
@@ -63,6 +64,7 @@ struct ArtistMusic: Encodable, Decodable, Identifiable {
         case musicTitle = "musicTitle"
         case duration = "duration"
         case filePath = "filePath"
+        case hasLyric = "hasLyric"
     }
     
     static let emptyMusic = ArtistMusic(seq: Int(),
@@ -70,7 +72,8 @@ struct ArtistMusic: Encodable, Decodable, Identifiable {
                                         track: Int(),
                                         musicTitle: String(),
                                         duration: Int(),
-                                        filePath: String())
+                                        filePath: String(),
+                                        hasLyric: false)
 }
 
 

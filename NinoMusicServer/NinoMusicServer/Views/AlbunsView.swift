@@ -83,6 +83,11 @@ struct AlbunsView: View {
                 TableColumn(LocalizedStringKey("text_duration")) { music in
                     Text(String().secondsToTime(seconds: music.duration))
                 }
+                TableColumn(LocalizedStringKey("text_lyric")){ music in
+                    if music.hasLyric {
+                        Image(systemName: "music.note.tv")
+                    }
+                }
             }
             .padding()
             .onChange(of: albunsViewModel.idMusicSelected) { oldSelected, newSelected in

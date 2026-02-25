@@ -14,6 +14,7 @@ class BaseViewModel: NSObject, ObservableObject {
     @Published var idMusicSelected: Music.ID? = nil
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
+    @Published var isLoading: Bool = false
     
     init(musicPlayerViewModel: MusicPlayerViewModel) {
         self.musicPlayerViewModel = musicPlayerViewModel

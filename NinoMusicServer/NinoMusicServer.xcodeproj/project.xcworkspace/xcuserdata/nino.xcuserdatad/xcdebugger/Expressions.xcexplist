@@ -3,7 +3,23 @@
    version = "1.0">
    <ContextStates>
       <ContextState
-         contextName = "MusicFiles.getDirectories():LibraryViewModel.swift">
+         contextName = "closure #1 in AlbunsView.body.getter:AlbunsView.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "albunsViewModel.covers">
+            </PersistentString>
+            <PersistentString
+               value = "albunsViewModel.indexAlbumSelected">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MusicFiles.init():LibraryViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.directories">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "MusicFiles.updateRowsTableDirectories():LibraryViewModel.swift">
@@ -17,10 +33,24 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "closure #1 in AlbunsView.body.getter:AlbunsView.swift">
+         contextName = "AlbunsViewModel.indexAlbumSelected.didset:AlbunsViewModel.swift">
          <PersistentStrings>
             <PersistentString
-               value = "albunsViewModel.covers">
+               value = "covers">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "AlbunsViewModel.reloadAlbuns():AlbunsViewModel.swift">
+      </ContextState>
+      <ContextState
+         contextName = "MusicFiles.getDirectories():LibraryViewModel.swift">
+      </ContextState>
+      <ContextState
+         contextName = "closure #4 in closure #1 in closure #1 in MusicPlayerView.body.getter:MusicPlayerView.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "musicsPlayerViewModel.currentMusic?.hasLyric">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -29,22 +59,6 @@
          <PersistentStrings>
             <PersistentString
                value = "self.directories">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "MusicFiles.init():LibraryViewModel.swift">
-         <PersistentStrings>
-            <PersistentString
-               value = "self.directories">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "AlbunsViewModel.indexAlbumSelected.didset:AlbunsViewModel.swift">
-         <PersistentStrings>
-            <PersistentString
-               value = "covers">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

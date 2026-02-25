@@ -28,9 +28,6 @@ struct TagEditorView: View {
                     Text("Biblioteca")
                 }
         }
-        .onAppear() {
-//            tagEditorViewModel.reloadMusicsFromLibrary()
-        }
         .toolbar{
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -91,7 +88,7 @@ struct MusicsFilesAndFoldersView: View {
             }
             .padding()
             .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-                tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID())
+                Task { await tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID()) }
             }
         }
     }
@@ -106,7 +103,7 @@ struct MusicsFilesAndFoldersView: View {
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             if let url = dialog.url {
-                self.tagEditorViewModel.AddFile(url: url)
+                Task { await self.tagEditorViewModel.AddFile(url: url) }
             }
         } else {
             return
@@ -122,7 +119,7 @@ struct MusicsFilesAndFoldersView: View {
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             if let url = dialog.url {
-                self.tagEditorViewModel.AddFolder(url: url)
+                Task { await self.tagEditorViewModel.AddFolder(url: url) }
             }
         }
     }
@@ -153,7 +150,7 @@ struct MusicsLibraryView: View {
         }
         .padding()
         .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-            tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID())
+            Task { await tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID()) }
         }
     }
 }

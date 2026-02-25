@@ -143,7 +143,9 @@ class AlbunsViewModel: BaseViewModel {
                                         if let pathCover = musicList.first?.filePath {
                                             image = Id3TagUtils.getImageCover(path: pathCover) ?? NSImage()
                                         }
-                                        coversList.append(AlbumCover(id: album.id, cover: Image(nsImage: image)))
+                                        coversList.append(AlbumCover(id: album.id,
+                                                                     coverURL: musicList.first?.filePath ?? "",
+                                                                     cover: Image(nsImage: image)))
                                         musicList.removeAll()
                                     }
                                 } catch {

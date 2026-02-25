@@ -65,5 +65,6 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
 
 struct AlbumCover: Identifiable {
     var id: UUID
+    var coverURL: String
     var cover: Image?
 }

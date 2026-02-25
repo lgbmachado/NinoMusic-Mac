@@ -73,7 +73,8 @@ struct ContentView: View {
             LoadingViewModelsSheet(
                 isMusicsLoading: musicsViewModel.isLoading,
                 isArtistsLoading: artistsViewModel.isLoading,
-                isAlbunsLoading: albunsViewModel.isLoading
+                isAlbunsLoading: albunsViewModel.isLoading,
+                isMusicTagLoading: tagEditorViewModel.isLoading
             )
             .interactiveDismissDisabled(isLoadingData)
         }
@@ -81,7 +82,8 @@ struct ContentView: View {
             async let musicsTask = musicsViewModel.reloadMusics()
             async let artistsTask = artistsViewModel.reloadArtists()
             async let albunsTask = albunsViewModel.reloadAlbuns()
-            _ = await (musicsTask, artistsTask, albunsTask)
+            async let tagEditorTask = tagEditorViewModel.reloadMusics()
+            _ = await (musicsTask, artistsTask, albunsTask, tagEditorTask)
             albunsViewModel.indexAlbumSelected = 0
         }
     }
@@ -91,6 +93,7 @@ private struct LoadingViewModelsSheet: View {
     let isMusicsLoading: Bool
     let isArtistsLoading: Bool
     let isAlbunsLoading: Bool
+    let isMusicTagLoading: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -101,6 +104,7 @@ private struct LoadingViewModelsSheet: View {
             loadingRow(title: "Músicas", isLoading: isMusicsLoading)
             loadingRow(title: "Artistas", isLoading: isArtistsLoading)
             loadingRow(title: "Álbuns", isLoading: isAlbunsLoading)
+            loadingRow(title: "Tag Editor", isLoading: isMusicTagLoading)
         }
         .padding(24)
         .frame(minWidth: 320)

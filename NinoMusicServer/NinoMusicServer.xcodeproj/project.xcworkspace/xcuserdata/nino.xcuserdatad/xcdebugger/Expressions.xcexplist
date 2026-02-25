@@ -41,6 +41,22 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "TagEditorViewModel.AddFile(url:):TagEditorViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "music">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "TagEditorViewModel.GetMusicTags(fileURL:):TagEditorViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "fileURL.path()">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "AlbunsViewModel.reloadAlbuns():AlbunsViewModel.swift">
       </ContextState>
       <ContextState

@@ -8,6 +8,11 @@
 import SwiftUI
 import ID3TagEditor
 
+enum EditOrigin {
+    case fileDir
+    case library
+}
+
 enum CaseKind: String {
     case lowercase = "lowercase"
     case uppercase = "uppercase"
@@ -28,8 +33,19 @@ enum CaseKind: String {
 class TagEditorViewModel: BaseViewModel {
     @Published var musicsLibrary: [Music] = []
     @Published var musicsFileDir: [Music] = []
+    @Published var idMusicsSelected: Set<UUID> = []
+    @Published var musicSelectedCommonFields: Music = Music.emptyMusic
     @Published var caseKind: CaseKind = .capitalized
-    @Published var genres: [String] = []
+    @Published var hasCommonMusicTitle: Bool = false
+    @Published var hasCommonArtist: Bool = false
+    @Published var hasCommonAlbum: Bool = false
+    @Published var hasCommonTrack: Bool = false
+    @Published var hasCommonYear: Bool = false
+    @Published var hasCommonGenre: Bool = false
+    
+    var origin: EditOrigin = .fileDir
+    
+    var genres: [String] = ["ROCK", "PAGODE/FORRÓ", "INSTRUMENTAL/CLÁSSICO", "MPB", "SERTANEJO", "POP", "DANCE"]
     
     func reloadMusics() async {
         let sql = """
@@ -205,5 +221,140 @@ class TagEditorViewModel: BaseViewModel {
     
     func getGenres() -> [String] {
         return self.genres
+    }
+    
+    var selectedCount: Int {
+        idMusicsSelected.count
+    }
+
+    var selectedCountText: String {
+        selectedCount == 1 ? "1 música selecionada" : "\(selectedCount) músicas selecionadas"
+    }
+    
+    func setSelection(origin: EditOrigin, selection: Set<Music.ID>) {
+        self.origin = origin
+        self.idMusicsSelected = selection
+        refreshCommonFields()
+    }
+
+    func updateMusicTitle(_ value: String) {
+        updateSelectedMusic { $0.musicTitle = value }
+    }
+
+    func updateArtist(_ value: String) {
+        updateSelectedMusic { $0.artist = value }
+    }
+
+    func updateAlbum(_ value: String) {
+        updateSelectedMusic { $0.album = value }
+    }
+
+    func updateYear(_ value: String) {
+        updateSelectedMusic { $0.year = value }
+    }
+
+    func updateTrack(_ value: Int) {
+        updateSelectedMusic { $0.track = value }
+    }
+
+    func updateTrackFromField(_ value: String) {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let track = Int(trimmed) else {
+            return
+        }
+
+        updateTrack(track)
+    }
+
+    func updateGenre(_ value: String) {
+        updateSelectedMusic { $0.genre = value }
+    }
+
+    private func updateSelectedMusic(_ update: (inout Music) -> Void) {
+        guard !idMusicsSelected.isEmpty else {
+            return
+        }
+
+        for index in musicsLibrary.indices where idMusicsSelected.contains(musicsLibrary[index].id) {
+            var updated = musicsLibrary[index]
+            update(&updated)
+            musicsLibrary[index] = updated
+        }
+
+        refreshCommonFields()
+    }
+
+    private func refreshCommonFields() {
+        let selectedMusics = self.origin == .library ? musicsLibrary.filter { idMusicsSelected.contains($0.id) } : musicsFileDir.filter { idMusicsSelected.contains($0.id) }
+        guard let first = selectedMusics.first else {
+            musicSelectedCommonFields = Music.emptyMusic
+            hasCommonMusicTitle = false
+            hasCommonArtist = false
+            hasCommonAlbum = false
+            hasCommonTrack = false
+            hasCommonYear = false
+            hasCommonGenre = false
+            return
+        }
+
+        hasCommonMusicTitle = selectedMusics.hasCommon(\.musicTitle)
+        hasCommonArtist = selectedMusics.hasCommon(\.artist)
+        hasCommonAlbum = selectedMusics.hasCommon(\.album)
+        hasCommonTrack = selectedMusics.hasCommon(\.track)
+        hasCommonYear = selectedMusics.hasCommon(\.year)
+        hasCommonGenre = selectedMusics.hasCommon(\.genre)
+
+        musicSelectedCommonFields = Music(
+            id: first.id,
+            seq: selectedMusics.commonInt(\.seq, fallback: 0),
+            idServer: 0,
+            artist: selectedMusics.commonString(\.artist),
+            album: selectedMusics.commonString(\.album),
+            year: selectedMusics.commonString(\.year),
+            track: selectedMusics.commonInt(\.track, fallback: 0),
+            musicTitle: selectedMusics.commonString(\.musicTitle),
+            genre: selectedMusics.commonString(\.genre),
+            duration: selectedMusics.commonInt(\.duration, fallback: 0),
+            filePath: selectedMusics.commonString(\.filePath),
+            hasLyric: false
+        )
+    }
+
+    var trackFieldText: String {
+        hasCommonTrack ? String(musicSelectedCommonFields.track) : ""
+    }
+}
+
+private extension Array where Element == Music {
+    func hasCommon(_ keyPath: KeyPath<Music, Int>) -> Bool {
+        guard let firstValue = first?[keyPath: keyPath] else {
+            return false
+        }
+
+        return allSatisfy { $0[keyPath: keyPath] == firstValue }
+    }
+
+    func hasCommon(_ keyPath: KeyPath<Music, String>) -> Bool {
+        guard let firstValue = first?[keyPath: keyPath] else {
+            return false
+        }
+
+        return allSatisfy { $0[keyPath: keyPath] == firstValue }
+    }
+
+    func commonString(_ keyPath: KeyPath<Music, String>) -> String {
+        guard let firstValue = first?[keyPath: keyPath] else {
+            return ""
+        }
+
+        return allSatisfy { $0[keyPath: keyPath] == firstValue } ? firstValue : ""
+    }
+
+    func commonInt(_ keyPath: KeyPath<Music, Int>, fallback: Int) -> Int {
+        guard let firstValue = first?[keyPath: keyPath] else {
+            return fallback
+        }
+
+        return allSatisfy { $0[keyPath: keyPath] == firstValue } ? firstValue : fallback
     }
 }

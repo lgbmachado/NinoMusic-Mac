@@ -11,6 +11,7 @@ import AppKit
 struct ComboBox: NSViewRepresentable {
     @Binding var text: String
     var items: [String]
+    var placeholder: String? = nil
     
     var isEditable: Bool = true
 
@@ -19,18 +20,23 @@ struct ComboBox: NSViewRepresentable {
         comboBox.addItems(withObjectValues: items)
         comboBox.delegate = context.coordinator
         comboBox.isEditable = isEditable
+        comboBox.placeholderString = placeholder
         return comboBox
     }
 
     func updateNSView(_ nsView: NSComboBox, context: Context) {
-        // Atualiza a lista se os itens mudarem
-        if nsView.numberOfItems != items.count {
+        let currentItems = (0..<nsView.numberOfItems).compactMap { nsView.itemObjectValue(at: $0) as? String }
+        if currentItems != items {
             nsView.removeAllItems()
             nsView.addItems(withObjectValues: items)
         }
-        // Sincroniza o texto
+
         if nsView.stringValue != text {
             nsView.stringValue = text
+        }
+
+        if nsView.placeholderString != placeholder {
+            nsView.placeholderString = placeholder
         }
     }
 
@@ -47,7 +53,9 @@ struct ComboBox: NSViewRepresentable {
 
         func comboBoxSelectionDidChange(_ notification: Notification) {
             guard let comboBox = notification.object as? NSComboBox else { return }
-            let selectedItem = parent.items[comboBox.indexOfSelectedItem]
+            let selectedIndex = comboBox.indexOfSelectedItem
+            guard parent.items.indices.contains(selectedIndex) else { return }
+            let selectedItem = parent.items[selectedIndex]
             parent.text = selectedItem
         }
 

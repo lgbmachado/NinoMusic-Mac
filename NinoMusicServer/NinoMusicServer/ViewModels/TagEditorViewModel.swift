@@ -87,9 +87,20 @@ class TagEditorViewModel: BaseViewModel {
         }
     }
     
-    func setIdSelection(selection: Music.ID) {
+    func setIdLibrarySelection(selection: Music.ID) {
         self.idMusicSelected = selection
         if let item = self.musicsLibrary.first(where: { $0.id == self.idMusicSelected }) {
+            self.idMusicSelected = item.id
+            self.musicSelected = item
+            self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
+        } else {
+            self.musicSelected = Music.emptyMusic
+        }
+    }
+    
+    func setIdFilesSelection(selection: Music.ID) {
+        self.idMusicSelected = selection
+        if let item = self.musicsFileDir.first(where: { $0.id == self.idMusicSelected }) {
             self.idMusicSelected = item.id
             self.musicSelected = item
             self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
@@ -151,5 +162,52 @@ class TagEditorViewModel: BaseViewModel {
             print(error)
             return Music.emptyMusic
         }
+    }
+}
+
+enum CaseKind: String {
+    case lowercase = "lowercase"
+    case uppercase = "uppercase"
+    case capitalized = "capitalized"
+    
+    var description: String {
+        switch self {
+        case .lowercase:
+            return "minúculas"
+        case .uppercase:
+            return "MAIÚSCULAS"
+        case .capitalized:
+            return "Primeira Letra Maiúscula"
+        }
+    }
+}
+
+class TagEditorConfigViewModel: ObservableObject {
+    
+    @Published var caseKind: CaseKind = .capitalized
+    @Published var genres: [String] = []
+
+    func saveTagEditorConfig() {
+        let defaults = UserDefaults.standard
+        defaults.set(caseKind.rawValue , forKey: "CaseKind")
+        defaults.set(genres, forKey: "Genres")
+    }
+    
+    func loadTagEditorConfig() {
+        let defaults = UserDefaults.standard
+        self.caseKind = CaseKind(rawValue: defaults.string(forKey: "CaseKind") ?? "capitalized") ?? .capitalized
+        self.genres = defaults.stringArray(forKey: "Genres") ?? []
+    }
+    
+    func addGenre(_ genre: String) {
+        genres.append(genre)
+    }
+    
+    func removeGenre(_ genre: String) {
+        genres.removeAll { $0 == genre }
+    }
+    
+    func getGenres() -> [String] {
+        return self.genres
     }
 }

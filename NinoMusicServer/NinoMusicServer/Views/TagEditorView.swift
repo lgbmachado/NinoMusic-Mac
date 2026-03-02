@@ -88,7 +88,7 @@ struct MusicsFilesAndFoldersView: View {
             }
             .padding()
             .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-                Task { await tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID()) }
+                Task { await tagEditorViewModel.setIdFilesSelection(selection: newSelected ?? UUID()) }
             }
         }
     }
@@ -150,8 +150,17 @@ struct MusicsLibraryView: View {
         }
         .padding()
         .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-            Task { await tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID()) }
+            Task { await tagEditorViewModel.setIdLibrarySelection(selection: newSelected ?? UUID()) }
         }
     }
 }
+
+struct TagEditorConfigView: View {
+    @ObservedObject var tagEditorConfigViewModel: TagEditorConfigViewModel
+    
+    var body: some View {
+        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+    }
+}
+
 

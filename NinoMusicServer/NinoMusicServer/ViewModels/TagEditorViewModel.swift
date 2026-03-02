@@ -8,9 +8,28 @@
 import SwiftUI
 import ID3TagEditor
 
+enum CaseKind: String {
+    case lowercase = "lowercase"
+    case uppercase = "uppercase"
+    case capitalized = "capitalized"
+    
+    var description: String {
+        switch self {
+        case .lowercase:
+            return "minúculas"
+        case .uppercase:
+            return "MAIÚSCULAS"
+        case .capitalized:
+            return "Primeira Letra Maiúscula"
+        }
+    }
+}
+
 class TagEditorViewModel: BaseViewModel {
     @Published var musicsLibrary: [Music] = []
     @Published var musicsFileDir: [Music] = []
+    @Published var caseKind: CaseKind = .capitalized
+    @Published var genres: [String] = []
     
     func reloadMusics() async {
         let sql = """
@@ -163,30 +182,7 @@ class TagEditorViewModel: BaseViewModel {
             return Music.emptyMusic
         }
     }
-}
-
-enum CaseKind: String {
-    case lowercase = "lowercase"
-    case uppercase = "uppercase"
-    case capitalized = "capitalized"
     
-    var description: String {
-        switch self {
-        case .lowercase:
-            return "minúculas"
-        case .uppercase:
-            return "MAIÚSCULAS"
-        case .capitalized:
-            return "Primeira Letra Maiúscula"
-        }
-    }
-}
-
-class TagEditorConfigViewModel: ObservableObject {
-    
-    @Published var caseKind: CaseKind = .capitalized
-    @Published var genres: [String] = []
-
     func saveTagEditorConfig() {
         let defaults = UserDefaults.standard
         defaults.set(caseKind.rawValue , forKey: "CaseKind")

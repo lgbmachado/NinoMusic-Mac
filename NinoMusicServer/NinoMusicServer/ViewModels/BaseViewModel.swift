@@ -11,7 +11,7 @@ import SQLite3
 class BaseViewModel: NSObject, ObservableObject {
     let musicPlayerViewModel: MusicPlayerViewModel
     let helper = DbHelper(path: DbConstants.databasePath)
-    @Published var idMusicSelected: Music.ID? = nil
+    @Published var idMusicSelected: UUID? = nil
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
     @Published var isLoading: Bool = false

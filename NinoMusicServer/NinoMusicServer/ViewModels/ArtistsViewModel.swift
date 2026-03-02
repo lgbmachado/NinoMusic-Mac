@@ -17,7 +17,7 @@ struct Node: Identifiable {
 
 class ArtistsViewModel: BaseViewModel {
     @Published var artists: [Artist] = []
-    @Published var idAlbumSelected: ArtistAlbum.ID? = nil
+    @Published var idAlbumSelected: UUID? = nil
     @Published var idArtistSelected: Artist.ID? = nil
     @Published var albumSelected: ArtistAlbum = ArtistAlbum.emptyAlbum
     @Published var artistSelected: Artist = Artist.emptyArtist

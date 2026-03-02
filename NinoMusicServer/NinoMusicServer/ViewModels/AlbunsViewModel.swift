@@ -11,7 +11,7 @@ import SwiftUI
 class AlbunsViewModel: BaseViewModel {
     @Published var albuns: [Album] = []
     @Published var covers: [AlbumCover] = []
-    @Published var idAlbumSelected: Album.ID = UUID()
+    @Published var idAlbumSelected: UUID? = UUID()
     @Published var albumSelected: Album = Album.emptyAlbum
     @Published var indexAlbumSelected: Int = 0 {
         didSet {

@@ -156,7 +156,7 @@ struct MusicsLibraryView: View {
 }
 
 struct TagEditorConfigView: View {
-    @ObservedObject var tagEditorConfigViewModel: TagEditorConfigViewModel
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
     
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)

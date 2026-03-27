@@ -127,6 +127,19 @@ struct showLoadingProgress: View {
     
     var body: some View {
         VStack {
+            HStack(spacing: 10) {
+                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!)
+                    .resizable()
+                    .renderingMode(.original)
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                Text("Carregando dados")
+                    .font(.title)
+                    .fontWeight(.semibold)
+            }
+            
+            Divider()
+            
             if self.libraryViewModel.isLoading {
                 ProgressView()
                     .frame(width: 50, height: 50, alignment: .center)

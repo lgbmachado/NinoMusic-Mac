@@ -11,7 +11,7 @@ enum MusicContentViewType: Identifiable, CaseIterable, Hashable {
     case musics
     case artists
     case albuns
-
+    
     var id: String {
         switch self {
         case .musics:
@@ -35,15 +35,16 @@ struct ContentView: View {
     @ObservedObject var serverViewModel: ServerViewModel
     
     @State private var selection: ItemMenu = .musics
-
+    @State private var showConfig = false
+    
     private var isLoadingData: Bool {
         musicsViewModel.isLoading || artistsViewModel.isLoading || albunsViewModel.isLoading
     }
-
+    
     private var loadingSheetBinding: Binding<Bool> {
         Binding(get: { isLoadingData }, set: { _ in })
     }
-
+    
     var body: some View {
         NavigationSplitView {
             SidebarView(selection: $selection)
@@ -86,6 +87,17 @@ struct ContentView: View {
             _ = await (musicsTask, artistsTask, albunsTask, tagEditorTask)
             albunsViewModel.indexAlbumSelected = 0
         }
+        .sheet(isPresented: $showConfig) {
+            ConfigurationsView(tagEditorViewModel: tagEditorViewModel,
+                               serverViewModel: serverViewModel)
+        }
+        .toolbar{
+            ToolbarItem(placement: .automatic) {
+                Button(String(), systemImage: "gear.circle", action: {
+                    showConfig = true
+                })
+            }
+        }
     }
 }
 
@@ -94,32 +106,54 @@ private struct LoadingViewModelsSheet: View {
     let isArtistsLoading: Bool
     let isAlbunsLoading: Bool
     let isMusicTagLoading: Bool
-
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Carregando dados")
-                .font(.title3)
-                .fontWeight(.semibold)
-
-            loadingRow(title: "Músicas", isLoading: isMusicsLoading)
-            loadingRow(title: "Artistas", isLoading: isArtistsLoading)
-            loadingRow(title: "Álbuns", isLoading: isAlbunsLoading)
-            loadingRow(title: "Tag Editor", isLoading: isMusicTagLoading)
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(spacing: 10) {
+                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!)
+                    .resizable()
+                    .renderingMode(.original)
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                Text("Carregando dados")
+                    .font(.title)
+                    .fontWeight(.semibold)
+            }
+            
+            Divider()
+            
+            VStack(alignment: .leading, spacing: 12) {
+                loadingRow(title: "Músicas", isLoading: isMusicsLoading)
+                loadingRow(title: "Artistas", isLoading: isArtistsLoading)
+                loadingRow(title: "Álbuns", isLoading: isAlbunsLoading)
+                loadingRow(title: "Tag Editor", isLoading: isMusicTagLoading)
+            }
         }
-        .padding(24)
-        .frame(minWidth: 320)
+        .padding(28)
+        .frame(minWidth: 100)
     }
-
+    
     @ViewBuilder
     private func loadingRow(title: String, isLoading: Bool) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             if isLoading {
                 ProgressView()
                     .controlSize(.small)
-                Text("\(title): carregando...")
+                    .tint(.accentColor)
+                Text("\(title)")
+                    .foregroundStyle(.primary)
+                Spacer()
+                Text("carregando...")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             } else {
                 Image(systemName: "checkmark.circle.fill")
-                Text("\(title): concluído")
+                Text("\(title)")
+                    .foregroundStyle(.primary)
+                Spacer()
+                Text("concluído")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
         }
     }

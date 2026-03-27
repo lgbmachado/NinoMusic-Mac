@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ID3TagEditor
 
 struct MusicDetailsView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
@@ -23,12 +24,6 @@ struct MusicDetailsView: View {
                         Image(systemName: "folder")
                         Text(LocalizedStringKey("text_file"))
                     }
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button(String(), systemImage: "gear.circle", action: {
-                })
             }
         }
     }
@@ -141,20 +136,6 @@ struct TagView: View {
 }
 
 struct FileView: View {
-    @ObservedObject var tagEditorViewModel: TagEditorViewModel
-
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(LocalizedStringKey("text_file"))
-                .font(.caption2)
-                .padding(.bottom, -7)
-            TextField(LocalizedStringKey("text_file_name"), text: $tagEditorViewModel.fileSelected)
-            Spacer()
-        }
-    }
-}
-
-struct TagEditorConfig: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
 
     var body: some View {

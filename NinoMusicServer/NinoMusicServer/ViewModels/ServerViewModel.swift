@@ -21,9 +21,9 @@ enum ServerComand: String {
 
 class ServerViewModel: ObservableObject {
     @Published var logs: [ServerLog] = []
+    @Published var serverPort: UInt = 8080
     
     private let webServer = GCDWebServer()
-    private let serverPort:UInt = 8080
     private var database: OpaquePointer?
     
     init() {
@@ -296,6 +296,10 @@ class ServerViewModel: ObservableObject {
         if sqlite3_close(self.database) != SQLITE_OK {
             print("error closing database")
         }
+    }
+    
+    func updateServerPort(_ newPort: String) {
+        self.serverPort = UInt(newPort) ?? 8080
     }
     
     

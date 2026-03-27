@@ -13,7 +13,7 @@ enum EditOrigin {
     case library
 }
 
-enum CaseKind: String {
+enum CaseKind: String, CaseIterable {
     case lowercase = "lowercase"
     case uppercase = "uppercase"
     case capitalized = "capitalized"
@@ -21,12 +21,16 @@ enum CaseKind: String {
     var description: String {
         switch self {
         case .lowercase:
-            return "minúculas"
+            return "minúsculas"
         case .uppercase:
             return "MAIÚSCULAS"
         case .capitalized:
             return "Primeira Letra Maiúscula"
         }
+    }
+
+    static var allDescriptions: [String] {
+        allCases.map { $0.description }
     }
 }
 
@@ -45,7 +49,7 @@ class TagEditorViewModel: BaseViewModel {
     
     var origin: EditOrigin = .fileDir
     
-    var genres: [String] = ["ROCK", "PAGODE/FORRÓ", "INSTRUMENTAL/CLÁSSICO", "MPB", "SERTANEJO", "POP", "DANCE"]
+    var genres: [String] = CaseKind.allDescriptions
     
     func reloadMusics() async {
         let sql = """
@@ -197,6 +201,16 @@ class TagEditorViewModel: BaseViewModel {
             print(error)
             return Music.emptyMusic
         }
+    }
+    
+    func GetCaseKind() -> CaseKind {
+        let defaults = UserDefaults.standard
+        return CaseKind(rawValue: defaults.string(forKey: "CaseKind") ?? "capitalized") ?? .capitalized
+    }
+    
+    func SetCaseKind(newValue: String) {
+        let defaults = UserDefaults.standard
+        defaults.set(newValue , forKey: "CaseKind")
     }
     
     func saveTagEditorConfig() {
@@ -358,3 +372,4 @@ private extension Array where Element == Music {
         return allSatisfy { $0[keyPath: keyPath] == firstValue } ? firstValue : fallback
     }
 }
+

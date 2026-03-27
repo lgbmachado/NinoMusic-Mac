@@ -12,7 +12,6 @@ struct TagEditorView: View {
     
     @State private var searchTerm: String = ""
     @State var selection: UUID? = nil
-    
     @State private var inspectorIsShown: Bool = false
     
     var body: some View {
@@ -154,13 +153,4 @@ struct MusicsLibraryView: View {
         }
     }
 }
-
-struct TagEditorConfigView: View {
-    @ObservedObject var tagEditorViewModel: TagEditorViewModel
-    
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
-
 

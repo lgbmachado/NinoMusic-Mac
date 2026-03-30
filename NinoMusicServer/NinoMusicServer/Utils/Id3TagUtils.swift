@@ -56,6 +56,18 @@ public class Id3TagUtils {
         }
     }
     
+    static func genresAvaiables() -> [String] {
+        return ID3Genre.allCases.map { item in
+            let rawName = String(describing: item)
+            let withSpaces = rawName.replacingOccurrences(
+                of: "([a-z0-9])([A-Z])",
+                with: "$1 $2",
+                options: .regularExpression
+            )
+            return withSpaces.prefix(1).uppercased() + withSpaces.dropFirst()
+        }
+    }
+    
 //    static func saveTags(music: Music, pathCover: URL) throws -> Bool {
 //        guard let coverData = try? Data(contentsOf: pathCover) else {
 //                    throw NSError(domain: "CoverError", code: 1, userInfo: [

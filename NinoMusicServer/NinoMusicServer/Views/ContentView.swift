@@ -110,7 +110,7 @@ private struct LoadingViewModelsSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 10) {
-                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!)
+                Image(nsImage: NSImage(named: "NinoMusic") ?? NSImage(named: NSImage.applicationIconName)!)
                     .resizable()
                     .renderingMode(.original)
                     .scaledToFit()

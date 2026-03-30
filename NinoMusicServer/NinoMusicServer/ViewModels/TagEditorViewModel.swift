@@ -28,7 +28,7 @@ enum CaseKind: String, CaseIterable {
             return "Primeira Letra Maiúscula"
         }
     }
-
+    
     static var allDescriptions: [String] {
         allCases.map { $0.description }
     }
@@ -49,7 +49,27 @@ class TagEditorViewModel: BaseViewModel {
     
     var origin: EditOrigin = .fileDir
     
-    var genres: [String] = CaseKind.allDescriptions
+    var selectedCase: CaseKind {
+        get {
+            let defaults = UserDefaults.standard
+            return CaseKind(rawValue: defaults.string(forKey: "CaseKind") ?? "") ?? .capitalized
+        }
+        set(newVal) {
+            let defaults = UserDefaults.standard
+            defaults.set(newVal.rawValue, forKey: "CaseKind")
+        }
+    }
+    
+    var genresAvaiables: [String] {
+        get {
+            let defaults = UserDefaults.standard
+            return defaults.stringArray(forKey: "GenresAvaiables") ?? Id3TagUtils.genresAvaiables()
+        }
+        set(newVal) {
+            let defaults = UserDefaults.standard
+            defaults.set(newVal, forKey: "CaseKind")
+        }
+    }
     
     func reloadMusics() async {
         let sql = """
@@ -76,12 +96,12 @@ class TagEditorViewModel: BaseViewModel {
         await MainActor.run {
             self.isLoading = true
         }
-
+        
         let musicList = await withCheckedContinuation { (continuation: CheckedContinuation<[Music], Never>) in
             DispatchQueue.global(qos: .userInitiated).async {
                 var musicList = [Music]()
                 var seq = 0
-
+                
                 do {
                     if let rows = try self.helper?.sql(query: sql) {
                         for row in rows {
@@ -115,11 +135,11 @@ class TagEditorViewModel: BaseViewModel {
                 } catch {
                     print(error)
                 }
-
+                
                 continuation.resume(returning: musicList)
             }
         }
-
+        
         await MainActor.run {
             self.musicsLibrary = musicList
             self.isLoading = false
@@ -147,7 +167,7 @@ class TagEditorViewModel: BaseViewModel {
             self.musicSelected = Music.emptyMusic
         }
     }
-
+    
     func AddFile(url: URL) async {
         if url.pathExtension.uppercased() == "MP3" {
             let music = await GetMusicTags(fileURL: url)
@@ -213,34 +233,34 @@ class TagEditorViewModel: BaseViewModel {
         defaults.set(newValue , forKey: "CaseKind")
     }
     
-    func saveTagEditorConfig() {
-        let defaults = UserDefaults.standard
-        defaults.set(caseKind.rawValue , forKey: "CaseKind")
-        defaults.set(genres, forKey: "Genres")
-    }
-    
-    func loadTagEditorConfig() {
-        let defaults = UserDefaults.standard
-        self.caseKind = CaseKind(rawValue: defaults.string(forKey: "CaseKind") ?? "capitalized") ?? .capitalized
-        self.genres = defaults.stringArray(forKey: "Genres") ?? []
-    }
-    
-    func addGenre(_ genre: String) {
-        genres.append(genre)
-    }
-    
-    func removeGenre(_ genre: String) {
-        genres.removeAll { $0 == genre }
-    }
-    
-    func getGenres() -> [String] {
-        return self.genres
-    }
+//    func saveTagEditorConfig() {
+//        let defaults = UserDefaults.standard
+//        defaults.set(caseKind.rawValue , forKey: "CaseKind")
+//        defaults.set(genres, forKey: "Genres")
+//    }
+//    
+//    func loadTagEditorConfig() {
+//        let defaults = UserDefaults.standard
+//        self.caseKind = CaseKind(rawValue: defaults.string(forKey: "CaseKind") ?? "capitalized") ?? .capitalized
+//        self.genres = defaults.stringArray(forKey: "Genres") ?? []
+//    }
+//    
+//    func addGenre(_ genre: String) {
+//        genres.append(genre)
+//    }
+//    
+//    func removeGenre(_ genre: String) {
+//        genres.removeAll { $0 == genre }
+//    }
+//    
+//    func getGenres() -> [String] {
+//        return self.genres
+//    }
     
     var selectedCount: Int {
         idMusicsSelected.count
     }
-
+    
     var selectedCountText: String {
         selectedCount == 1 ? "1 música selecionada" : "\(selectedCount) músicas selecionadas"
     }
@@ -250,54 +270,54 @@ class TagEditorViewModel: BaseViewModel {
         self.idMusicsSelected = selection
         refreshCommonFields()
     }
-
+    
     func updateMusicTitle(_ value: String) {
         updateSelectedMusic { $0.musicTitle = value }
     }
-
+    
     func updateArtist(_ value: String) {
         updateSelectedMusic { $0.artist = value }
     }
-
+    
     func updateAlbum(_ value: String) {
         updateSelectedMusic { $0.album = value }
     }
-
+    
     func updateYear(_ value: String) {
         updateSelectedMusic { $0.year = value }
     }
-
+    
     func updateTrack(_ value: Int) {
         updateSelectedMusic { $0.track = value }
     }
-
+    
     func updateTrackFromField(_ value: String) {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let track = Int(trimmed) else {
             return
         }
-
+        
         updateTrack(track)
     }
-
+    
     func updateGenre(_ value: String) {
         updateSelectedMusic { $0.genre = value }
     }
-
+    
     private func updateSelectedMusic(_ update: (inout Music) -> Void) {
         guard !idMusicsSelected.isEmpty else {
             return
         }
-
+        
         for index in musicsLibrary.indices where idMusicsSelected.contains(musicsLibrary[index].id) {
             var updated = musicsLibrary[index]
             update(&updated)
             musicsLibrary[index] = updated
         }
-
+        
         refreshCommonFields()
     }
-
+    
     private func refreshCommonFields() {
         let selectedMusics = self.origin == .library ? musicsLibrary.filter { idMusicsSelected.contains($0.id) } : musicsFileDir.filter { idMusicsSelected.contains($0.id) }
         guard let first = selectedMusics.first else {
@@ -310,14 +330,14 @@ class TagEditorViewModel: BaseViewModel {
             hasCommonGenre = false
             return
         }
-
+        
         hasCommonMusicTitle = selectedMusics.hasCommon(\.musicTitle)
         hasCommonArtist = selectedMusics.hasCommon(\.artist)
         hasCommonAlbum = selectedMusics.hasCommon(\.album)
         hasCommonTrack = selectedMusics.hasCommon(\.track)
         hasCommonYear = selectedMusics.hasCommon(\.year)
         hasCommonGenre = selectedMusics.hasCommon(\.genre)
-
+        
         musicSelectedCommonFields = Music(
             id: first.id,
             seq: selectedMusics.commonInt(\.seq, fallback: 0),
@@ -333,7 +353,7 @@ class TagEditorViewModel: BaseViewModel {
             hasLyric: false
         )
     }
-
+    
     var trackFieldText: String {
         hasCommonTrack ? String(musicSelectedCommonFields.track) : ""
     }
@@ -344,31 +364,31 @@ private extension Array where Element == Music {
         guard let firstValue = first?[keyPath: keyPath] else {
             return false
         }
-
+        
         return allSatisfy { $0[keyPath: keyPath] == firstValue }
     }
-
+    
     func hasCommon(_ keyPath: KeyPath<Music, String>) -> Bool {
         guard let firstValue = first?[keyPath: keyPath] else {
             return false
         }
-
+        
         return allSatisfy { $0[keyPath: keyPath] == firstValue }
     }
-
+    
     func commonString(_ keyPath: KeyPath<Music, String>) -> String {
         guard let firstValue = first?[keyPath: keyPath] else {
             return ""
         }
-
+        
         return allSatisfy { $0[keyPath: keyPath] == firstValue } ? firstValue : ""
     }
-
+    
     func commonInt(_ keyPath: KeyPath<Music, Int>, fallback: Int) -> Int {
         guard let firstValue = first?[keyPath: keyPath] else {
             return fallback
         }
-
+        
         return allSatisfy { $0[keyPath: keyPath] == firstValue } ? firstValue : fallback
     }
 }

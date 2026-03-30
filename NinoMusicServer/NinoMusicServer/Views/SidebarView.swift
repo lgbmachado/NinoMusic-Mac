@@ -13,11 +13,11 @@ struct SidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!)
+                Image(nsImage: NSImage(named: "NinoMusic") ?? NSImage(named: NSImage.applicationIconName)!)
                     .resizable()
                     .renderingMode(.original)
                     .scaledToFit()
-                    .frame(width: 80, height: 80)
+                    .frame(width: 96, height: 96)
                 Text("Nino Music Server")
                     .font(.title)
                     .fontWeight(.semibold)

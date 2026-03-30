@@ -113,7 +113,7 @@ struct TagView: View {
                         get: { tagEditorViewModel.musicSelectedCommonFields.genre },
                         set: { tagEditorViewModel.updateGenre($0) }
                     ),
-                    items: tagEditorViewModel.genres,
+                    items: tagEditorViewModel.genresAvaiables,
                     placeholder: tagEditorViewModel.hasCommonGenre ? nil : "—"
                 )
                     .frame(width: 200)

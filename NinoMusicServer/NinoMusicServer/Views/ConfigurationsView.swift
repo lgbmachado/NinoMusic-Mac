@@ -18,7 +18,7 @@ struct ConfigurationsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 10) {
-                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!)
+                Image(nsImage: NSImage(named: "NinoMusic") ?? NSImage(named: NSImage.applicationIconName)!)
                     .resizable()
                     .renderingMode(.original)
                     .scaledToFit()
@@ -68,17 +68,6 @@ struct TagEditorConfig: View {
     @State private var inputText: String = ""
     @State private var selectedGenres: [String] = [String]()
     
-    var avaiableGenres = ID3Genre.allCases.map { item in
-        let rawName = String(describing: item)
-        let withSpaces = rawName.replacingOccurrences(
-            of: "([a-z0-9])([A-Z])",
-            with: "$1 $2",
-            options: .regularExpression
-        )
-        return withSpaces.prefix(1).uppercased() + withSpaces.dropFirst()
-        
-    }
-    
     var body: some View {
         VStack(alignment: .leading) {
             GroupBox("Capitalização:") {
@@ -90,7 +79,7 @@ struct TagEditorConfig: View {
                             },
                             set: { tagEditorViewModel.SetCaseKind(newValue: $0) }
                         ),
-                        items: tagEditorViewModel.genres,
+                        items: CaseKind.allDescriptions,
                         placeholder: tagEditorViewModel.hasCommonGenre ? nil : "—"
                     )
                 }
@@ -135,7 +124,7 @@ struct TagEditorConfig: View {
                     
                     ScrollView {
                         VStack(alignment: .leading, spacing: 4) {
-                            ForEach(avaiableGenres, id: \.self) { item in
+                            ForEach(Id3TagUtils.genresAvaiables(), id: \.self) { item in
                                 Button {
                                     addItem(item)
                                 } label: {

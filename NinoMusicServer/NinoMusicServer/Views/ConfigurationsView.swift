@@ -80,7 +80,7 @@ struct TagEditorConfig: View {
                             set: { tagEditorViewModel.SetCaseKind(newValue: $0) }
                         ),
                         items: CaseKind.allDescriptions,
-                        placeholder: tagEditorViewModel.hasCommonGenre ? nil : "—"
+                        placeholder: "Capitalização:"
                     )
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

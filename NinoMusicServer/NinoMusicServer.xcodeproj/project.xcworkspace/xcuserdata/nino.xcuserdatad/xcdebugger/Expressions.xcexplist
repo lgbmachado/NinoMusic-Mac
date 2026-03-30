@@ -71,6 +71,14 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "TagEditorViewModel.setIdLibrarySelection(selection:):TagEditorViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.musicsLibrary">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "MusicFiles.updateMusicsDatabase(completion:):LibraryViewModel.swift">
          <PersistentStrings>
             <PersistentString

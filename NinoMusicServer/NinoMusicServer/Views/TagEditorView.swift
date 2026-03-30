@@ -80,14 +80,14 @@ struct MusicsFilesAndFoldersView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            Table(tagEditorViewModel.musicsFileDir, selection: $tagEditorViewModel.idMusicsSelected) {
+            Table(tagEditorViewModel.musicsFileDir, selection: $tagEditorViewModel.idMusicSelected) {
                 TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
                     Text(verbatim: "\((music.filePath as NSString).removingPercentEncoding ?? "")")
                 }
             }
             .padding()
-            .onChange(of: tagEditorViewModel.idMusicsSelected) { _, newSelection in
-                tagEditorViewModel.setSelection(origin: .fileDir, selection: newSelection)
+            .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
+                tagEditorViewModel.setIdFilesSelection(selection: newSelected ?? UUID())
             }
         }
     }
@@ -130,7 +130,7 @@ struct MusicsLibraryView: View {
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
     
     var body: some View {
-        Table(tagEditorViewModel.musicsLibrary, selection: $tagEditorViewModel.idMusicsSelected, sortOrder: $sortOrder) {
+        Table(tagEditorViewModel.musicsLibrary, selection: $tagEditorViewModel.idMusicSelected, sortOrder: $sortOrder) {
             TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
                 Text(verbatim: "\(((music.filePath as NSString).lastPathComponent).removingPercentEncoding ?? "")")
             }
@@ -148,8 +148,8 @@ struct MusicsLibraryView: View {
                 .width(100)
         }
         .padding()
-        .onChange(of: tagEditorViewModel.idMusicsSelected) { _, newSelection in
-            tagEditorViewModel.setSelection(origin: .library, selection: newSelection)
+        .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
+            tagEditorViewModel.setIdLibrarySelection(selection: newSelected ?? UUID())
         }
     }
 }

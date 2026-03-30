@@ -38,25 +38,20 @@ struct TagView: View {
         let formatter = NumberFormatter()
         formatter.zeroSymbol = ""
         return formatter
-    }()    
+    }()
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                Text(tagEditorViewModel.selectedCountText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.bottom, 8)
-
                 Text(LocalizedStringKey("text_music"))
                     .font(.caption2)
                     .padding(.bottom, -7)
                 TextField(
                     LocalizedStringKey("text_music"),
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelectedCommonFields.musicTitle },
-                        set: { tagEditorViewModel.updateMusicTitle($0) }
+                        get: { tagEditorViewModel.musicSelected.musicTitle },
+                        set: {_,_ in }
                     ),
-                    prompt: Text(tagEditorViewModel.hasCommonMusicTitle ? "" : "—")
+                    prompt: Text(LocalizedStringKey("text_music"))
                 )
                 
                 Text(LocalizedStringKey("text_artist"))
@@ -65,10 +60,10 @@ struct TagView: View {
                 TextField(
                     LocalizedStringKey("text_artist"),
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelectedCommonFields.artist },
-                        set: { tagEditorViewModel.updateArtist($0) }
+                        get: { tagEditorViewModel.musicSelected.artist },
+                        set: {_,_ in }
                     ),
-                    prompt: Text(tagEditorViewModel.hasCommonArtist ? "" : "—")
+                    prompt: Text(LocalizedStringKey("text_artist"))
                 )
                 
                 Text(LocalizedStringKey("text_album"))
@@ -77,10 +72,10 @@ struct TagView: View {
                 TextField(
                     LocalizedStringKey("text_album"),
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelectedCommonFields.album },
-                        set: { tagEditorViewModel.updateAlbum($0) }
+                        get: { tagEditorViewModel.musicSelected.album },
+                        set: {_,_ in }
                     ),
-                    prompt: Text(tagEditorViewModel.hasCommonAlbum ? "" : "—")
+                    prompt: Text(LocalizedStringKey("text_album"))
                 )
                 
                 Text(LocalizedStringKey("text_year"))
@@ -88,10 +83,11 @@ struct TagView: View {
                     .padding(.bottom, -7)
                 TextField(LocalizedStringKey("text_year"),
                           text: Binding(
-                            get: { tagEditorViewModel.musicSelectedCommonFields.year },
-                            set: { tagEditorViewModel.updateYear($0) }
-                                                    ),
-                                                    prompt: Text(tagEditorViewModel.hasCommonYear ? "" : "—"))
+                            get: { tagEditorViewModel.musicSelected.year },
+                            set: {_,_ in }
+                          ),
+                          prompt: Text(LocalizedStringKey("text_year"))
+                )
                 
                 Text(LocalizedStringKey("text_track"))
                     .font(.caption2)
@@ -99,10 +95,10 @@ struct TagView: View {
                 TextField(
                     LocalizedStringKey("text_track"),
                     text: Binding(
-                        get: { tagEditorViewModel.trackFieldText },
-                        set: { tagEditorViewModel.updateTrackFromField($0) }
+                        get: { String(tagEditorViewModel.musicSelected.track) },
+                        set: {_,_ in }
                     ),
-                    prompt: Text(tagEditorViewModel.hasCommonTrack ? "" : "—")
+                    prompt: Text(LocalizedStringKey("text_track"))
                 )
                 
                 Text(LocalizedStringKey("text_genre"))
@@ -110,13 +106,13 @@ struct TagView: View {
                     .padding(.bottom, -7)
                 ComboBox(
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelectedCommonFields.genre },
-                        set: { tagEditorViewModel.updateGenre($0) }
+                        get: { tagEditorViewModel.musicSelected.genre },
+                        set: {_,_ in }
                     ),
                     items: tagEditorViewModel.genresAvaiables,
-                    placeholder: tagEditorViewModel.hasCommonGenre ? nil : "—"
+                    placeholder: String(localized: "text_genre")
                 )
-                    .frame(width: 200)
+                .frame(width: 200)
                 Spacer()
                 
                 Text(LocalizedStringKey("text_album_cover"))
@@ -137,7 +133,7 @@ struct TagView: View {
 
 struct FileView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
-
+    
     var body: some View {
         VStack(alignment: .leading) {
             Text(LocalizedStringKey("text_file"))

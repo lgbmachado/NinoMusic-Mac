@@ -14,20 +14,20 @@ struct DbConstants {
 
     struct TableAlbum {
         static let tableName = "Albuns"
-        static let colRowId = "rowid"
+        static let colAlbumId = "AlbumId"
         static let colAlbum = "Album"
         static let colYear = "Year"
     }
 
     struct TableArtist {
         static let tableName = "Artists"
-        static let colRowId = "rowid"
+        static let colArtistId = "ArtistId"
         static let colArtist = "Artist"
     }
     
     struct TableDiretory {
         static let tableName = "Directories"
-        static let colRowId = "rowid"
+        static let colDirId = "DirectoryId"
         static let colDirName = "Name"
         static let colDirPath = "DirPath"
         static let colMusicsCount = "MusicsCount"
@@ -36,7 +36,7 @@ struct DbConstants {
     
     struct TableGenre {
         static let tableName = "Genres"
-        static let colRowId = "rowid"
+        static let colGenreId = "GenreId"
         static let colGenre = "Genre"
     }
 

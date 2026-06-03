@@ -84,8 +84,8 @@ class ArtistsViewModel: BaseViewModel {
        \(DbConstants.TableGenre.colGenre)
     FROM
        \(DbConstants.TableMusic.tableName)
-       INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colRowId) = \(DbConstants.TableMusic.colIdArtist)
-       INNER JOIN \(DbConstants.TableGenre.tableName) ON \(DbConstants.TableGenre.tableName).\(DbConstants.TableGenre.colRowId) = \(DbConstants.TableMusic.colIdGenre)
+       INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colArtistId) = \(DbConstants.TableMusic.colIdArtist)
+       INNER JOIN \(DbConstants.TableGenre.tableName) ON \(DbConstants.TableGenre.tableName).\(DbConstants.TableGenre.colGenreId) = \(DbConstants.TableMusic.colIdGenre)
     ORDER BY
        \(DbConstants.TableArtist.colArtist),
        \(DbConstants.TableMusic.colTrack)
@@ -112,13 +112,13 @@ class ArtistsViewModel: BaseViewModel {
                                 seqArtist += 1
                                 let sqlAlbuns = """
                                        SELECT DISTINCT
-                                          \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colRowId),
+                                          \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colAlbumId),
                                           \(DbConstants.TableAlbum.colAlbum),
                                           \(DbConstants.TableAlbum.colYear)
                                        FROM
                                           \(DbConstants.TableMusic.tableName)
-                                          INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colRowId) = \(DbConstants.TableMusic.colIdArtist)
-                                          INNER JOIN \(DbConstants.TableAlbum.tableName) ON \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colRowId) = \(DbConstants.TableMusic.colIdAlbum)
+                                          INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colArtistId) = \(DbConstants.TableMusic.colIdArtist)
+                                          INNER JOIN \(DbConstants.TableAlbum.tableName) ON \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colAlbumId) = \(DbConstants.TableMusic.colIdAlbum)
                                        WHERE
                                           \(DbConstants.TableMusic.colIdArtist) = \(idArtist)
                                        ORDER BY
@@ -130,7 +130,7 @@ class ArtistsViewModel: BaseViewModel {
                                 do {
                                     if let rowsAlbuns = try self.helper?.sql(query: sqlAlbuns) {
                                         for rowAlbum in rowsAlbuns {
-                                            if let idAlbum = rowAlbum[DbConstants.TableAlbum.colRowId] as? Int,
+                                            if let idAlbum = rowAlbum[DbConstants.TableAlbum.colAlbumId] as? Int,
                                                let album = rowAlbum[DbConstants.TableAlbum.colAlbum] as? String,
                                                let year = rowAlbum[DbConstants.TableAlbum.colYear] as? String
                                             {

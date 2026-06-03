@@ -27,7 +27,7 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
         self.totalMusics = self.directories.reduce(0) { $0 + $1.musicCount }
         self.totalTime = self.directories.reduce(0.0) { $0 + $1.totalTime }
     }
-     
+    
     func addDirectory(dirPath: String) async {
         self.isLoading = true
         await self.musicFiles.addDirectory(dirPath: dirPath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
@@ -48,7 +48,7 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
         } else {
             self.isLoading = false
         }
-
+        
     }
 }
 
@@ -78,7 +78,7 @@ class MusicFiles {
     var totalTime: TimeInterval = 0
     
     init() {
-        if !createTableDirectories() || !createTableMusics() || !createTableAlbuns() || !createTableArtists() || !createTableGenres() {
+        if !createTablesIfNeeded() {
             print("Erro ao criar tabelas")
         }
         self.directories = getDirectories()
@@ -144,7 +144,7 @@ class MusicFiles {
                                                 hasLyric = !textFrame.content.isEmpty
                                             }
                                         }
-
+                                        
                                         if AddMusic(filePath: filePath,
                                                     musicTitle: musicTitle,
                                                     artist: artist,
@@ -205,7 +205,7 @@ class MusicFiles {
     func getDirectories() -> [MusicDirectory] {
         let sql = """
         SELECT
-           \(DbConstants.TableDiretory.colRowId),
+           \(DbConstants.TableDiretory.colDirId),
            \(DbConstants.TableDiretory.colDirName),
            \(DbConstants.TableDiretory.colDirPath),
            \(DbConstants.TableDiretory.colMusicsCount),
@@ -299,70 +299,61 @@ class MusicFiles {
         return false
     }
     
-    private func createTableDirectories() -> Bool {
-        let sql = """
-        CREATE TABLE IF NOT EXISTS \(DbConstants.TableDiretory.tableName) (
-        \(DbConstants.TableDiretory.colDirPath) CHAR(255) PRIMARY KEY NOT NULL,
-        \(DbConstants.TableDiretory.colDirName) CHAR(75),
-        \(DbConstants.TableDiretory.colMusicsCount) INT,
-        \(DbConstants.TableDiretory.colTotalTime) REAL);
-        """
-        if ((self.helper?.executeQuery(query: sql)) != nil) {
-            return true
+    func createTablesIfNeeded() -> Bool {
+        let statements = [
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableArtist.tableName) (
+                    \(DbConstants.TableArtist.colArtistId) INTEGER PRIMARY KEY,
+                    \(DbConstants.TableArtist.colArtist) TEXT NOT NULL UNIQUE);
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableAlbum.tableName) (
+                    \(DbConstants.TableAlbum.colAlbumId) INTEGER PRIMARY KEY,
+                    \(DbConstants.TableAlbum.colAlbum) TEXT NOT NULL,
+                    \(DbConstants.TableAlbum.colYear) INTEGER, 
+                    UNIQUE (\(DbConstants.TableAlbum.colAlbum), \(DbConstants.TableAlbum.colYear))
+                    );
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableDiretory.tableName) (
+                        \(DbConstants.TableDiretory.colDirId) INTEGER PRIMARY KEY,
+                        \(DbConstants.TableDiretory.colDirPath) TEXT NOT NULL UNIQUE,
+                        \(DbConstants.TableDiretory.colDirName) TEXT,
+                        \(DbConstants.TableDiretory.colMusicsCount) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableDiretory.colMusicsCount) >= 0),
+                        \(DbConstants.TableDiretory.colTotalTime) REAL NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableDiretory.colTotalTime) >= 0)
+                    );
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableGenre.tableName) (
+                    GenreId INTEGER PRIMARY KEY,
+                    \(DbConstants.TableGenre.colGenre) TEXT NOT NULL UNIQUE);
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableMusic.tableName) (
+                    MusicId INTEGER PRIMARY KEY,
+                    \(DbConstants.TableMusic.colFilePath) TEXT NOT NULL UNIQUE,
+                    \(DbConstants.TableMusic.colIdArtist) INTEGER NOT NULL REFERENCES \(DbConstants.TableArtist.tableName)(\(DbConstants.TableArtist.colArtistId)) ON DELETE RESTRICT,
+                    \(DbConstants.TableMusic.colIdAlbum) INTEGER REFERENCES \(DbConstants.TableAlbum.tableName)(\(DbConstants.TableAlbum.colAlbumId)) ON DELETE SET NULL,
+                    \(DbConstants.TableMusic.colTitle) INTEGER NOT NULL,
+                    \(DbConstants.TableMusic.colIdGenre) INTEGER REFERENCES \(DbConstants.TableGenre.tableName)(\(DbConstants.TableGenre.colGenreId)) ON DELETE SET NULL,
+                    \(DbConstants.TableMusic.colDuration) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colDuration) >= 0),
+                    \(DbConstants.TableMusic.colTrack) INTEGER CHECK (\(DbConstants.TableMusic.colTrack) >= 0),
+                    \(DbConstants.TableMusic.colHasLyrics) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colHasLyrics) IN (0, 1))
+                    );
+                    """]
+        
+        var result = true
+        for sql in statements {
+            if let resultExec = self.helper?.executeQuery(query: sql) {
+                print(sql)
+                result = result && resultExec
+            }
         }
-        return false
-    }
-    
-    private func createTableMusics() -> Bool {
-        let sql = """
-        CREATE TABLE IF NOT EXISTS \(DbConstants.TableMusic.tableName) (
-        \(DbConstants.TableMusic.colFilePath) CHAR(255) PRIMARY KEY NOT NULL,
-        \(DbConstants.TableMusic.colIdArtist) INT,
-        \(DbConstants.TableMusic.colIdAlbum) INT,
-        \(DbConstants.TableMusic.colDuration) INT,
-        \(DbConstants.TableMusic.colTrack) INT,
-        \(DbConstants.TableMusic.colTitle) CHAR(255),
-        \(DbConstants.TableMusic.colIdGenre) INT,
-        \(DbConstants.TableMusic.colHasLyrics) BOOLEAN);
-        """
-        if ((self.helper?.executeQuery(query: sql)) != nil) {
-            return true
-        }
-        return false
-    }
-    
-    private func createTableArtists() -> Bool {
-        let sql = """
-        CREATE TABLE IF NOT EXISTS \(DbConstants.TableArtist.tableName) (
-        \(DbConstants.TableArtist.colArtist) CHAR(255) PRIMARY KEY NOT NULL);
-        """
-        if ((self.helper?.executeQuery(query: sql)) != nil) {
-            return true
-        }
-        return false
-    }
-    
-    private func createTableAlbuns() -> Bool {
-        let sql = """
-        CREATE TABLE IF NOT EXISTS \(DbConstants.TableAlbum.tableName) (
-        \(DbConstants.TableAlbum.colAlbum) CHAR(255) PRIMARY KEY NOT NULL,
-        \(DbConstants.TableAlbum.colYear) CHAR(4));
-        """
-        if ((self.helper?.executeQuery(query: sql)) != nil) {
-            return true
-        }
-        return false
-    }
-    
-    private func createTableGenres() -> Bool {
-        let sql = """
-        CREATE TABLE IF NOT EXISTS \(DbConstants.TableGenre.tableName) (
-        \(DbConstants.TableGenre.colGenre) CHAR(255) PRIMARY KEY NOT NULL);
-        """
-        if ((self.helper?.executeQuery(query: sql)) != nil) {
-            return true
-        }
-        return false
+        return result
     }
     
     func getRowId(table: String, column1: String, value1: String, column2: String = "", value2: String = "") -> Int {
@@ -399,21 +390,21 @@ class MusicFiles {
         var rowIdList = [String]()
         let sql1 = """
         SELECT
-           \(DbConstants.TableDiretory.colRowId)
+           \(DbConstants.TableDiretory.colDirId)
         FROM
            \(DbConstants.TableDiretory.tableName)
         """
         do {
             if let rows = try self.helper?.sql(query: sql1) {
                 for row in rows {
-                    if let rowId = row[DbConstants.TableDiretory.colRowId] as? Int {
+                    if let rowId = row[DbConstants.TableDiretory.colDirId] as? Int {
                         rowIdList.append(String(rowId))
                     }
                 }
                 if rowIdList.count > 0 {
                     var count = 1
                     for rowId in rowIdList {
-                        let sql2 = "UPDATE \(DbConstants.TableDiretory.tableName) SET \(DbConstants.TableDiretory.colDirName) = \"Dir \(String(format: "%02d", count))\" WHERE \(DbConstants.TableDiretory.colRowId) = \(rowId);"
+                        let sql2 = "UPDATE \(DbConstants.TableDiretory.tableName) SET \(DbConstants.TableDiretory.colDirName) = \"Dir \(String(format: "%02d", count))\" WHERE \(DbConstants.TableDiretory.colDirId) = \(rowId);"
                         
                         if !((self.helper?.executeQuery(query: sql2)) != nil) {
                             result = false
@@ -427,7 +418,7 @@ class MusicFiles {
             print(error)
         }
         return result
-  
+        
     }
     
     private func deleteRowsTableMusics() -> Bool {

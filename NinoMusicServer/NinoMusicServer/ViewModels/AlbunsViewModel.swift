@@ -6,21 +6,29 @@
 //
 
 import Foundation
+import OSLog
 import SwiftUI
 
 class AlbunsViewModel: BaseViewModel {
+    private static let signposter = OSSignposter(subsystem: "nino.musicserver", category: "AlbunsViewModel")
+
     @Published var albuns: [Album] = []
     @Published var covers: [AlbumCover] = []
-    @Published var idAlbumSelected: UUID? = UUID()
-    @Published var albumSelected: Album = Album.emptyAlbum
-    @Published var indexAlbumSelected: Int = 0 {
-        didSet {
-            if indexAlbumSelected >= 0 && indexAlbumSelected < self.albuns.count {
-                let selected = self.albuns[indexAlbumSelected]
-                self.idAlbumSelected = selected.id
-                self.albumSelected = selected
-            }
+    @Published var indexAlbumSelected: Int = 0
+
+    var idAlbumSelected: UUID? {
+        selectedAlbum?.id
+    }
+
+    var albumSelected: Album {
+        selectedAlbum ?? Album.emptyAlbum
+    }
+
+    private var selectedAlbum: Album? {
+        guard indexAlbumSelected >= 0, indexAlbumSelected < albuns.count else {
+            return nil
         }
+        return albuns[indexAlbumSelected]
     }
     
     override func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
@@ -54,23 +62,36 @@ class AlbunsViewModel: BaseViewModel {
     }
     
     func reloadAlbuns() async {
-        let sqlAlbuns = """
-               SELECT DISTINCT
-                  \(DbConstants.TableMusic.colIdAlbum),
-                  \(DbConstants.TableAlbum.colAlbum),
-                  \(DbConstants.TableArtist.colArtist),
-                  \(DbConstants.TableAlbum.colYear),
-                  \(DbConstants.TableGenre.colGenre)
-               FROM
-                  \(DbConstants.TableMusic.tableName)
-                  INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colArtistId) = \(DbConstants.TableMusic.colIdArtist)
-                  INNER JOIN \(DbConstants.TableAlbum.tableName) ON \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colAlbumId) = \(DbConstants.TableMusic.colIdAlbum)
-                  INNER JOIN \(DbConstants.TableGenre.tableName) ON \(DbConstants.TableGenre.tableName).\(DbConstants.TableGenre.colGenreId) = \(DbConstants.TableMusic.colIdGenre)
-               ORDER BY
-                  \(DbConstants.TableAlbum.colAlbum),
-                  \(DbConstants.TableArtist.colArtist),
-                  \(DbConstants.TableAlbum.colYear)
-               """
+        let reloadState = Self.signposter.beginInterval("reloadAlbuns")
+        defer {
+            Self.signposter.endInterval("reloadAlbuns", reloadState)
+        }
+
+          let sqlAlbuns = """
+                    SELECT
+                        \(DbConstants.TableMusic.colIdAlbum),
+                        \(DbConstants.TableAlbum.colAlbum),
+                        \(DbConstants.TableArtist.colArtist),
+                        \(DbConstants.TableAlbum.colYear),
+                        \(DbConstants.TableGenre.colGenre),
+                        \(DbConstants.TableMusic.colMusicId),
+                        \(DbConstants.TableMusic.colTrack),
+                        \(DbConstants.TableMusic.colTitle),
+                        \(DbConstants.TableMusic.colDuration),
+                        \(DbConstants.TableMusic.colFilePath),
+                        \(DbConstants.TableMusic.colHasLyrics)
+                    FROM
+                        \(DbConstants.TableMusic.tableName)
+                        INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colArtistId) = \(DbConstants.TableMusic.colIdArtist)
+                        INNER JOIN \(DbConstants.TableAlbum.tableName) ON \(DbConstants.TableAlbum.tableName).\(DbConstants.TableAlbum.colAlbumId) = \(DbConstants.TableMusic.colIdAlbum)
+                        INNER JOIN \(DbConstants.TableGenre.tableName) ON \(DbConstants.TableGenre.tableName).\(DbConstants.TableGenre.colGenreId) = \(DbConstants.TableMusic.colIdGenre)
+                    ORDER BY
+                        \(DbConstants.TableAlbum.colAlbum),
+                        \(DbConstants.TableArtist.colArtist),
+                        \(DbConstants.TableAlbum.colYear),
+                        \(DbConstants.TableMusic.colTrack),
+                        \(DbConstants.TableMusic.colTitle)
+                    """
         await MainActor.run {
             self.isLoading = true
         }
@@ -78,80 +99,85 @@ class AlbunsViewModel: BaseViewModel {
         let result = await withCheckedContinuation { (continuation: CheckedContinuation<([Album], [AlbumCover]), Never>) in
             DispatchQueue.global(qos: .userInitiated).async {
                 var albumList = [Album]()
-                var musicList = [AlbumMusic]()
                 var coversList = [AlbumCover]()
                 var seqAlbum = 0
+
+                var currentAlbumId: Int?
+                var currentAlbumName = String()
+                var currentArtist = String()
+                var currentYear = Int()
+                var currentGenre = String()
+                var currentMusics = [AlbumMusic]()
+                var currentCoverPath = String()
+
+                func appendCurrentAlbum() {
+                    guard currentAlbumId != nil else {
+                        return
+                    }
+
+                    seqAlbum += 1
+                    let album = Album(seq: seqAlbum,
+                                      album: currentAlbumName,
+                                      artist: currentArtist,
+                                      year: currentYear,
+                                      genre: currentGenre,
+                                      musics: currentMusics)
+                    albumList.append(album)
+
+                    let image = Id3TagUtils.getImageCover(path: currentCoverPath, maxPixelSize: 320) ?? NSImage()
+                    coversList.append(AlbumCover(id: album.id,
+                                                 coverURL: currentCoverPath,
+                                                 cover: Image(nsImage: image)))
+                }
+
                 do {
-                    if let rowsAlbuns = try self.helper?.sql(query: sqlAlbuns) {
+                    let fetchState = Self.signposter.beginInterval("reloadAlbuns.fetchRows")
+                    let rowsAlbuns = try self.helper?.sql(query: sqlAlbuns)
+                    Self.signposter.endInterval("reloadAlbuns.fetchRows", fetchState)
+
+                    if let rowsAlbuns {
+                        let buildState = Self.signposter.beginInterval("reloadAlbuns.buildAlbums")
+                        defer {
+                            Self.signposter.endInterval("reloadAlbuns.buildAlbums", buildState)
+                        }
+
                         for rowAlbum in rowsAlbuns {
                             if
                                 let idAlbum = rowAlbum[DbConstants.TableMusic.colIdAlbum] as? Int,
                                 let album = rowAlbum[DbConstants.TableAlbum.colAlbum] as? String,
                                 let artist = rowAlbum[DbConstants.TableArtist.colArtist] as? String,
                                 let year = rowAlbum[DbConstants.TableAlbum.colYear] as? Int,
-                                let genre = rowAlbum[DbConstants.TableGenre.colGenre] as? String
+                                let genre = rowAlbum[DbConstants.TableGenre.colGenre] as? String,
+                                let idServer = rowAlbum[DbConstants.TableMusic.colMusicId] as? Int,
+                                let track = rowAlbum[DbConstants.TableMusic.colTrack] as? Int,
+                                let musicTitle = rowAlbum[DbConstants.TableMusic.colTitle] as? String,
+                                let duration = rowAlbum[DbConstants.TableMusic.colDuration] as? Int,
+                                let filePath = rowAlbum[DbConstants.TableMusic.colFilePath] as? String,
+                                let hasLyric = rowAlbum[DbConstants.TableMusic.colHasLyrics] as? Int
                             {
-                                let sqlMusics = """
-                                   SELECT
-                                      \(DbConstants.TableMusic.colMusicId),
-                                      \(DbConstants.TableMusic.colTrack),
-                                      \(DbConstants.TableMusic.colTitle),
-                                      \(DbConstants.TableMusic.colDuration),
-                                      \(DbConstants.TableMusic.colFilePath),
-                                      \(DbConstants.TableMusic.colHasLyrics)
-                                   FROM
-                                      \(DbConstants.TableMusic.tableName)
-                                   WHERE
-                                      \(DbConstants.TableMusic.colIdAlbum) = \(idAlbum) 
-                                   ORDER BY
-                                      \(DbConstants.TableMusic.colTrack),
-                                      \(DbConstants.TableMusic.colTitle)
-                                   """
-                                do {
-                                    if let rowsMusicsAlbum = try self.helper?.sql(query: sqlMusics) {
-                                        var seqMusic = 0
-                                        for rowMusicAlbum in rowsMusicsAlbum {
-                                            if  let idServer = rowMusicAlbum[DbConstants.TableMusic.colMusicId] as? Int,
-                                                let track = rowMusicAlbum[DbConstants.TableMusic.colTrack] as? Int,
-                                                let musicTitle = rowMusicAlbum[DbConstants.TableMusic.colTitle] as? String,
-                                                let duration = rowMusicAlbum[DbConstants.TableMusic.colDuration] as? Int,
-                                                let filePath = rowMusicAlbum[DbConstants.TableMusic.colFilePath] as? String,
-                                                let hasLyric = rowMusicAlbum[DbConstants.TableMusic.colHasLyrics] as? Int
-                                            {
-                                                seqMusic += 1
-                                                musicList.append(AlbumMusic(seq: seqMusic,
-                                                                            idServer: idServer,
-                                                                            track: track,
-                                                                            musicTitle: musicTitle,
-                                                                            duration: duration,
-                                                                            filePath: filePath,
-                                                                            hasLyric: hasLyric == 1))
-                                            }
-                                        }
-                                        seqMusic = 0
-                                        seqAlbum += 1
-                                        let album = Album(seq: seqAlbum,
-                                                          album: album,
-                                                          artist: artist,
-                                                          year: year,
-                                                          genre: genre,
-                                                          musics: musicList)
-                                        albumList.append(album)
-                                        
-                                        var image = NSImage()
-                                        if let pathCover = musicList.first?.filePath {
-                                            image = Id3TagUtils.getImageCover(path: pathCover) ?? NSImage()
-                                        }
-                                        coversList.append(AlbumCover(id: album.id,
-                                                                     coverURL: musicList.first?.filePath ?? "",
-                                                                     cover: Image(nsImage: image)))
-                                        musicList.removeAll()
-                                    }
-                                } catch {
-                                    print(error)
+                                if currentAlbumId != idAlbum {
+                                    appendCurrentAlbum()
+
+                                    currentAlbumId = idAlbum
+                                    currentAlbumName = album
+                                    currentArtist = artist
+                                    currentYear = year
+                                    currentGenre = genre
+                                    currentMusics.removeAll(keepingCapacity: true)
+                                    currentCoverPath = filePath
                                 }
+
+                                currentMusics.append(AlbumMusic(seq: currentMusics.count + 1,
+                                                                idServer: idServer,
+                                                                track: track,
+                                                                musicTitle: musicTitle,
+                                                                duration: duration,
+                                                                filePath: filePath,
+                                                                hasLyric: hasLyric == 1))
                             }
                         }
+
+                        appendCurrentAlbum()
                     }
                 } catch {
                     print(error)
@@ -164,6 +190,9 @@ class AlbunsViewModel: BaseViewModel {
         await MainActor.run {
             self.albuns = result.0
             self.covers = result.1
+            if self.indexAlbumSelected >= self.albuns.count {
+                self.indexAlbumSelected = max(self.albuns.count - 1, 0)
+            }
             self.isLoading = false
         }
     }

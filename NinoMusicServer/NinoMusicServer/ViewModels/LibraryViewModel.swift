@@ -349,7 +349,6 @@ class MusicFiles {
         var result = true
         for sql in statements {
             if let resultExec = self.helper?.executeQuery(query: sql) {
-                print(sql)
                 result = result && resultExec
             }
         }

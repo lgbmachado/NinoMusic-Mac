@@ -219,7 +219,7 @@ class ServerViewModel: ObservableObject {
     func listMusicsRemote(completion: @escaping ([Music]?) -> ()) {
         let sql = """
         SELECT
-           \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colRowId),
+           \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colMusicId),
            \(DbConstants.TableArtist.colArtist),
            \(DbConstants.TableMusic.colTitle),
            \(DbConstants.TableMusic.colTrack),
@@ -247,7 +247,7 @@ class ServerViewModel: ObservableObject {
                 let idServer = Int(sqlite3_column_int(queryStatement, 0))
                 let artist = String(cString: sqlite3_column_text(queryStatement, 1))
                 let album = String(cString: sqlite3_column_text(queryStatement, 5))
-                let year = String(cString: sqlite3_column_text(queryStatement, 7))
+                let year = Int(sqlite3_column_int(queryStatement, 7))
                 let track = Int(sqlite3_column_int(queryStatement, 3))
                 let musicTitle = String(cString: sqlite3_column_text(queryStatement, 2))
                 let genre = String(cString: sqlite3_column_text(queryStatement, 6))
@@ -278,7 +278,7 @@ class ServerViewModel: ObservableObject {
         FROM
            \(DbConstants.TableMusic.tableName)
         WHERE
-           \(DbConstants.TableMusic.colRowId) = \(id)
+           \(DbConstants.TableMusic.colMusicId) = \(id)
         """
         var queryStatement: OpaquePointer?
         var result = ""

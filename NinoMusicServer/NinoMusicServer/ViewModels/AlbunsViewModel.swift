@@ -69,8 +69,7 @@ class AlbunsViewModel: BaseViewModel {
                ORDER BY
                   \(DbConstants.TableAlbum.colAlbum),
                   \(DbConstants.TableArtist.colArtist),
-                  \(DbConstants.TableAlbum.colYear),
-                  \(DbConstants.TableMusic.colTrack)
+                  \(DbConstants.TableAlbum.colYear)
                """
         await MainActor.run {
             self.isLoading = true
@@ -89,12 +88,12 @@ class AlbunsViewModel: BaseViewModel {
                                 let idAlbum = rowAlbum[DbConstants.TableMusic.colIdAlbum] as? Int,
                                 let album = rowAlbum[DbConstants.TableAlbum.colAlbum] as? String,
                                 let artist = rowAlbum[DbConstants.TableArtist.colArtist] as? String,
-                                let year = rowAlbum[DbConstants.TableAlbum.colYear] as? String,
+                                let year = rowAlbum[DbConstants.TableAlbum.colYear] as? Int,
                                 let genre = rowAlbum[DbConstants.TableGenre.colGenre] as? String
                             {
                                 let sqlMusics = """
                                    SELECT
-                                      \(DbConstants.TableMusic.colRowId),
+                                      \(DbConstants.TableMusic.colMusicId),
                                       \(DbConstants.TableMusic.colTrack),
                                       \(DbConstants.TableMusic.colTitle),
                                       \(DbConstants.TableMusic.colDuration),
@@ -112,7 +111,7 @@ class AlbunsViewModel: BaseViewModel {
                                     if let rowsMusicsAlbum = try self.helper?.sql(query: sqlMusics) {
                                         var seqMusic = 0
                                         for rowMusicAlbum in rowsMusicsAlbum {
-                                            if  let idServer = rowMusicAlbum[DbConstants.TableMusic.colRowId] as? Int,
+                                            if  let idServer = rowMusicAlbum[DbConstants.TableMusic.colMusicId] as? Int,
                                                 let track = rowMusicAlbum[DbConstants.TableMusic.colTrack] as? Int,
                                                 let musicTitle = rowMusicAlbum[DbConstants.TableMusic.colTitle] as? String,
                                                 let duration = rowMusicAlbum[DbConstants.TableMusic.colDuration] as? Int,

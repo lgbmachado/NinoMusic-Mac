@@ -13,7 +13,7 @@ struct Album: Encodable, Decodable, Identifiable {
     var seq: Int
     var album: String
     var artist: String
-    var year: String
+    var year: Int
     var genre: String
     var musics: [AlbumMusic] = []
     
@@ -29,7 +29,7 @@ struct Album: Encodable, Decodable, Identifiable {
     static let emptyAlbum = Album(seq: 0,
                                   album: String(),
                                   artist: String(),
-                                  year: String(),
+                                  year: Int(),
                                   genre: String(),
                                   musics: [AlbumMusic]())
 }

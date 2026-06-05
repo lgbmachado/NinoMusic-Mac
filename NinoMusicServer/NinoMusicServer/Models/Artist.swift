@@ -31,7 +31,7 @@ struct ArtistAlbum: Encodable, Decodable, Identifiable {
     var id = UUID()
     var seq: Int
     var album: String
-    var year: String
+    var year: Int
     var musics: [ArtistMusic] = []
     
     enum CodingKeys: String, CodingKey {
@@ -43,7 +43,7 @@ struct ArtistAlbum: Encodable, Decodable, Identifiable {
     
     static let emptyAlbum = ArtistAlbum(seq: 0,
                                         album: String(),
-                                        year: String(),
+                                        year: Int(),
                                         musics: [ArtistMusic]())
 }
 

@@ -288,9 +288,9 @@ class MusicFiles {
     }
     
     func AddMusic(filePath: String, musicTitle: String, artist: String, album: String, year: Int, track: Int, duration: Int, genre: String, hasLyric: Bool) -> Bool{
-        let idArtist = getRowId(table: DbConstants.TableArtist.tableName, column1: DbConstants.TableArtist.colArtist, value1: artist)
-        let idAlbum = getRowId(table: DbConstants.TableAlbum.tableName, column1: DbConstants.TableAlbum.colAlbum, value1: album, column2: DbConstants.TableAlbum.colYear, value2: String(year))
-        let idGenre = getRowId(table: DbConstants.TableGenre.tableName, column1: DbConstants.TableGenre.colGenre, value1: genre)
+        let idArtist = getRowId(table: DbConstants.TableArtist.tableName, columnId: DbConstants.TableArtist.colArtistId, column1: DbConstants.TableArtist.colArtist, value1: artist)
+        let idAlbum = getRowId(table: DbConstants.TableAlbum.tableName, columnId: DbConstants.TableAlbum.colAlbumId, column1: DbConstants.TableAlbum.colAlbum, value1: album, column2: DbConstants.TableAlbum.colYear, value2: String(year))
+        let idGenre = getRowId(table: DbConstants.TableGenre.tableName, columnId: DbConstants.TableGenre.colGenreId, column1: DbConstants.TableGenre.colGenre, value1: genre)
         
         let sql = "INSERT INTO \(DbConstants.TableMusic.tableName) (\(DbConstants.TableMusic.colFilePath), \(DbConstants.TableMusic.colIdArtist), \(DbConstants.TableMusic.colTrack), \(DbConstants.TableMusic.colDuration), \(DbConstants.TableMusic.colIdAlbum), \(DbConstants.TableMusic.colTitle), \(DbConstants.TableMusic.colIdGenre), \(DbConstants.TableMusic.colHasLyrics)) VALUES (\"\(filePath)\", \(idArtist), \(track), \(duration), \(idAlbum), \"\(musicTitle.replacingOccurrences(of: "\"", with: "'"))\", \(idGenre), \(hasLyric ? 1 : 0) );"
         if ((self.helper?.executeQuery(query: sql)) != nil) {
@@ -334,11 +334,11 @@ class MusicFiles {
                     
                     """
                     CREATE TABLE IF NOT EXISTS \(DbConstants.TableMusic.tableName) (
-                    MusicId INTEGER PRIMARY KEY,
+                    \(DbConstants.TableMusic.colMusicId) INTEGER PRIMARY KEY,
                     \(DbConstants.TableMusic.colFilePath) TEXT NOT NULL UNIQUE,
                     \(DbConstants.TableMusic.colIdArtist) INTEGER NOT NULL REFERENCES \(DbConstants.TableArtist.tableName)(\(DbConstants.TableArtist.colArtistId)) ON DELETE RESTRICT,
                     \(DbConstants.TableMusic.colIdAlbum) INTEGER REFERENCES \(DbConstants.TableAlbum.tableName)(\(DbConstants.TableAlbum.colAlbumId)) ON DELETE SET NULL,
-                    \(DbConstants.TableMusic.colTitle) INTEGER NOT NULL,
+                    \(DbConstants.TableMusic.colTitle) TEXT NOT NULL,
                     \(DbConstants.TableMusic.colIdGenre) INTEGER REFERENCES \(DbConstants.TableGenre.tableName)(\(DbConstants.TableGenre.colGenreId)) ON DELETE SET NULL,
                     \(DbConstants.TableMusic.colDuration) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colDuration) >= 0),
                     \(DbConstants.TableMusic.colTrack) INTEGER CHECK (\(DbConstants.TableMusic.colTrack) >= 0),
@@ -356,17 +356,17 @@ class MusicFiles {
         return result
     }
     
-    func getRowId(table: String, column1: String, value1: String, column2: String = "", value2: String = "") -> Int {
+    func getRowId(table: String, columnId: String, column1: String, value1: String, column2: String = "", value2: String = "") -> Int {
         var sql = ""
         if !column2.isEmpty && !value2.isEmpty {
-            sql = "SELECT RowId FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\" AND \(column2) = \"\(value2.replacingOccurrences(of: "\"", with: "'"))\";"
+            sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\" AND \(column2) = \"\(value2.replacingOccurrences(of: "\"", with: "'"))\";"
         } else {
-            sql = "SELECT RowId FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\""
+            sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\""
         }
         do {
             if let rows = try self.helper?.sql(query: sql) {
                 for row in rows {
-                    if let result = row["rowid"] as? Int {
+                    if let result = row[columnId] as? Int {
                         return result
                     }
                 }
@@ -380,7 +380,22 @@ class MusicFiles {
             sql = "INSERT INTO \(table) (\(column1)) VALUES (\"\(value1.replacingOccurrences(of: "\"", with: "'"))\");"
         }
         if ((self.helper?.executeQuery(query: sql)) != nil) {
-            return self.helper?.getLastInsertedId() ?? 0
+            if !column2.isEmpty && !value2.isEmpty {
+                sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\" AND \(column2) = \"\(value2.replacingOccurrences(of: "\"", with: "'"))\";"
+            } else {
+                sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\""
+            }
+            do {
+                if let rows = try self.helper?.sql(query: sql) {
+                    for row in rows {
+                        if let result = row[columnId] as? Int {
+                            return result
+                        }
+                    }
+                }
+            } catch {
+                print(error)
+            }
         }
         return 0
     }

@@ -83,7 +83,7 @@ struct TagView: View {
                     .padding(.bottom, -7)
                 TextField(LocalizedStringKey("text_year"),
                           text: Binding(
-                            get: { tagEditorViewModel.musicSelected.year },
+                            get: { String(tagEditorViewModel.musicSelected.year) },
                             set: {_,_ in }
                           ),
                           prompt: Text(LocalizedStringKey("text_year"))

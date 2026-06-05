@@ -65,7 +65,7 @@ class TagEditorViewModel: BaseViewModel {
     func reloadMusics() async {
         let sql = """
             SELECT
-               \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colRowId),
+               \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colMusicId),
                \(DbConstants.TableArtist.colArtist),
                \(DbConstants.TableMusic.colTitle),
                \(DbConstants.TableMusic.colTrack),
@@ -98,14 +98,14 @@ class TagEditorViewModel: BaseViewModel {
                         for row in rows {
                             seq += 1
                             if
-                                let idServer = row[DbConstants.TableMusic.colRowId] as? Int,
+                                let idServer = row[DbConstants.TableMusic.colMusicId] as? Int,
                                 let artist = row[DbConstants.TableArtist.colArtist] as? String,
                                 let album = row[DbConstants.TableAlbum.colAlbum] as? String,
-                                let year = row[DbConstants.TableAlbum.colYear] as? String,
+                                let year = row[DbConstants.TableAlbum.colYear] as? Int,
                                 let track = row[DbConstants.TableMusic.colTrack] as? Int,
                                 let musicTitle = row[DbConstants.TableMusic.colTitle] as? String,
                                 let genre = row[DbConstants.TableGenre.colGenre] as? String,
-                                let duration = row[DbConstants.TableMusic.colRowId] as? Int,
+                                let duration = row[DbConstants.TableMusic.colDuration] as? Int,
                                 let filePath = row[DbConstants.TableMusic.colFilePath] as? String,
                                 let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int
                             {
@@ -182,7 +182,7 @@ class TagEditorViewModel: BaseViewModel {
             
             let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
             let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
-            let year = String(((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int)
+            let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int
             let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
             let duration = await Id3TagUtils.getDuration(url: fileURL)
             let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? String()) as String

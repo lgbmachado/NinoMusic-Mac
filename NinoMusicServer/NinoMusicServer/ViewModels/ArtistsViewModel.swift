@@ -132,11 +132,11 @@ class ArtistsViewModel: BaseViewModel {
                                         for rowAlbum in rowsAlbuns {
                                             if let idAlbum = rowAlbum[DbConstants.TableAlbum.colAlbumId] as? Int,
                                                let album = rowAlbum[DbConstants.TableAlbum.colAlbum] as? String,
-                                               let year = rowAlbum[DbConstants.TableAlbum.colYear] as? String
+                                               let year = rowAlbum[DbConstants.TableAlbum.colYear] as? Int
                                             {
                                                 let sqlMusics = """
                                                          SELECT
-                                                            \(DbConstants.TableMusic.colRowId),
+                                                            \(DbConstants.TableMusic.colMusicId),
                                                             \(DbConstants.TableMusic.colTrack),
                                                             \(DbConstants.TableMusic.colTitle),
                                                             \(DbConstants.TableMusic.colDuration),
@@ -155,7 +155,7 @@ class ArtistsViewModel: BaseViewModel {
                                                     if let rowsMusicsAlbum = try self.helper?.sql(query: sqlMusics) {
                                                         seqMusic = 0
                                                         for rowMusicAlbum in rowsMusicsAlbum {
-                                                            if let idServer = rowMusicAlbum[DbConstants.TableMusic.colRowId] as? Int,
+                                                            if let idServer = rowMusicAlbum[DbConstants.TableMusic.colMusicId] as? Int,
                                                                let track = rowMusicAlbum[DbConstants.TableMusic.colTrack] as? Int,
                                                                let musicTitle = rowMusicAlbum[DbConstants.TableMusic.colTitle] as? String,
                                                                let duration = rowMusicAlbum[DbConstants.TableMusic.colDuration] as? Int,

@@ -142,7 +142,9 @@ struct MusicsLibraryView: View {
                 Text("\(music.track)")
             }
             .width(40)
-            TableColumn(LocalizedStringKey("text_year"), value: \.year)
+            TableColumn(LocalizedStringKey("text_year")) { music in
+                Text("\(music.year)")
+            }
                 .width(50)
             TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
                 .width(100)

@@ -26,7 +26,7 @@ class MusicsViewModel: BaseViewModel {
     func reloadMusics() async {
         let sql = """
             SELECT
-               \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colRowId),
+               \(DbConstants.TableMusic.tableName).\(DbConstants.TableMusic.colMusicId),
                \(DbConstants.TableArtist.colArtist),
                \(DbConstants.TableMusic.colTitle),
                \(DbConstants.TableMusic.colTrack),
@@ -58,15 +58,16 @@ class MusicsViewModel: BaseViewModel {
                     if let rows = try self.helper?.sql(query: sql) {
                         for row in rows {
                             seq += 1
+                            
                             if
-                                let idServer = row[DbConstants.TableMusic.colRowId] as? Int,
+                                let idServer = row[DbConstants.TableMusic.colMusicId] as? Int,
                                 let artist = row[DbConstants.TableArtist.colArtist] as? String,
                                 let album = row[DbConstants.TableAlbum.colAlbum] as? String,
-                                let year = row[DbConstants.TableAlbum.colYear] as? String,
+                                let year = row[DbConstants.TableAlbum.colYear] as? Int,
                                 let track = row[DbConstants.TableMusic.colTrack] as? Int,
                                 let musicTitle = row[DbConstants.TableMusic.colTitle] as? String,
                                 let genre = row[DbConstants.TableGenre.colGenre] as? String,
-                                let duration = row[DbConstants.TableMusic.colRowId] as? Int,
+                                let duration = row[DbConstants.TableMusic.colDuration] as? Int,
                                 let filePath = row[DbConstants.TableMusic.colFilePath] as? String,
                                 let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int
                             {

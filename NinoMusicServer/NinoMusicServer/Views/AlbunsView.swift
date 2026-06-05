@@ -69,7 +69,7 @@ struct AlbunsView: View {
                 .font(.title)
             Text(verbatim: albunsViewModel.albumSelected.artist)
                 .font(.title3)
-            Text(verbatim: albunsViewModel.albumSelected.year)
+            Text(verbatim: String(albunsViewModel.albumSelected.year))
                 .font(.caption2)
             Text(verbatim: albunsViewModel.albumSelected.genre)
                 .font(.caption2)

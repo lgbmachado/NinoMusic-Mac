@@ -13,7 +13,7 @@ struct Music: Encodable, Decodable, Identifiable {
     var idServer: Int
     var artist: String
     var album: String
-    var year: String
+    var year: Int
     var track: Int
     var musicTitle: String
     var genre: String
@@ -39,7 +39,7 @@ struct Music: Encodable, Decodable, Identifiable {
                                   idServer: Int(),
                                   artist: String(),
                                   album: String(),
-                                  year: String(),
+                                  year: Int(),
                                   track: Int(),
                                   musicTitle: String(),
                                   genre: String(),

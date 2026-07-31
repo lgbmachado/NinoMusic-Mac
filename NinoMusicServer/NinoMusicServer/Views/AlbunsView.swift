@@ -47,10 +47,27 @@ struct AlbunsView: View {
                       sidesScaling: 1,
                       isWrap: true,
                       autoScroll: .inactive) {  item in
-                item.cover?
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 250, height: 250, alignment: .bottom)
+                Group {
+                    if let cover = item.cover {
+                        cover
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(.quinary)
+                            ProgressView()
+                        }
+                    }
+                }
+                .frame(width: 250, height: 250, alignment: .bottom)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .onAppear {
+                albunsViewModel.loadVisibleCovers(around: albunsViewModel.indexAlbumSelected)
+            }
+            .onChange(of: albunsViewModel.indexAlbumSelected) { _, newSelected in
+                albunsViewModel.loadVisibleCovers(around: newSelected)
             }
             
             KeyEventView { event in
@@ -58,7 +75,8 @@ struct AlbunsView: View {
                             case 123:
                                 albunsViewModel.indexAlbumSelected = max(albunsViewModel.indexAlbumSelected - 1, 0)
                             case 124:
-                                albunsViewModel.indexAlbumSelected = min(albunsViewModel.indexAlbumSelected + 1, albunsViewModel.covers.count - 1)
+                                let upperBound = max(albunsViewModel.covers.count - 1, 0)
+                                albunsViewModel.indexAlbumSelected = min(albunsViewModel.indexAlbumSelected + 1, upperBound)
                             default:
                                 break
                             }

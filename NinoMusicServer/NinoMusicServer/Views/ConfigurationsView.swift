@@ -46,6 +46,7 @@ struct ConfigurationsView: View {
             HStack {
                 Spacer()
                 Button("Salvar Configurações") {
+                    dismiss()
                 }
                 .padding()
                 

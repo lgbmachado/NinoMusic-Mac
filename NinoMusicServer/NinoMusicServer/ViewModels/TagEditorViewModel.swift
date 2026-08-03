@@ -58,7 +58,7 @@ class TagEditorViewModel: BaseViewModel {
         }
         set(newVal) {
             let defaults = UserDefaults.standard
-            defaults.set(newVal, forKey: "CaseKind")
+            defaults.set(newVal, forKey: "GenresAvaiables")
         }
     }
     

@@ -149,6 +149,9 @@ struct TagEditorConfig: View {
                 }
             }
         }
+        .onAppear {
+            self.selectedGenres = tagEditorViewModel.genresAvaiables
+        }
     }
     
     private func addItem(_ item: String) {
@@ -156,7 +159,8 @@ struct TagEditorConfig: View {
         guard !trimmed.isEmpty else { return }
         guard !selectedGenres.contains(trimmed) else { return }
         
-        selectedGenres.append(trimmed)
+        self.selectedGenres.append(trimmed)
+        tagEditorViewModel.genresAvaiables = self.selectedGenres
         inputText = ""
     }
     

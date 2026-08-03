@@ -32,7 +32,6 @@ struct MusicDetailsView: View {
 struct TagView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
     @State private var selectedGenre = "ROCK"
-    let genres: [String] = ["ROCK", "PAGODE/FORRÓ", "INSTRUMENTAL/CLÁSSICO", "MPB", "SERTANEJO", "POP", "DANCE"]
     
     let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -42,6 +41,9 @@ struct TagView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
+                Text("Capitalização: \(tagEditorViewModel.selectedCase.description)")
+                    .font(.subheadline)
+                    .padding(.bottom, 10)
                 Text(LocalizedStringKey("text_music"))
                     .font(.caption2)
                     .padding(.bottom, -7)
@@ -49,8 +51,10 @@ struct TagView: View {
                     LocalizedStringKey("text_music"),
                     text: Binding(
                         get: { tagEditorViewModel.musicSelected.musicTitle },
-                        set: {_,_ in }
-                    ),
+                        set: { newValue in
+                            tagEditorViewModel.musicSelected.musicTitle = newValue
+                        }
+                    ).formattedText(self.tagEditorViewModel.selectedCase),
                     prompt: Text(LocalizedStringKey("text_music"))
                 )
                 
@@ -61,8 +65,10 @@ struct TagView: View {
                     LocalizedStringKey("text_artist"),
                     text: Binding(
                         get: { tagEditorViewModel.musicSelected.artist },
-                        set: {_,_ in }
-                    ),
+                        set: { newValue in
+                            tagEditorViewModel.musicSelected.artist = newValue
+                        }
+                    ).formattedText(self.tagEditorViewModel.selectedCase),
                     prompt: Text(LocalizedStringKey("text_artist"))
                 )
                 
@@ -73,8 +79,10 @@ struct TagView: View {
                     LocalizedStringKey("text_album"),
                     text: Binding(
                         get: { tagEditorViewModel.musicSelected.album },
-                        set: {_,_ in }
-                    ),
+                        set: { newValue in
+                            tagEditorViewModel.musicSelected.album = newValue
+                        }
+                    ).formattedText(self.tagEditorViewModel.selectedCase),
                     prompt: Text(LocalizedStringKey("text_album"))
                 )
                 
@@ -107,8 +115,10 @@ struct TagView: View {
                 ComboBox(
                     text: Binding(
                         get: { tagEditorViewModel.musicSelected.genre },
-                        set: {_,_ in }
-                    ),
+                        set: { newValue in
+                            tagEditorViewModel.musicSelected.genre = newValue
+                        }
+                    ).formattedText(self.tagEditorViewModel.selectedCase),
                     items: tagEditorViewModel.genresAvaiables,
                     placeholder: String(localized: "text_genre")
                 )

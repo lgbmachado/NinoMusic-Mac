@@ -76,9 +76,11 @@ struct TagEditorConfig: View {
                     ComboBox(
                         text: Binding(
                             get: {
-                                tagEditorViewModel.GetCaseKind().rawValue
+                                tagEditorViewModel.selectedCase.description
                             },
-                            set: { tagEditorViewModel.SetCaseKind(newValue: $0) }
+                            set: {
+                                tagEditorViewModel.selectedCase = CaseKind(rawValue: $0) ?? .uppercase
+                            }
                         ),
                         items: CaseKind.allDescriptions,
                         placeholder: "Capitalização:"

@@ -13,27 +13,6 @@ enum EditOrigin {
     case library
 }
 
-enum CaseKind: String, CaseIterable {
-    case lowercase = "lowercase"
-    case uppercase = "uppercase"
-    case capitalized = "capitalized"
-    
-    var description: String {
-        switch self {
-        case .lowercase:
-            return "minúsculas"
-        case .uppercase:
-            return "MAIÚSCULAS"
-        case .capitalized:
-            return "Primeira Letra Maiúscula"
-        }
-    }
-    
-    static var allDescriptions: [String] {
-        allCases.map { $0.description }
-    }
-}
-
 class TagEditorViewModel: BaseViewModel {
     @Published var musicsLibrary: [Music] = []
     @Published var musicsFileDir: [Music] = []

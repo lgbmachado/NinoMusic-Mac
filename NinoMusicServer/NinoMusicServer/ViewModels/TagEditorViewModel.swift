@@ -16,6 +16,7 @@ enum EditOrigin {
 class TagEditorViewModel: BaseViewModel {
     @Published var musicsLibrary: [Music] = []
     @Published var musicsFileDir: [Music] = []
+    @Published var musicSelectedDraft: Music = Music.emptyMusic
     
     var origin: EditOrigin = .fileDir
     
@@ -125,6 +126,7 @@ class TagEditorViewModel: BaseViewModel {
         } else {
             self.musicSelected = Music.emptyMusic
         }
+        self.musicSelectedDraft = self.musicSelected
     }
     
     func setIdFilesSelection(selection: Music.ID) {
@@ -136,6 +138,7 @@ class TagEditorViewModel: BaseViewModel {
         } else {
             self.musicSelected = Music.emptyMusic
         }
+        self.musicSelectedDraft = self.musicSelected
     }
     
     func AddFile(url: URL) async {
@@ -192,6 +195,53 @@ class TagEditorViewModel: BaseViewModel {
             return Music.emptyMusic
         }
     }
+
+    func SetMusicTags(music: Music, coverImagePath: String) -> Bool {
+        if let musicUrl = URL(string: music.filePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "") {
+            let id3TagEditor: ID3TagEditor = ID3TagEditor()
+            let currentTag = try? id3TagEditor.read(from: musicUrl.absoluteString.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
+            
+            do {
+                var builder = ID32v3TagBuilder()
+                    .title(frame: ID3FrameWithStringContent(content: music.musicTitle))
+                    .artist(frame: ID3FrameWithStringContent(content: music.artist))
+                    .album(frame: ID3FrameWithStringContent(content: music.album))
+                    .recordingYear(frame: ID3FrameWithIntegerContent(value: music.year))
+                    .trackPosition(frame: ID3FramePartOfTotal(part: music.track, total: nil))
+                    .genre(frame: .init(genre: nil, description: music.genre))
+                
+                if !coverImagePath.isEmpty {
+                    let imageURL = URL(fileURLWithPath: coverImagePath)
+                    
+                    if let imageData = try? Data(contentsOf: imageURL) {
+                        let format: ID3PictureFormat = imageURL.pathExtension.lowercased() == "png" ? .png : .jpeg
+                        
+                        let coverFrame = ID3FrameAttachedPicture(
+                            picture: imageData,
+                            type: .frontCover,
+                            format: format
+                        )
+                        
+                        builder = builder.attachedPicture(pictureType: .frontCover, frame: coverFrame)
+                    }
+                } else {
+                    if let existingCoverFrame = currentTag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
+                        builder = builder.attachedPicture(pictureType: .frontCover, frame: existingCoverFrame)
+                    }
+                }
+
+                let id3Tag = builder.build()
+                try id3TagEditor.write(tag: id3Tag, to: musicUrl.absoluteString.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
+                
+                return true
+            } catch {
+                print(error)
+                return false
+            }
+        }
+        return false
+    }
+
     
     func GetCaseKind() -> CaseKind {
         let defaults = UserDefaults.standard

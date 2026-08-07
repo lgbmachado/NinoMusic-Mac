@@ -17,6 +17,7 @@ struct ConfigurationsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
+            Spacer()
             HStack(spacing: 10) {
                 Image(nsImage: NSImage(named: "NinoMusic") ?? NSImage(named: NSImage.applicationIconName)!)
                     .resizable()
@@ -58,7 +59,7 @@ struct ConfigurationsView: View {
             }
         }
         .padding(28)
-        .frame(width: 600, height: 600)
+        .frame(width: 600, height: 700)
     }
     
 }
@@ -151,6 +152,7 @@ struct TagEditorConfig: View {
                 }
             }
         }
+        .frame(width: 500, height: 500, alignment: .top)
         .onAppear {
             self.selectedGenres = tagEditorViewModel.genresAvaiables
         }
@@ -185,5 +187,6 @@ struct ServerConfig: View {
             )
             Spacer()
         }
+        .frame(width: 500, height: 500, alignment: .top)
     }
 }

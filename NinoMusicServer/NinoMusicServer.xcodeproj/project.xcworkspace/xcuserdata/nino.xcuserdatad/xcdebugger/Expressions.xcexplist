@@ -14,12 +14,7 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MusicFiles.init():LibraryViewModel.swift">
-         <PersistentStrings>
-            <PersistentString
-               value = "self.directories">
-            </PersistentString>
-         </PersistentStrings>
+         contextName = "AlbunsViewModel.reloadAlbuns():AlbunsViewModel.swift">
       </ContextState>
       <ContextState
          contextName = "MusicFiles.updateRowsTableDirectories():LibraryViewModel.swift">
@@ -29,6 +24,22 @@
             </PersistentString>
             <PersistentString
                value = "row[DbConstants.TableDiretory.colRowId]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "TagEditorViewModel.setIdLibrarySelection(selection:):TagEditorViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.musicsLibrary">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MusicFiles.updateMusicsDatabase(completion:):LibraryViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.directories">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -49,20 +60,6 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "TagEditorViewModel.GetMusicTags(fileURL:):TagEditorViewModel.swift">
-         <PersistentStrings>
-            <PersistentString
-               value = "fileURL.path()">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "AlbunsViewModel.reloadAlbuns():AlbunsViewModel.swift">
-      </ContextState>
-      <ContextState
-         contextName = "MusicFiles.getDirectories():LibraryViewModel.swift">
-      </ContextState>
-      <ContextState
          contextName = "closure #4 in closure #1 in closure #1 in MusicPlayerView.body.getter:MusicPlayerView.swift">
          <PersistentStrings>
             <PersistentString
@@ -71,18 +68,29 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "TagEditorViewModel.setIdLibrarySelection(selection:):TagEditorViewModel.swift">
+         contextName = "MusicFiles.getDirectories():LibraryViewModel.swift">
+      </ContextState>
+      <ContextState
+         contextName = "MusicFiles.init():LibraryViewModel.swift">
          <PersistentStrings>
             <PersistentString
-               value = "self.musicsLibrary">
+               value = "self.directories">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MusicFiles.updateMusicsDatabase(completion:):LibraryViewModel.swift">
+         contextName = "TagEditorViewModel.SetMusicTags(music:coverImagePath:):TagEditorViewModel.swift">
          <PersistentStrings>
             <PersistentString
-               value = "self.directories">
+               value = "musicUrl.absoluteString">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "TagEditorViewModel.GetMusicTags(fileURL:):TagEditorViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "fileURL.path()">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

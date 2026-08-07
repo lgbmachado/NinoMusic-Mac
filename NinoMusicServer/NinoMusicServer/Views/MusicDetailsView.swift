@@ -31,7 +31,6 @@ struct MusicDetailsView: View {
 
 struct TagView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
-    @State private var selectedGenre = "ROCK"
     
     let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -41,7 +40,7 @@ struct TagView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                Text("Capitalização: \(tagEditorViewModel.selectedCase.description)")
+                Text("Capitalização: **\(tagEditorViewModel.selectedCase.description)**")
                     .font(.subheadline)
                     .padding(.bottom, 10)
                 Text(LocalizedStringKey("text_music"))
@@ -50,9 +49,9 @@ struct TagView: View {
                 TextField(
                     LocalizedStringKey("text_music"),
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelected.musicTitle },
+                        get: { tagEditorViewModel.musicSelectedDraft.musicTitle },
                         set: { newValue in
-                            tagEditorViewModel.musicSelected.musicTitle = newValue
+                            tagEditorViewModel.musicSelectedDraft.musicTitle = newValue
                         }
                     ).formattedText(self.tagEditorViewModel.selectedCase),
                     prompt: Text(LocalizedStringKey("text_music"))
@@ -64,9 +63,9 @@ struct TagView: View {
                 TextField(
                     LocalizedStringKey("text_artist"),
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelected.artist },
+                        get: { tagEditorViewModel.musicSelectedDraft.artist },
                         set: { newValue in
-                            tagEditorViewModel.musicSelected.artist = newValue
+                            tagEditorViewModel.musicSelectedDraft.artist = newValue
                         }
                     ).formattedText(self.tagEditorViewModel.selectedCase),
                     prompt: Text(LocalizedStringKey("text_artist"))
@@ -78,9 +77,9 @@ struct TagView: View {
                 TextField(
                     LocalizedStringKey("text_album"),
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelected.album },
+                        get: { tagEditorViewModel.musicSelectedDraft.album },
                         set: { newValue in
-                            tagEditorViewModel.musicSelected.album = newValue
+                            tagEditorViewModel.musicSelectedDraft.album = newValue
                         }
                     ).formattedText(self.tagEditorViewModel.selectedCase),
                     prompt: Text(LocalizedStringKey("text_album"))
@@ -91,7 +90,7 @@ struct TagView: View {
                     .padding(.bottom, -7)
                 TextField(LocalizedStringKey("text_year"),
                           text: Binding(
-                            get: { String(tagEditorViewModel.musicSelected.year) },
+                            get: { String(tagEditorViewModel.musicSelectedDraft.year) },
                             set: {_,_ in }
                           ),
                           prompt: Text(LocalizedStringKey("text_year"))
@@ -100,13 +99,15 @@ struct TagView: View {
                 Text(LocalizedStringKey("text_track"))
                     .font(.caption2)
                     .padding(.bottom, -7)
-                TextField(
-                    LocalizedStringKey("text_track"),
-                    text: Binding(
-                        get: { String(tagEditorViewModel.musicSelected.track) },
-                        set: {_,_ in }
-                    ),
-                    prompt: Text(LocalizedStringKey("text_track"))
+                
+                Stepper(
+                    "\(tagEditorViewModel.musicSelectedDraft.track)",
+                    value: Binding(
+                        get: { tagEditorViewModel.musicSelectedDraft.track },
+                        set: { newValue in
+                            tagEditorViewModel.musicSelectedDraft.track = newValue
+                        }
+                    )
                 )
                 
                 Text(LocalizedStringKey("text_genre"))
@@ -114,9 +115,9 @@ struct TagView: View {
                     .padding(.bottom, -7)
                 ComboBox(
                     text: Binding(
-                        get: { tagEditorViewModel.musicSelected.genre },
+                        get: { tagEditorViewModel.musicSelectedDraft.genre },
                         set: { newValue in
-                            tagEditorViewModel.musicSelected.genre = newValue
+                            tagEditorViewModel.musicSelectedDraft.genre = newValue
                         }
                     ).formattedText(self.tagEditorViewModel.selectedCase),
                     items: tagEditorViewModel.genresAvaiables,
@@ -128,7 +129,7 @@ struct TagView: View {
                 Text(LocalizedStringKey("text_album_cover"))
                     .font(.caption2)
                     .padding(.bottom, -7)
-                Image(nsImage: Id3TagUtils.getImageCover(path: self.tagEditorViewModel.musicSelected.filePath) ?? NSImage())
+                Image(nsImage: Id3TagUtils.getImageCover(path: self.tagEditorViewModel.musicSelectedDraft.filePath) ?? NSImage())
                     .resizable()
                     .frame(width: .infinity, height: .infinity, alignment: .bottom)
                     .scaledToFit()
@@ -136,6 +137,23 @@ struct TagView: View {
                     .border(.black)
                 
                 Spacer()
+                HStack {
+                    Spacer()
+                    Button("Salvar") {
+                        self.tagEditorViewModel.SetMusicTags(music: self.tagEditorViewModel.musicSelectedDraft, coverImagePath: "")
+                        self.tagEditorViewModel.musicSelected = self.tagEditorViewModel.musicSelectedDraft
+                    }
+                    .padding()
+                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected))
+                    
+                    Button("Desfazer", role: .cancel) {
+                        self.tagEditorViewModel.musicSelectedDraft = self.tagEditorViewModel.musicSelected
+                    }
+                    .padding()
+                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected))
+                    Spacer()
+                }
+
             }
         }
     }

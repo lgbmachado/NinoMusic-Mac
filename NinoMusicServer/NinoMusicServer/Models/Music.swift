@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Music: Encodable, Decodable, Identifiable {
+struct Music: Encodable, Decodable, Identifiable, Equatable {
     var id = UUID()
     var seq: Int
     var idServer: Int

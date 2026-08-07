@@ -66,11 +66,10 @@ struct MusicsFilesAndFoldersView: View {
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 16, weight: .semibold))
-                        .frame(width: 32, height: 32)
+                        .frame(width: 64, height: 64, alignment: .center)
                 }
                 .frame(width: 150, height: 10, alignment: .topLeading)
                 .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.circle)
                 .sheet(isPresented: $openFile) {
                     
                 }

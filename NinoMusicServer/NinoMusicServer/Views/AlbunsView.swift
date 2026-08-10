@@ -6,73 +6,42 @@
 //
 
 import SwiftUI
-import ACarousel
-
-struct KeyEventView: NSViewRepresentable {
-
-    var onKeyDown: (NSEvent) -> Void
-
-    func makeNSView(context: Context) -> NSView {
-        let view = KeyView()
-        view.onKeyDown = onKeyDown
-        DispatchQueue.main.async {
-            view.window?.makeFirstResponder(view)
-        }
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {}
-
-    class KeyView: NSView {
-        var onKeyDown: ((NSEvent) -> Void)?
-
-        override var acceptsFirstResponder: Bool { true }
-
-        override func keyDown(with event: NSEvent) {
-            onKeyDown?(event)
-        }
-    }
-}
 
 struct AlbunsView: View {
-    @StateObject var musicPlayerViewModel: MusicPlayerViewModel
-    @StateObject var albunsViewModel: AlbunsViewModel
+    @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
+    @ObservedObject var albunsViewModel: AlbunsViewModel
 
     var body: some View {
         VStack {
-            ACarousel(albunsViewModel.covers,
-                      index: $albunsViewModel.indexAlbumSelected,
-                      spacing: 30,
-                      headspace: 30,
-                      sidesScaling: 1,
-                      isWrap: true,
-                      autoScroll: .inactive) {  item in
-                item.cover?
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 250, height: 250, alignment: .bottom)
-            }
+            Image(nsImage: Id3TagUtils.getImageCover(path: albunsViewModel.filePathCover) ?? NSImage())
+                .resizable()
+                .frame(width: 250, height: 250, alignment: .bottom)
+                .scaledToFit()
+                .aspectRatio(contentMode: .fit)
+                .border(.black)
+                .padding()
             
-            KeyEventView { event in
-                            switch event.keyCode {
-                            case 123:
-                                albunsViewModel.indexAlbumSelected = max(albunsViewModel.indexAlbumSelected - 1, 0)
-                            case 124:
-                                albunsViewModel.indexAlbumSelected = min(albunsViewModel.indexAlbumSelected + 1, albunsViewModel.covers.count - 1)
-                            default:
-                                break
-                            }
-                        }
-            .frame(width: 0, height: 0)
-
             Text(verbatim: albunsViewModel.albumSelected.album)
                 .font(.title)
             Text(verbatim: albunsViewModel.albumSelected.artist)
                 .font(.title3)
-            Text(verbatim: albunsViewModel.albumSelected.year)
+            Text(verbatim: String(albunsViewModel.albumSelected.year))
                 .font(.caption2)
             Text(verbatim: albunsViewModel.albumSelected.genre)
                 .font(.caption2)
+            HStack {
+                Button(String(), systemImage: "backward", action: {
+                    albunsViewModel.goToPreviusAlbum()
+                })
+                .font(.system(size: 30))
+                .frame(width: 300, height: 50, alignment: .center)
+                
+                Button(String(), systemImage: "forward", action: {
+                    albunsViewModel.goToNextAlbum()
+                })
+                .font(.system(size: 30))
+                .frame(width: 300, height: 50, alignment: .center)
+            }
             Table(albunsViewModel.albumSelected.musics, selection: $albunsViewModel.idMusicSelected) {
                 TableColumn(LocalizedStringKey("text_track")) { music in
                     Text("\(music.track)")
@@ -99,4 +68,8 @@ struct AlbunsView: View {
             }
         }
     }
+}
+
+#Preview {
+    AlbunsView(musicPlayerViewModel: MusicPlayerViewModel(), albunsViewModel: AlbunsViewModel(musicPlayerViewModel: MusicPlayerViewModel()))
 }

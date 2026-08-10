@@ -6,18 +6,18 @@
 //
 
 import Foundation
-import SwiftData
+import SQLite3
 
 class BaseViewModel: NSObject, ObservableObject {
     let musicPlayerViewModel: MusicPlayerViewModel
-    let modelContext: ModelContext
+    let helper = DbHelper(path: DbConstants.databasePath)
     @Published var idMusicSelected: UUID? = nil
     @Published var fileSelected: String = String()
     @Published var musicSelected: Music = Music.emptyMusic
+    @Published var isLoading: Bool = false
     
-    init(musicPlayerViewModel: MusicPlayerViewModel, modelContext: ModelContext) {
+    init(musicPlayerViewModel: MusicPlayerViewModel) {
         self.musicPlayerViewModel = musicPlayerViewModel
-        self.modelContext = modelContext
         super.init()
         NotificationCenter.default.addObserver(forName: Notification.Name("nextTapped"),
                                                object: nil,
@@ -39,5 +39,22 @@ class BaseViewModel: NSObject, ObservableObject {
     
     func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
     }
+    
+    func OpenDb() -> OpaquePointer? {
+        var database: OpaquePointer?
+        if sqlite3_open_v2(DbConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {
+            return database
+        }
+        print("Erro ao abrir banco de dados!")
+        return nil
+    }
+    
+    func CloseDb(database: OpaquePointer?) {
+        if let database = database {
+            if sqlite3_close(database) != SQLITE_OK {
+                print("Erro ao fechar banco de dados!")
+            }
+        }
+    }
+ 
 }
-

@@ -6,68 +6,75 @@
 //
 
 import Foundation
-import ID3TagEditor
-import SwiftUI
-import SwiftData
 
-@Model
-final class Artist {
-    @Attribute(.unique) var id: UUID
+struct Artist: Encodable, Decodable, Identifiable {
+    var id = UUID()
     var seq: Int
     var artist: String
     var genre: String
-    @Relationship(deleteRule: .cascade) var albuns: [ArtistAlbum]
+    var albuns: [ArtistAlbum] = []
     
-    init(id: UUID = UUID(), seq: Int = 0, artist: String = "", genre: String = "", albuns: [ArtistAlbum] = []) {
-        self.id = id
-        self.seq = seq
-        self.artist = artist
-        self.genre = genre
-        self.albuns = albuns
+    enum CodingKeys: String, CodingKey {
+        case seq = "seq"
+        case artist = "artist"
+        case genre = "genre"
+        case albuns = "albuns"
     }
     
-    static let emptyArtist = Artist()
+    static let emptyArtist = Artist(seq: 0,
+                                    artist: String(),
+                                    genre: String(),
+                                    albuns: [ArtistAlbum]())
 }
 
-@Model
-final class ArtistAlbum {
-    @Attribute(.unique) var id: UUID
+struct ArtistAlbum: Encodable, Decodable, Identifiable {
+    var id = UUID()
     var seq: Int
     var album: String
-    var year: String
-    @Relationship(deleteRule: .cascade) var musics: [ArtistMusic]
+    var year: Int
+    var musics: [ArtistMusic] = []
     
-    init(id: UUID = UUID(), seq: Int = 0, album: String = "", year: String = "", musics: [ArtistMusic] = []) {
-        self.id = id
-        self.seq = seq
-        self.album = album
-        self.year = year
-        self.musics = musics
+    enum CodingKeys: String, CodingKey {
+        case seq = "seq"
+        case album = "album"
+        case year = "year"
+        case musics = "musics"
     }
     
-    static let emptyAlbum = ArtistAlbum()
+    static let emptyAlbum = ArtistAlbum(seq: 0,
+                                        album: String(),
+                                        year: Int(),
+                                        musics: [ArtistMusic]())
 }
 
-@Model
-final class ArtistMusic {
-    @Attribute(.unique) var id: UUID
+struct ArtistMusic: Encodable, Decodable, Identifiable {
+    var id = UUID()
     var seq: Int
     var idServer: Int
     var track: Int
     var musicTitle: String
-    var duration: Int
+    let duration: Int
     var filePath: String
+    var hasLyric: Bool
     
-    init(id: UUID = UUID(), seq: Int = 0, idServer: Int = 0, track: Int = 0, musicTitle: String = "", duration: Int = 0, filePath: String = "") {
-        self.id = id
-        self.seq = seq
-        self.idServer = idServer
-        self.track = track
-        self.musicTitle = musicTitle
-        self.duration = duration
-        self.filePath = filePath
+    enum CodingKeys: String, CodingKey {
+        case seq = "seq"
+        case idServer = "idServer"
+        case track = "track"
+        case musicTitle = "musicTitle"
+        case duration = "duration"
+        case filePath = "filePath"
+        case hasLyric = "hasLyric"
     }
     
-    static let emptyMusic = ArtistMusic()
+    static let emptyMusic = ArtistMusic(seq: Int(),
+                                        idServer: Int(),
+                                        track: Int(),
+                                        musicTitle: String(),
+                                        duration: Int(),
+                                        filePath: String(),
+                                        hasLyric: false)
 }
+
+
 

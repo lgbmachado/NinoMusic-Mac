@@ -64,7 +64,7 @@ struct ArtistAlbumView: View {
                     .border(.black)
                 Text(verbatim: album?.album ?? "")
                     .font(.title3)
-                Text(verbatim: album?.year ?? "")
+                Text(verbatim: String(album?.year ?? 0))
                     .font(.caption2)
             }
             .frame(maxWidth: 300, alignment: .leading)
@@ -92,6 +92,11 @@ struct ArtistAlbumMusicView: View {
                 TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
                 TableColumn(LocalizedStringKey("text_duration")) { music in
                     Text(String().secondsToTime(seconds: music.duration))
+                }
+                TableColumn(LocalizedStringKey("text_lyric")){ music in
+                    if music.hasLyric {
+                        Image(systemName: "music.note.tv")
+                    }
                 }
             }
             .onAppear {

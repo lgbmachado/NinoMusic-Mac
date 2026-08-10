@@ -6,57 +6,59 @@
 //
 
 import Foundation
-import ID3TagEditor
 import SwiftUI
-import SwiftData
 
-@Model
-final class Album {
-    @Attribute(.unique) var id: UUID
+struct Album: Encodable, Decodable, Identifiable {
+    var id = UUID()
     var seq: Int
     var album: String
     var artist: String
-    var year: String
+    var year: Int
     var genre: String
-    @Relationship(deleteRule: .cascade) var musics: [AlbumMusic]
+    var musics: [AlbumMusic] = []
     
-    init(id: UUID = UUID(), seq: Int = 0, album: String = "", artist: String = "", year: String = "", genre: String = "", musics: [AlbumMusic] = []) {
-        self.id = id
-        self.seq = seq
-        self.album = album
-        self.artist = artist
-        self.year = year
-        self.genre = genre
-        self.musics = musics
+    enum CodingKeys: String, CodingKey {
+        case seq = "seq"
+        case album = "album"
+        case artist = "artist"
+        case year = "year"
+        case genre = "genre"
+        case musics = "musics"
     }
     
-    static let emptyAlbum = Album()
+    static let emptyAlbum = Album(seq: 0,
+                                  album: String(),
+                                  artist: String(),
+                                  year: Int(),
+                                  genre: String(),
+                                  musics: [AlbumMusic]())
 }
 
-@Model
-final class AlbumMusic {
-    @Attribute(.unique) var id: UUID
+struct AlbumMusic: Encodable, Decodable, Identifiable {
+    var id = UUID()
     var seq: Int
     var idServer: Int
     var track: Int
     var musicTitle: String
-    var duration: Int
+    let duration: Int
     var filePath: String
+    var hasLyric: Bool
     
-    init(id: UUID = UUID(), seq: Int = 0, idServer: Int = 0, track: Int = 0, musicTitle: String = "", duration: Int = 0, filePath: String = "") {
-        self.id = id
-        self.seq = seq
-        self.idServer = idServer
-        self.track = track
-        self.musicTitle = musicTitle
-        self.duration = duration
-        self.filePath = filePath
+    enum CodingKeys: String, CodingKey {
+        case seq = "seq"
+        case idServer = "idServer"
+        case track = "track"
+        case musicTitle = "musicTitle"
+        case duration = "duration"
+        case filePath = "filePath"
+        case hasLyric = "hasLyric"
     }
     
-    static let emptyMusic = AlbumMusic()
-}
-
-struct AlbumCover: Identifiable {
-    var id: UUID
-    var cover: Image?
+    static let emptyMusic = AlbumMusic(seq: Int(),
+                                       idServer: Int(),
+                                       track: Int(),
+                                       musicTitle: String(),
+                                       duration: Int(),
+                                       filePath: String(),
+                                       hasLyric: false)
 }

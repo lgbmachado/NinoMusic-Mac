@@ -12,7 +12,6 @@ struct TagEditorView: View {
     
     @State private var searchTerm: String = ""
     @State var selection: UUID? = nil
-    
     @State private var inspectorIsShown: Bool = false
     
     var body: some View {
@@ -27,9 +26,6 @@ struct TagEditorView: View {
                     Image(systemName: "")
                     Text("Biblioteca")
                 }
-        }
-        .onAppear() {
-            tagEditorViewModel.reloadMusicsFromLibrary()
         }
         .toolbar{
             ToolbarItem(placement: .primaryAction) {
@@ -70,11 +66,10 @@ struct MusicsFilesAndFoldersView: View {
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 16, weight: .semibold))
-                        .frame(width: 32, height: 32)
+                        .frame(width: 64, height: 64, alignment: .center)
                 }
                 .frame(width: 150, height: 10, alignment: .topLeading)
                 .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.circle)
                 .sheet(isPresented: $openFile) {
                     
                 }
@@ -91,7 +86,7 @@ struct MusicsFilesAndFoldersView: View {
             }
             .padding()
             .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-                tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID())
+                tagEditorViewModel.setIdFilesSelection(selection: newSelected ?? UUID())
             }
         }
     }
@@ -106,7 +101,7 @@ struct MusicsFilesAndFoldersView: View {
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             if let url = dialog.url {
-                self.tagEditorViewModel.AddFile(url: url)
+                Task { await self.tagEditorViewModel.AddFile(url: url) }
             }
         } else {
             return
@@ -122,7 +117,7 @@ struct MusicsFilesAndFoldersView: View {
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             if let url = dialog.url {
-                self.tagEditorViewModel.AddFolder(url: url)
+                Task { await self.tagEditorViewModel.AddFolder(url: url) }
             }
         }
     }
@@ -146,14 +141,16 @@ struct MusicsLibraryView: View {
                 Text("\(music.track)")
             }
             .width(40)
-            TableColumn(LocalizedStringKey("text_year"), value: \.year)
+            TableColumn(LocalizedStringKey("text_year")) { music in
+                Text("\(music.year)")
+            }
                 .width(50)
             TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
                 .width(100)
         }
         .padding()
         .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-            tagEditorViewModel.setIdSelection(selection: newSelected ?? UUID())
+            tagEditorViewModel.setIdLibrarySelection(selection: newSelected ?? UUID())
         }
     }
 }

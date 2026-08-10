@@ -8,8 +8,9 @@
 import AVFoundation
 import Foundation
 import ID3TagEditor
-import SwiftData
+import SQLite3
 
+// MARK: - LibraryViewModel
 class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     
     @Published var totalMusics: Int = 0
@@ -18,16 +19,15 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
     
     @Published var directories = [MusicDirectory]()
     
-    private var musicFiles: MusicFiles
+    private var musicFiles = MusicFiles()
     
-    init(modelContext: ModelContext) {
-        self.musicFiles = MusicFiles(modelContext: modelContext)
+    init() {
         self.musicFiles.delegate = self
         self.directories = self.musicFiles.directories
         self.totalMusics = self.directories.reduce(0) { $0 + $1.musicCount }
         self.totalTime = self.directories.reduce(0.0) { $0 + $1.totalTime }
     }
-     
+    
     func addDirectory(dirPath: String) async {
         self.isLoading = true
         await self.musicFiles.addDirectory(dirPath: dirPath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
@@ -48,7 +48,7 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
         } else {
             self.isLoading = false
         }
-
+        
     }
 }
 
@@ -64,38 +64,40 @@ protocol MusicFilesDelegate {
     func musicLoading(musicsLoaded: Int, totalTime: TimeInterval)
 }
 
+// MARK: - MusicFile
 class MusicFiles {
-    private let modelContext: ModelContext
+    
     private var count = 0
+    private let helper = DbHelper(path: DbConstants.databasePath)
     
     var delegate: MusicFilesDelegate?
     var directories = [MusicDirectory]()
+    var musics = [Music]()
+    var albuns = [Album]()
+    var artists = [Artist]()
     var totalTime: TimeInterval = 0
     
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        print("Usando SwiftData para gerenciar biblioteca de músicas")
+    init() {
+        if !createTablesIfNeeded() {
+            print("Erro ao criar tabelas")
+        }
         self.directories = getDirectories()
     }
     
     func addDirectory(dirPath: String) async {
         if addDirectory(dirPath: dirPath) {
-            if updateDirectoryNames() {
-                self.directories = getDirectories()
-                await updateMusicsDatabase { _ in
-                    self.saveServerInfo()
-                }
+            self.directories = getDirectories()
+            await updateMusicsDatabase { _ in
+                self.saveServerInfo()
             }
         }
     }
     
     func deleteDirectory(dirName: String) async {
         if deleteDirectory(dirName: dirName) {
-            if updateDirectoryNames() {
-                self.directories = getDirectories()
-                await updateMusicsDatabase { _ in
-                    self.saveServerInfo()
-                }
+            self.directories = self.getDirectories()
+            await updateMusicsDatabase { _ in
+                self.saveServerInfo()
             }
         }
     }
@@ -129,7 +131,7 @@ class MusicFiles {
                                         
                                         let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
                                         let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
-                                        let year = String(((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int)
+                                        let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int
                                         let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
                                         let duration = await Id3TagUtils.getDuration(url: fileURL)
                                         let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? String()) as String
@@ -142,8 +144,8 @@ class MusicFiles {
                                                 hasLyric = !textFrame.content.isEmpty
                                             }
                                         }
-
-                                        if addMusic(filePath: filePath,
+                                        
+                                        if AddMusic(filePath: filePath,
                                                     musicTitle: musicTitle,
                                                     artist: artist,
                                                     album: album,
@@ -192,230 +194,284 @@ class MusicFiles {
         }
     }
     
-    func updateDirData(dirPath: String, countDir: Int, totalTimeDir: Double) -> Bool {
-        let descriptor = FetchDescriptor<MusicDirectory>(
-            predicate: #Predicate { $0.path == dirPath }
-        )
-        
-        do {
-            let directories = try modelContext.fetch(descriptor)
-            if let directory = directories.first {
-                directory.musicCount = countDir
-                directory.totalTime = totalTimeDir
-                try modelContext.save()
-                return true
-            }
-        } catch {
-            print("Erro ao atualizar diretório: \(error)")
+    func updateDirData(dirPath: String, countDir: Int, totalTimeDir: Double) -> Bool{
+        let sql = "UPDATE \(DbConstants.TableDiretory.tableName) SET \(DbConstants.TableDiretory.colMusicsCount) = \(countDir), \(DbConstants.TableDiretory.colTotalTime) = \(totalTimeDir) WHERE \(DbConstants.TableDiretory.colDirPath) = \"\(dirPath)\";"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return true
         }
         return false
     }
     
     func getDirectories() -> [MusicDirectory] {
-        let descriptor = FetchDescriptor<MusicDirectory>(
-            sortBy: [SortDescriptor(\.name)]
-        )
-        
+        let sql = """
+        SELECT
+           \(DbConstants.TableDiretory.colDirId),
+           \(DbConstants.TableDiretory.colDirName),
+           \(DbConstants.TableDiretory.colDirPath),
+           \(DbConstants.TableDiretory.colMusicsCount),
+           \(DbConstants.TableDiretory.colTotalTime)
+        FROM
+           \(DbConstants.TableDiretory.tableName)
+        ORDER BY
+           \(DbConstants.TableDiretory.colDirName)
+        """
+        var dirList = [MusicDirectory]()
+        var count = 0
         do {
-            return try modelContext.fetch(descriptor)
+            if let rows = try self.helper?.sql(query: sql) {
+                for row in rows {
+                    if
+                        let dirName = row[DbConstants.TableDiretory.colDirName] as? String,
+                        let dirPath = row[DbConstants.TableDiretory.colDirPath] as? String,
+                        let musicsCount = row[DbConstants.TableDiretory.colMusicsCount] as? Int,
+                        let totalTime = row[DbConstants.TableDiretory.colTotalTime] as? Double {
+                        count += 1
+                        dirList.append(MusicDirectory(name: dirName, path: dirPath, musicCount: musicsCount, totalTime: totalTime))
+                    }
+                }
+            }
         } catch {
-            print("Erro ao buscar diretórios: \(error)")
-            return []
+            print(error)
         }
+        return dirList
     }
     
-    func addDirectory(dirPath: String) -> Bool {
-        let newDirectory = MusicDirectory(path: dirPath, musicCount: 0, totalTime: 0.0)
-        modelContext.insert(newDirectory)
-        
-        do {
-            try modelContext.save()
-            return true
-        } catch {
-            print("Erro ao adicionar diretório: \(error)")
-            return false
+    func addDirectory(dirPath: String) -> Bool{
+        let sql = "INSERT INTO \(DbConstants.TableDiretory.tableName) (\(DbConstants.TableDiretory.colDirPath),\(DbConstants.TableDiretory.colMusicsCount),\(DbConstants.TableDiretory.colTotalTime)) VALUES (\"\(dirPath)\",0, 0.0);"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return updateRowsTableDirectories()
+        }
+        return false
+    }
+    
+    func cleanMusicsTables() {
+        if !deleteRowsTableAlbuns() {
+            print("Falha ao deletar registros da tabela \"Albuns\".")
+        }
+        if !deleteRowsTableGenres() {
+            print("Falha ao deletar registros da tabela \"Genres\".")
+        }
+        if !deleteRowsTableArtists() {
+            print("Falha ao deletar registros da tabela \"Artists\".")
+        }
+        if !deleteRowsTableMusics() {
+            print("Falha ao deletar registros da tabela \"Musics\".")
         }
     }
     
     func deleteDirectory(dirName: String) -> Bool {
-        let descriptor = FetchDescriptor<MusicDirectory>(
-            predicate: #Predicate { $0.name == dirName }
-        )
-        
-        do {
-            let directories = try modelContext.fetch(descriptor)
-            for directory in directories {
-                modelContext.delete(directory)
-            }
-            try modelContext.save()
+        let sql = "DELETE FROM \(DbConstants.TableDiretory.tableName) WHERE \(DbConstants.TableDiretory.colDirName) = \"\(dirName)\";"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
             return true
-        } catch {
-            print("Erro ao deletar diretório: \(error)")
-            return false
         }
+        return false
     }
     
-    func cleanMusicsTables() {
-        do {
-            // Deletar todos os registros de Music
-            let musicDescriptor = FetchDescriptor<Music>()
-            let allMusics = try modelContext.fetch(musicDescriptor)
-            for music in allMusics {
-                modelContext.delete(music)
-            }
-            
-            // Deletar todos os álbuns
-            let albumDescriptor = FetchDescriptor<Album>()
-            let allAlbums = try modelContext.fetch(albumDescriptor)
-            for album in allAlbums {
-                modelContext.delete(album)
-            }
-            
-            // Deletar todos os artistas
-            let artistDescriptor = FetchDescriptor<Artist>()
-            let allArtists = try modelContext.fetch(artistDescriptor)
-            for artist in allArtists {
-                modelContext.delete(artist)
-            }
-            
-            try modelContext.save()
-        } catch {
-            print("Erro ao limpar tabelas: \(error)")
-        }
-    }
-       
     func musicExists(filePath: String) -> Bool {
-        let descriptor = FetchDescriptor<Music>(
-            predicate: #Predicate { $0.filePath == filePath }
-        )
+        let sql = """
+        SELECT
+           *
+        FROM
+           \(DbConstants.TableMusic.tableName)
+        WHERE
+           \(DbConstants.TableMusic.colFilePath) = \"\(filePath)\"
+        """
         
         do {
-            let musics = try modelContext.fetch(descriptor)
-            return !musics.isEmpty
+            if let rows = try self.helper?.sql(query: sql) {
+                return rows.count > 0
+            }
         } catch {
-            print("Erro ao verificar existência de música: \(error)")
-            return false
+            print(error)
         }
+        return false
     }
     
-    func addMusic(filePath: String, musicTitle: String, artist: String, album: String, year: String, track: Int, duration: Int, genre: String, hasLyric: Bool) -> Bool {
+    func AddMusic(filePath: String, musicTitle: String, artist: String, album: String, year: Int, track: Int, duration: Int, genre: String, hasLyric: Bool) -> Bool{
+        let idArtist = getRowId(table: DbConstants.TableArtist.tableName, columnId: DbConstants.TableArtist.colArtistId, column1: DbConstants.TableArtist.colArtist, value1: artist)
+        let idAlbum = getRowId(table: DbConstants.TableAlbum.tableName, columnId: DbConstants.TableAlbum.colAlbumId, column1: DbConstants.TableAlbum.colAlbum, value1: album, column2: DbConstants.TableAlbum.colYear, value2: String(year))
+        let idGenre = getRowId(table: DbConstants.TableGenre.tableName, columnId: DbConstants.TableGenre.colGenreId, column1: DbConstants.TableGenre.colGenre, value1: genre)
+        
+        let sql = "INSERT INTO \(DbConstants.TableMusic.tableName) (\(DbConstants.TableMusic.colFilePath), \(DbConstants.TableMusic.colIdArtist), \(DbConstants.TableMusic.colTrack), \(DbConstants.TableMusic.colDuration), \(DbConstants.TableMusic.colIdAlbum), \(DbConstants.TableMusic.colTitle), \(DbConstants.TableMusic.colIdGenre), \(DbConstants.TableMusic.colHasLyrics)) VALUES (\"\(filePath)\", \(idArtist), \(track), \(duration), \(idAlbum), \"\(musicTitle.replacingOccurrences(of: "\"", with: "'"))\", \(idGenre), \(hasLyric ? 1 : 0) );"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return true
+        }
+        return false
+    }
+    
+    func createTablesIfNeeded() -> Bool {
+        let statements = [
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableArtist.tableName) (
+                    \(DbConstants.TableArtist.colArtistId) INTEGER PRIMARY KEY,
+                    \(DbConstants.TableArtist.colArtist) TEXT NOT NULL UNIQUE);
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableAlbum.tableName) (
+                    \(DbConstants.TableAlbum.colAlbumId) INTEGER PRIMARY KEY,
+                    \(DbConstants.TableAlbum.colAlbum) TEXT NOT NULL,
+                    \(DbConstants.TableAlbum.colYear) INTEGER, 
+                    UNIQUE (\(DbConstants.TableAlbum.colAlbum), \(DbConstants.TableAlbum.colYear))
+                    );
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableDiretory.tableName) (
+                        \(DbConstants.TableDiretory.colDirId) INTEGER PRIMARY KEY,
+                        \(DbConstants.TableDiretory.colDirPath) TEXT NOT NULL UNIQUE,
+                        \(DbConstants.TableDiretory.colDirName) TEXT,
+                        \(DbConstants.TableDiretory.colMusicsCount) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableDiretory.colMusicsCount) >= 0),
+                        \(DbConstants.TableDiretory.colTotalTime) REAL NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableDiretory.colTotalTime) >= 0)
+                    );
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableGenre.tableName) (
+                    GenreId INTEGER PRIMARY KEY,
+                    \(DbConstants.TableGenre.colGenre) TEXT NOT NULL UNIQUE);
+                    """,
+                    
+                    """
+                    CREATE TABLE IF NOT EXISTS \(DbConstants.TableMusic.tableName) (
+                    \(DbConstants.TableMusic.colMusicId) INTEGER PRIMARY KEY,
+                    \(DbConstants.TableMusic.colFilePath) TEXT NOT NULL UNIQUE,
+                    \(DbConstants.TableMusic.colIdArtist) INTEGER NOT NULL REFERENCES \(DbConstants.TableArtist.tableName)(\(DbConstants.TableArtist.colArtistId)) ON DELETE RESTRICT,
+                    \(DbConstants.TableMusic.colIdAlbum) INTEGER REFERENCES \(DbConstants.TableAlbum.tableName)(\(DbConstants.TableAlbum.colAlbumId)) ON DELETE SET NULL,
+                    \(DbConstants.TableMusic.colTitle) TEXT NOT NULL,
+                    \(DbConstants.TableMusic.colIdGenre) INTEGER REFERENCES \(DbConstants.TableGenre.tableName)(\(DbConstants.TableGenre.colGenreId)) ON DELETE SET NULL,
+                    \(DbConstants.TableMusic.colDuration) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colDuration) >= 0),
+                    \(DbConstants.TableMusic.colTrack) INTEGER CHECK (\(DbConstants.TableMusic.colTrack) >= 0),
+                    \(DbConstants.TableMusic.colHasLyrics) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colHasLyrics) IN (0, 1))
+                    );
+                    """]
+        
+        var result = true
+        for sql in statements {
+            if let resultExec = self.helper?.executeQuery(query: sql) {
+                result = result && resultExec
+            }
+        }
+        return result
+    }
+    
+    func getRowId(table: String, columnId: String, column1: String, value1: String, column2: String = "", value2: String = "") -> Int {
+        var sql = ""
+        if !column2.isEmpty && !value2.isEmpty {
+            sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\" AND \(column2) = \"\(value2.replacingOccurrences(of: "\"", with: "'"))\";"
+        } else {
+            sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\""
+        }
         do {
-            // Criar ou buscar artista
-            var artistObj = try findOrCreateArtist(name: artist, genre: genre)
-            
-            // Criar ou buscar álbum
-            var albumObj = try findOrCreateAlbum(name: album, year: year, artist: artist, genre: genre)
-            
-            // Criar música
-            let newMusic = Music(
-                idServer: 0,
-                artist: artist,
-                album: album,
-                year: year,
-                track: track,
-                musicTitle: musicTitle,
-                genre: genre,
-                duration: duration,
-                filePath: filePath,
-                hasLyric: hasLyric
-            )
-            
-            modelContext.insert(newMusic)
-            
-            // Adicionar música ao álbum
-            let albumMusic = AlbumMusic(
-                idServer: 0,
-                track: track,
-                musicTitle: musicTitle,
-                duration: duration,
-                filePath: filePath
-            )
-            modelContext.insert(albumMusic)
-            albumObj.musics.append(albumMusic)
-            
-            // Adicionar música ao artista
-            if let artistAlbum = artistObj.albuns.first(where: { $0.album == album }) {
-                let artistMusic = ArtistMusic(
-                    idServer: 0,
-                    track: track,
-                    musicTitle: musicTitle,
-                    duration: duration,
-                    filePath: filePath
-                )
-                modelContext.insert(artistMusic)
-                artistAlbum.musics.append(artistMusic)
+            if let rows = try self.helper?.sql(query: sql) {
+                for row in rows {
+                    if let result = row[columnId] as? Int {
+                        return result
+                    }
+                }
+            }
+        } catch {
+            print(error)
+        }
+        if column2 != "" && value2 != "" {
+            sql = "INSERT INTO \(table) (\(column1), \(column2)) VALUES (\"\(value1.replacingOccurrences(of: "\"", with: "'"))\", \"\(value2.replacingOccurrences(of: "\"", with: "'"))\");"
+        } else {
+            sql = "INSERT INTO \(table) (\(column1)) VALUES (\"\(value1.replacingOccurrences(of: "\"", with: "'"))\");"
+        }
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            if !column2.isEmpty && !value2.isEmpty {
+                sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\" AND \(column2) = \"\(value2.replacingOccurrences(of: "\"", with: "'"))\";"
             } else {
-                let newArtistAlbum = ArtistAlbum(album: album, year: year)
-                modelContext.insert(newArtistAlbum)
-                
-                let artistMusic = ArtistMusic(
-                    idServer: 0,
-                    track: track,
-                    musicTitle: musicTitle,
-                    duration: duration,
-                    filePath: filePath
-                )
-                modelContext.insert(artistMusic)
-                newArtistAlbum.musics.append(artistMusic)
-                artistObj.albuns.append(newArtistAlbum)
+                sql = "SELECT \(columnId) FROM \(table) WHERE \(column1) = \"\(value1.replacingOccurrences(of: "\"", with: "'"))\""
             }
-            
-            try modelContext.save()
-            return true
-        } catch {
-            print("Erro ao adicionar música: \(error)")
-            return false
+            do {
+                if let rows = try self.helper?.sql(query: sql) {
+                    for row in rows {
+                        if let result = row[columnId] as? Int {
+                            return result
+                        }
+                    }
+                }
+            } catch {
+                print(error)
+            }
         }
+        return 0
     }
     
-    private func findOrCreateArtist(name: String, genre: String) throws -> Artist {
-        let descriptor = FetchDescriptor<Artist>(
-            predicate: #Predicate { $0.artist == name }
-        )
-        
-        let artists = try modelContext.fetch(descriptor)
-        if let existingArtist = artists.first {
-            return existingArtist
-        } else {
-            let newArtist = Artist(artist: name, genre: genre)
-            modelContext.insert(newArtist)
-            return newArtist
-        }
-    }
-    
-    private func findOrCreateAlbum(name: String, year: String, artist: String, genre: String) throws -> Album {
-        let descriptor = FetchDescriptor<Album>(
-            predicate: #Predicate { $0.album == name && $0.year == year && $0.artist == artist }
-        )
-        
-        let albums = try modelContext.fetch(descriptor)
-        if let existingAlbum = albums.first {
-            return existingAlbum
-        } else {
-            let newAlbum = Album(album: name, artist: artist, year: year, genre: genre)
-            modelContext.insert(newAlbum)
-            return newAlbum
-        }
-    }
-    
-    private func updateDirectoryNames() -> Bool {
-        let descriptor = FetchDescriptor<MusicDirectory>(
-            sortBy: [SortDescriptor(\.path)]
-        )
-        
+    private func updateRowsTableDirectories() -> Bool {
+        var result = true
+        var rowIdList = [String]()
+        let sql1 = """
+        SELECT
+           \(DbConstants.TableDiretory.colDirId)
+        FROM
+           \(DbConstants.TableDiretory.tableName)
+        """
         do {
-            let directories = try modelContext.fetch(descriptor)
-            var count = 1
-            for directory in directories {
-                directory.name = "Dir \(String(format: "%02d", count))"
-                count += 1
+            if let rows = try self.helper?.sql(query: sql1) {
+                for row in rows {
+                    if let rowId = row[DbConstants.TableDiretory.colDirId] as? Int {
+                        rowIdList.append(String(rowId))
+                    }
+                }
+                if rowIdList.count > 0 {
+                    var count = 1
+                    for rowId in rowIdList {
+                        let sql2 = "UPDATE \(DbConstants.TableDiretory.tableName) SET \(DbConstants.TableDiretory.colDirName) = \"Dir \(String(format: "%02d", count))\" WHERE \(DbConstants.TableDiretory.colDirId) = \(rowId);"
+                        
+                        if !((self.helper?.executeQuery(query: sql2)) != nil) {
+                            result = false
+                        }
+                        count += 1
+                    }
+                }
+                return result
             }
-            try modelContext.save()
-            return true
         } catch {
-            print("Erro ao atualizar nomes de diretórios: \(error)")
-            return false
+            print(error)
         }
+        return result
+        
+    }
+    
+    private func deleteRowsTableMusics() -> Bool {
+        let sql = "DELETE FROM \(DbConstants.TableMusic.tableName);"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return true
+        }
+        return false
+    }
+    
+    private func deleteRowsTableArtists() -> Bool {
+        let sql = "DELETE FROM \(DbConstants.TableArtist.tableName);"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return true
+        }
+        return false
+    }
+    
+    private func deleteRowsTableAlbuns() -> Bool {
+        let sql = "DELETE FROM \(DbConstants.TableAlbum.tableName);"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return true
+        }
+        return false
+    }
+    
+    private func deleteRowsTableGenres() -> Bool {
+        let sql = "DELETE FROM \(DbConstants.TableGenre.tableName);"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return true
+        }
+        return false
+    }
+    
+    private func deleteRowsTableDirectories() -> Bool {
+        let sql = "DELETE FROM \(DbConstants.TableDiretory.tableName);"
+        if ((self.helper?.executeQuery(query: sql)) != nil) {
+            return true
+        }
+        return false
     }
 }
-

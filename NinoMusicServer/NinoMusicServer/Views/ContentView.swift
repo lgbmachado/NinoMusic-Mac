@@ -36,14 +36,8 @@ struct ContentView: View {
     
     @State private var selection: ItemMenu = .musics
     @State private var showConfig = false
-    
-    private var isLoadingData: Bool {
-        musicsViewModel.isLoading || artistsViewModel.isLoading || albunsViewModel.isLoading
-    }
-    
-    private var loadingSheetBinding: Binding<Bool> {
-        Binding(get: { isLoadingData }, set: { _ in })
-    }
+    @State private var showLoadingSheet = false
+    @State private var didRunInitialLoad = false
     
     var body: some View {
         NavigationSplitView {
@@ -70,22 +64,28 @@ struct ContentView: View {
                     .navigationTitle(String())
             }
         }
-        .sheet(isPresented: loadingSheetBinding) {
+        .sheet(isPresented: $showLoadingSheet) {
             LoadingViewModelsSheet(
                 isMusicsLoading: musicsViewModel.isLoading,
                 isArtistsLoading: artistsViewModel.isLoading,
                 isAlbunsLoading: albunsViewModel.isLoading,
                 isMusicTagLoading: tagEditorViewModel.isLoading
             )
-            .interactiveDismissDisabled(isLoadingData)
+            .interactiveDismissDisabled(showLoadingSheet)
         }
         .task {
-            async let musicsTask = musicsViewModel.reloadMusics()
-            async let artistsTask = artistsViewModel.reloadArtists()
-            async let albunsTask = albunsViewModel.reloadAlbuns()
-            async let tagEditorTask = tagEditorViewModel.reloadMusics()
-            _ = await (musicsTask, artistsTask, albunsTask, tagEditorTask)
-            albunsViewModel.indexAlbumSelected = 0
+            if didRunInitialLoad {
+                return
+            }
+            didRunInitialLoad = true
+            showLoadingSheet = true
+
+            _ = await musicsViewModel.reloadMusics()
+            _ = await artistsViewModel.reloadArtists()
+            _ = await albunsViewModel.reloadAlbuns()
+            _ = await tagEditorViewModel.reloadMusics()
+
+            showLoadingSheet = false
         }
         .sheet(isPresented: $showConfig) {
             ConfigurationsView(tagEditorViewModel: tagEditorViewModel,

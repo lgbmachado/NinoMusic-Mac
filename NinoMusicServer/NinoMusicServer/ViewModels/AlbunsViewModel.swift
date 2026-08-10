@@ -6,118 +6,12 @@
 //
 
 import Foundation
-import OSLog
-import SwiftUI
 
 class AlbunsViewModel: BaseViewModel {
-    private static let signposter = OSSignposter(subsystem: "nino.musicserver", category: "AlbunsViewModel")
-    private let initialCoverBatchSize = 12
-    private let coverPrefetchRadius = 10
-
     @Published var albuns: [Album] = []
-    @Published var covers: [AlbumCover] = []
-    @Published var indexAlbumSelected: Int = 0
-
-    private var coverPathByAlbumId: [UUID: String] = [:]
-    private var loadedCoverIds = Set<UUID>()
-    private var loadingCoverIds = Set<UUID>()
-
-    var idAlbumSelected: UUID? {
-        selectedAlbum?.id
-    }
-
-    var albumSelected: Album {
-        selectedAlbum ?? Album.emptyAlbum
-    }
-
-    private var selectedAlbum: Album? {
-        guard indexAlbumSelected >= 0, indexAlbumSelected < albuns.count else {
-            return nil
-        }
-        return albuns[indexAlbumSelected]
-    }
-
-    func loadVisibleCovers(around index: Int) {
-        Task {
-            await loadCovers(around: index, limit: max(initialCoverBatchSize, coverPrefetchRadius * 2 + 1))
-        }
-    }
-
-    private func loadInitialCovers() {
-        loadVisibleCovers(around: 0)
-    }
-
-    @MainActor
-    private func loadCovers(around index: Int, limit: Int) async {
-        guard !covers.isEmpty else {
-            return
-        }
-
-        let safeIndex = min(max(index, 0), covers.count - 1)
-        let lowerBound = max(0, safeIndex - coverPrefetchRadius)
-        let upperBound = min(covers.count - 1, safeIndex + coverPrefetchRadius)
-
-        var idsToLoad: [UUID] = []
-        for idx in lowerBound...upperBound {
-            let id = covers[idx].id
-            if !loadedCoverIds.contains(id), !loadingCoverIds.contains(id) {
-                idsToLoad.append(id)
-            }
-        }
-
-        if idsToLoad.count < limit {
-            for cover in covers where idsToLoad.count < limit {
-                if !loadedCoverIds.contains(cover.id), !loadingCoverIds.contains(cover.id) {
-                    idsToLoad.append(cover.id)
-                }
-            }
-        }
-
-        guard !idsToLoad.isEmpty else {
-            return
-        }
-
-        for id in idsToLoad {
-            loadingCoverIds.insert(id)
-        }
-
-        let coverPaths = idsToLoad.compactMap { id -> (UUID, String)? in
-            guard let path = coverPathByAlbumId[id], !path.isEmpty else {
-                loadedCoverIds.insert(id)
-                return nil
-            }
-            return (id, path)
-        }
-
-        let loadedItems: [(UUID, Image)] = await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                var items: [(UUID, Image)] = []
-                for (id, path) in coverPaths {
-                    if let image = Id3TagUtils.getImageCover(path: path, maxPixelSize: 320) {
-                        items.append((id, Image(nsImage: image)))
-                    }
-                }
-                continuation.resume(returning: items)
-            }
-        }
-
-        var imageById: [UUID: Image] = [:]
-        for (id, image) in loadedItems {
-            imageById[id] = image
-        }
-
-        for idx in covers.indices {
-            let id = covers[idx].id
-            if let image = imageById[id] {
-                covers[idx].cover = image
-                loadedCoverIds.insert(id)
-            }
-        }
-
-        for id in idsToLoad {
-            loadingCoverIds.remove(id)
-        }
-    }
+    @Published var idAlbumSelected: Album.ID = UUID()
+    @Published var filePathCover: String = String()
+    @Published var albumSelected: Album = Album.emptyAlbum
     
     override func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .albuns {
@@ -131,11 +25,30 @@ class AlbunsViewModel: BaseViewModel {
         }
     }
     
+    func goToPreviusAlbum() {
+        let searchCount = albumSelected.seq  - 1
+        if let selected = self.albuns.first(where: {$0.seq == searchCount}) {
+            self.idAlbumSelected = selected.id
+            self.albumSelected = selected
+            self.filePathCover = albumSelected.musics.first?.filePath ?? ""
+        }
+    }
+    
+    func goToNextAlbum() {
+        let searchCount = albumSelected.seq  + 1
+        if let selected = self.albuns.first(where: {$0.seq == searchCount}) {
+            self.idAlbumSelected = selected.id
+            self.albumSelected = selected
+            self.filePathCover = self.albumSelected.musics.first?.filePath ?? ""
+        }
+    }
+    
     func setIdSelection(selection: UUID) {
         for album in albuns {
             if let item = album.musics.first(where: { $0.id == selection }) {
                 self.musicSelected.id = item.id
                 self.musicSelected.seq = item.seq
+                self.musicSelected.idServer = item.idServer
                 self.musicSelected.artist = album.artist
                 self.musicSelected.album = album.album
                 self.musicSelected.year = album.year
@@ -145,17 +58,15 @@ class AlbunsViewModel: BaseViewModel {
                 self.musicSelected.duration = item.duration
                 self.musicSelected.filePath = item.filePath
                 self.musicSelected.hasLyric = item.hasLyric
+                return
             }
         }
+
+        self.musicSelected = Music.emptyMusic
     }
     
     func reloadAlbuns() async {
-        let reloadState = Self.signposter.beginInterval("reloadAlbuns")
-        defer {
-            Self.signposter.endInterval("reloadAlbuns", reloadState)
-        }
-
-          let sqlAlbuns = """
+        let sqlAlbuns = """
                     SELECT
                         \(DbConstants.TableMusic.colIdAlbum),
                         \(DbConstants.TableAlbum.colAlbum),
@@ -184,11 +95,9 @@ class AlbunsViewModel: BaseViewModel {
             self.isLoading = true
         }
 
-        let result = await withCheckedContinuation { (continuation: CheckedContinuation<([Album], [AlbumCover], [UUID: String]), Never>) in
+        let albumList = await withCheckedContinuation { (continuation: CheckedContinuation<[Album], Never>) in
             DispatchQueue.global(qos: .userInitiated).async {
                 var albumList = [Album]()
-                var coversList = [AlbumCover]()
-                var coverPathListById: [UUID: String] = [:]
                 var seqAlbum = 0
 
                 var currentAlbumId: Int?
@@ -197,38 +106,23 @@ class AlbunsViewModel: BaseViewModel {
                 var currentYear = Int()
                 var currentGenre = String()
                 var currentMusics = [AlbumMusic]()
-                var currentCoverPath = String()
 
-                func appendCurrentAlbum() {
+                func appendCurrentAlbumIfNeeded() {
                     guard currentAlbumId != nil else {
                         return
                     }
 
                     seqAlbum += 1
-                    let album = Album(seq: seqAlbum,
-                                      album: currentAlbumName,
-                                      artist: currentArtist,
-                                      year: currentYear,
-                                      genre: currentGenre,
-                                      musics: currentMusics)
-                    albumList.append(album)
-                    coverPathListById[album.id] = currentCoverPath
-                    coversList.append(AlbumCover(id: album.id,
-                                                 coverURL: currentCoverPath,
-                                                 cover: nil))
+                    albumList.append(Album(seq: seqAlbum,
+                                           album: currentAlbumName,
+                                           artist: currentArtist,
+                                           year: currentYear,
+                                           genre: currentGenre,
+                                           musics: currentMusics))
                 }
 
                 do {
-                    let fetchState = Self.signposter.beginInterval("reloadAlbuns.fetchRows")
-                    let rowsAlbuns = try self.helper?.sql(query: sqlAlbuns)
-                    Self.signposter.endInterval("reloadAlbuns.fetchRows", fetchState)
-
-                    if let rowsAlbuns {
-                        let buildState = Self.signposter.beginInterval("reloadAlbuns.buildAlbums")
-                        defer {
-                            Self.signposter.endInterval("reloadAlbuns.buildAlbums", buildState)
-                        }
-
+                    if let rowsAlbuns = try self.helper?.sql(query: sqlAlbuns) {
                         for rowAlbum in rowsAlbuns {
                             if
                                 let idAlbum = rowAlbum[DbConstants.TableMusic.colIdAlbum] as? Int,
@@ -244,15 +138,13 @@ class AlbunsViewModel: BaseViewModel {
                                 let hasLyric = rowAlbum[DbConstants.TableMusic.colHasLyrics] as? Int
                             {
                                 if currentAlbumId != idAlbum {
-                                    appendCurrentAlbum()
-
+                                    appendCurrentAlbumIfNeeded()
                                     currentAlbumId = idAlbum
                                     currentAlbumName = album
                                     currentArtist = artist
                                     currentYear = year
                                     currentGenre = genre
                                     currentMusics.removeAll(keepingCapacity: true)
-                                    currentCoverPath = filePath
                                 }
 
                                 currentMusics.append(AlbumMusic(seq: currentMusics.count + 1,
@@ -265,30 +157,40 @@ class AlbunsViewModel: BaseViewModel {
                             }
                         }
 
-                        appendCurrentAlbum()
+                        appendCurrentAlbumIfNeeded()
                     }
                 } catch {
                     print(error)
                 }
 
-                continuation.resume(returning: (albumList, coversList, coverPathListById))
+                continuation.resume(returning: albumList)
             }
         }
 
         await MainActor.run {
-            self.albuns = result.0
-            self.covers = result.1
-            self.coverPathByAlbumId = result.2
-            self.loadedCoverIds.removeAll(keepingCapacity: true)
-            self.loadingCoverIds.removeAll(keepingCapacity: true)
-            if self.indexAlbumSelected >= self.albuns.count {
-                self.indexAlbumSelected = max(self.albuns.count - 1, 0)
+            self.albuns = albumList
+
+            if let firstAlbum = albumList.first {
+                self.idAlbumSelected = firstAlbum.id
+                self.albumSelected = firstAlbum
+                self.filePathCover = firstAlbum.musics.first?.filePath ?? ""
+
+                if let firstMusic = firstAlbum.musics.first {
+                    self.idMusicSelected = firstMusic.id
+                    self.setIdSelection(selection: firstMusic.id)
+                } else {
+                    self.idMusicSelected = nil
+                    self.musicSelected = Music.emptyMusic
+                }
+            } else {
+                self.idAlbumSelected = UUID()
+                self.albumSelected = Album.emptyAlbum
+                self.filePathCover = ""
+                self.idMusicSelected = nil
+                self.musicSelected = Music.emptyMusic
             }
+
             self.isLoading = false
-        }
-
-        await MainActor.run {
-            self.loadInitialCovers()
         }
     }
 }

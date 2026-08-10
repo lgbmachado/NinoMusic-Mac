@@ -62,9 +62,3 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
                                        filePath: String(),
                                        hasLyric: false)
 }
-
-struct AlbumCover: Identifiable {
-    var id: UUID
-    var coverURL: String
-    var cover: Image?
-}

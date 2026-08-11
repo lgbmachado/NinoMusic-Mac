@@ -32,6 +32,14 @@ struct MusicDetailsView: View {
 struct TagView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
     
+    @State private var successSaveTag = false
+    @State private var finishSaveTag = false
+    
+    @State private var finishSaveCoverImage = false
+    @State private var successSaveCoverImage = false
+    
+    @State private var pathCoverImage = String()
+    
     let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.zeroSymbol = ""
@@ -124,11 +132,31 @@ struct TagView: View {
                     placeholder: String(localized: "text_genre")
                 )
                 .frame(width: 200)
-                Spacer()
                 
                 Text(LocalizedStringKey("text_album_cover"))
                     .font(.caption2)
                     .padding(.bottom, -7)
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        loadCoverImage()
+                    }) {
+                        Image(systemName: "photo.badge.plus")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .disabled(tagEditorViewModel.fileSelected.isEmpty)
+                    
+                    Button(action: {
+                        saveCoverImage()
+                    }) {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .alert(successSaveCoverImage ?  "Imagem da capa do álbum salva com sucesso." : "Falha ao salvar imagem da capa do álbum.", isPresented: $finishSaveCoverImage) {
+                        Button(LocalizedStringKey("text_ok"), role: .cancel) { }
+                    }
+                }
+                
                 Image(nsImage: Id3TagUtils.getImageCover(path: self.tagEditorViewModel.musicSelectedDraft.filePath) ?? NSImage())
                     .resizable()
                     .frame(width: .infinity, height: .infinity, alignment: .bottom)
@@ -140,11 +168,14 @@ struct TagView: View {
                 HStack {
                     Spacer()
                     Button("Salvar") {
-                        self.tagEditorViewModel.SetMusicTags(music: self.tagEditorViewModel.musicSelectedDraft, coverImagePath: "")
-                        self.tagEditorViewModel.musicSelected = self.tagEditorViewModel.musicSelectedDraft
+                        successSaveTag = self.tagEditorViewModel.SetMusicTags(coverImagePath: pathCoverImage)
+                        finishSaveTag = true
                     }
                     .padding()
                     .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected))
+                    .alert(successSaveTag ? "Novas informações no arquivo de música salvas com suvesso." : "Falha ao salvar novas informações no arquivo de música.", isPresented: $finishSaveTag) {
+                        Button(LocalizedStringKey("text_ok"), role: .cancel) { }
+                    }
                     
                     Button("Desfazer", role: .cancel) {
                         self.tagEditorViewModel.musicSelectedDraft = self.tagEditorViewModel.musicSelected
@@ -153,9 +184,43 @@ struct TagView: View {
                     .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected))
                     Spacer()
                 }
-
+                
             }
         }
+    }
+    
+    private func loadCoverImage() {
+        let dialog = NSOpenPanel()
+        dialog.title = "Selecione a imagem da capa"
+        dialog.showsHiddenFiles = false
+        dialog.canChooseFiles = true
+        dialog.canChooseDirectories = false
+        dialog.allowedContentTypes = [.jpeg, .png]
+        
+        if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
+            if let url = dialog.url {
+                self.pathCoverImage = url.absoluteString
+            }
+        } else {
+            return
+        }
+        return
+    }
+    
+    private func saveCoverImage() {
+        let dialog = NSSavePanel()
+        dialog.title = "Selecione o nome do arquivo"
+        dialog.showsHiddenFiles = false
+        dialog.allowedContentTypes = [.jpeg, .png]
+        
+        if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
+            if let url = dialog.url {
+                self.successSaveCoverImage = self.tagEditorViewModel.saveCover(coverImageUrl: url)
+            }
+        } else {
+            self.finishSaveCoverImage = false
+        }
+        self.finishSaveCoverImage = true
     }
 }
 

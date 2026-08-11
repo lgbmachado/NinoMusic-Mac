@@ -11,6 +11,7 @@ enum MusicContentViewType: Identifiable, CaseIterable, Hashable {
     case musics
     case artists
     case albuns
+    case tagEditor
     
     var id: String {
         switch self {
@@ -19,8 +20,11 @@ enum MusicContentViewType: Identifiable, CaseIterable, Hashable {
         case .artists:
             "artists"
         case .albuns:
-            "albuns"
+            "tagEditor"
+        case .tagEditor:
+            "tagEditor"
         }
+        
     }
 }
 

@@ -118,17 +118,19 @@ class TagEditorViewModel: BaseViewModel {
         }
     }
     
+    private func loadMusicLyric(for item: Music) {
+        let fileHasLyrics = item.hasLyric || Id3TagUtils.hasLyrics(path: item.filePath)
+        self.musicSelected.hasLyric = fileHasLyrics
+        self.musicLyric = fileHasLyrics ? (Id3TagUtils.getLyrics(path: item.filePath) ?? "") : ""
+    }
+
     func setIdLibrarySelection(selection: Music.ID) {
         self.idMusicSelected = selection
         if let item = self.musicsLibrary.first(where: { $0.id == self.idMusicSelected }) {
             self.idMusicSelected = item.id
             self.musicSelected = item
             self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
-            if self.musicSelected.hasLyric {
-                self.musicLyric = Id3TagUtils.getLyrics(path: item.filePath) ?? ""
-            } else {
-                self.musicLyric = ""
-            }
+            self.loadMusicLyric(for: item)
         } else {
             self.musicSelected = Music.emptyMusic
         }
@@ -141,11 +143,7 @@ class TagEditorViewModel: BaseViewModel {
             self.idMusicSelected = item.id
             self.musicSelected = item
             self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
-            if self.musicSelected.hasLyric {
-                self.musicLyric = Id3TagUtils.getLyrics(path: item.filePath) ?? ""
-            } else {
-                self.musicLyric = ""
-            }
+            self.loadMusicLyric(for: item)
         } else {
             self.musicSelected = Music.emptyMusic
         }
@@ -182,12 +180,7 @@ class TagEditorViewModel: BaseViewModel {
             let genre = ((id3Tag?.frames[.genre] as? ID3FrameGenre)?.description ?? String()) as String
             let filePath = fileURL.absoluteString
             
-            var hasLyric = false
-            if let frame = id3Tag?.frames[.unsynchronizedLyrics(.unknown)] {
-                if let textFrame = frame as? ID3FrameWithStringContent {
-                    hasLyric = !textFrame.content.isEmpty
-                }
-            }
+            let hasLyric = !(Id3TagUtils.lyrics(in: id3Tag)?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
             return Music(id: UUID(),
                          seq: 0,
                          idServer: 0,
@@ -208,57 +201,61 @@ class TagEditorViewModel: BaseViewModel {
     }
 
     func SetMusicTags(coverImagePath: String) -> Bool {
-        if let musicUrl = URL(string: self.musicSelectedDraft.filePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "") {
-            let id3TagEditor: ID3TagEditor = ID3TagEditor()
-            let currentTag = try? id3TagEditor.read(from: musicUrl.absoluteString.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
-            
-            do {
-                var builder = ID32v3TagBuilder()
-                    .title(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.musicTitle))
-                    .artist(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.artist))
-                    .album(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.album))
-                    .recordingYear(frame: ID3FrameWithIntegerContent(value: self.musicSelectedDraft.year))
-                    .trackPosition(frame: ID3FramePartOfTotal(part: self.musicSelectedDraft.track, total: nil))
-                    .genre(frame: .init(genre: nil, description: self.musicSelectedDraft.genre))
-                
-                if !self.musicLyric.isEmpty {
-                    builder = builder.unsynchronisedLyrics(language: .eng,
-                                                           frame: ID3FrameWithLocalizedContent(
-                                                            language: ID3FrameContentLanguage.eng,
-                                                            contentDescription: "Lyric - \(self.musicSelectedDraft.musicTitle)",
-                                                            content: self.musicLyric))
-                }
-                
-                if !coverImagePath.isEmpty {
-                    let imageURL = URL(fileURLWithPath: coverImagePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
-                    
-                    if let imageData = try? Data(contentsOf: imageURL) {
-                        let format: ID3PictureFormat = imageURL.pathExtension.lowercased() == "png" ? .png : .jpeg
-                        
-                        let coverFrame = ID3FrameAttachedPicture(
-                            picture: imageData,
-                            type: .frontCover,
-                            format: format
-                        )
-                        
-                        builder = builder.attachedPicture(pictureType: .frontCover, frame: coverFrame)
-                    }
-                } else {
-                    if let existingCoverFrame = currentTag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
-                        builder = builder.attachedPicture(pictureType: .frontCover, frame: existingCoverFrame)
-                    }
-                }
+        let normalizedPath = self.musicSelectedDraft.filePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? self.musicSelectedDraft.filePath
+        let musicUrl = URL(fileURLWithPath: normalizedPath)
 
-                let id3Tag = builder.build()
-                try id3TagEditor.write(tag: id3Tag, to: musicUrl.absoluteString.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
-                
-                return true
-            } catch {
-                print(error)
-                return false
+        let id3TagEditor: ID3TagEditor = ID3TagEditor()
+        let currentTag = try? id3TagEditor.read(from: musicUrl.path)
+
+        do {
+            var builder = ID32v3TagBuilder()
+                .title(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.musicTitle))
+                .artist(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.artist))
+                .album(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.album))
+                .recordingYear(frame: ID3FrameWithIntegerContent(value: self.musicSelectedDraft.year))
+                .trackPosition(frame: ID3FramePartOfTotal(part: self.musicSelectedDraft.track, total: nil))
+                .genre(frame: .init(genre: nil, description: self.musicSelectedDraft.genre))
+
+            let trimmedLyric = self.musicLyric.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedLyric.isEmpty {
+                builder = builder.unsynchronisedLyrics(language: .eng,
+                                                       frame: ID3FrameWithLocalizedContent(
+                                                        language: ID3FrameContentLanguage.eng,
+                                                        contentDescription: "Lyric - \(self.musicSelectedDraft.musicTitle)",
+                                                        content: self.musicLyric))
             }
+
+            if !coverImagePath.isEmpty {
+                let imageURL = URL(fileURLWithPath: coverImagePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? coverImagePath)
+
+                if let imageData = try? Data(contentsOf: imageURL) {
+                    let format: ID3PictureFormat = imageURL.pathExtension.lowercased() == "png" ? .png : .jpeg
+
+                    let coverFrame = ID3FrameAttachedPicture(
+                        picture: imageData,
+                        type: .frontCover,
+                        format: format
+                    )
+
+                    builder = builder.attachedPicture(pictureType: .frontCover, frame: coverFrame)
+                }
+            } else {
+                if let existingCoverFrame = currentTag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
+                    builder = builder.attachedPicture(pictureType: .frontCover, frame: existingCoverFrame)
+                }
+            }
+
+            let id3Tag = builder.build()
+            try id3TagEditor.write(tag: id3Tag, to: musicUrl.path)
+
+            self.musicSelected.hasLyric = !trimmedLyric.isEmpty
+            self.musicSelectedDraft.hasLyric = !trimmedLyric.isEmpty
+            self.musicLyric = trimmedLyric
+            return true
+        } catch {
+            print(error)
+            return false
         }
-        return false
     }
 
     func saveCover(coverImageUrl: URL) -> Bool {

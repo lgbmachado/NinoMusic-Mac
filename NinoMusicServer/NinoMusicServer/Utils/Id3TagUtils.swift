@@ -47,20 +47,43 @@ public class Id3TagUtils {
     }
     
     static func getLyrics(path: String) -> String? {
+        let normalizedPath = path.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? path
+        guard !normalizedPath.isEmpty else {
+            return String()
+        }
+
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
         do {
-            let id3Tag = try id3TagEditor.read(from: path.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
-            
-            if let frame = id3Tag?.frames[.unsynchronizedLyrics(.unknown)] {
-                if let textFrame = frame as? ID3FrameWithStringContent {
-                    return textFrame.content
-                }
+            let id3Tag = try id3TagEditor.read(from: normalizedPath)
+            return lyrics(in: id3Tag) ?? String()
+        } catch {
+            print(error)
+            return String()
+        }
+    }
+
+    static func hasLyrics(path: String) -> Bool {
+        let lyric = getLyrics(path: path)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return !lyric.isEmpty
+    }
+
+    static func lyrics(in id3Tag: ID3Tag?) -> String? {
+        guard let id3Tag else {
+            return nil
+        }
+
+        for language in ID3FrameContentLanguage.allCases {
+            if let frame = id3Tag.frames[.unsynchronizedLyrics(language)] as? ID3FrameWithLocalizedContent,
+               !frame.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return frame.content
+            }
+            if let frame = id3Tag.frames[.comment(language)] as? ID3FrameWithLocalizedContent,
+               !frame.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return frame.content
             }
         }
-        catch {
-            print(error)
-        }
-        return String()
+
+        return nil
     }
     
     static func getDuration(url: URL) async -> Int {

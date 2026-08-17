@@ -33,6 +33,9 @@
             <PersistentString
                value = "self.musicsLibrary">
             </PersistentString>
+            <PersistentString
+               value = "self.musicsLyric">
+            </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState

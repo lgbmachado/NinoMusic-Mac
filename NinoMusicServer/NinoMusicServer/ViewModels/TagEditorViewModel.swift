@@ -17,6 +17,7 @@ class TagEditorViewModel: BaseViewModel {
     @Published var musicsLibrary: [Music] = []
     @Published var musicsFileDir: [Music] = []
     @Published var musicSelectedDraft: Music = Music.emptyMusic
+    @Published var musicLyric: String = String()
     
     var origin: EditOrigin = .fileDir
     
@@ -123,6 +124,11 @@ class TagEditorViewModel: BaseViewModel {
             self.idMusicSelected = item.id
             self.musicSelected = item
             self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
+            if self.musicSelected.hasLyric {
+                self.musicLyric = Id3TagUtils.getLyrics(path: item.filePath) ?? ""
+            } else {
+                self.musicLyric = ""
+            }
         } else {
             self.musicSelected = Music.emptyMusic
         }
@@ -135,6 +141,11 @@ class TagEditorViewModel: BaseViewModel {
             self.idMusicSelected = item.id
             self.musicSelected = item
             self.fileSelected = String((item.filePath as NSString).lastPathComponent).removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? ""
+            if self.musicSelected.hasLyric {
+                self.musicLyric = Id3TagUtils.getLyrics(path: item.filePath) ?? ""
+            } else {
+                self.musicLyric = ""
+            }
         } else {
             self.musicSelected = Music.emptyMusic
         }
@@ -209,6 +220,14 @@ class TagEditorViewModel: BaseViewModel {
                     .recordingYear(frame: ID3FrameWithIntegerContent(value: self.musicSelectedDraft.year))
                     .trackPosition(frame: ID3FramePartOfTotal(part: self.musicSelectedDraft.track, total: nil))
                     .genre(frame: .init(genre: nil, description: self.musicSelectedDraft.genre))
+                
+                if !self.musicLyric.isEmpty {
+                    builder = builder.unsynchronisedLyrics(language: .eng,
+                                                           frame: ID3FrameWithLocalizedContent(
+                                                            language: ID3FrameContentLanguage.eng,
+                                                            contentDescription: "Lyric - \(self.musicSelectedDraft.musicTitle)",
+                                                            content: self.musicLyric))
+                }
                 
                 if !coverImagePath.isEmpty {
                     let imageURL = URL(fileURLWithPath: coverImagePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")

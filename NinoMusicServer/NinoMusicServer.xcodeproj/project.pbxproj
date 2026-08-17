@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		3F1377F22F16BD8C00185643 /* GCDWebServer in Frameworks */ = {isa = PBXBuildFile; productRef = 3F1377F12F16BD8C00185643 /* GCDWebServer */; };
 		3F42591A2D6E349600773DB2 /* ID3TagEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 3F4259192D6E349600773DB2 /* ID3TagEditor */; };
-		3FAA3D382F311D2300E25C61 /* ACarousel in Frameworks */ = {isa = PBXBuildFile; productRef = 3FAA3D372F311D2300E25C61 /* ACarousel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,7 +29,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F1377F22F16BD8C00185643 /* GCDWebServer in Frameworks */,
-				3FAA3D382F311D2300E25C61 /* ACarousel in Frameworks */,
 				3F42591A2D6E349600773DB2 /* ID3TagEditor in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -76,7 +74,6 @@
 			packageProductDependencies = (
 				3F4259192D6E349600773DB2 /* ID3TagEditor */,
 				3F1377F12F16BD8C00185643 /* GCDWebServer */,
-				3FAA3D372F311D2300E25C61 /* ACarousel */,
 			);
 			productName = NinoMusicServer;
 			productReference = 3FAF953F2D6CAD2D0044D81B /* NinoMusicServer.app */;
@@ -110,7 +107,6 @@
 			packageReferences = (
 				3F4259182D6E349600773DB2 /* XCRemoteSwiftPackageReference "ID3TagEditor" */,
 				3F1377F02F16BD8C00185643 /* XCRemoteSwiftPackageReference "GCDWebServer" */,
-				3FAA3D362F311D2300E25C61 /* XCRemoteSwiftPackageReference "ACarousel" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3FAF95402D6CAD2D0044D81B /* Products */;
@@ -365,14 +361,6 @@
 				minimumVersion = 5.2.0;
 			};
 		};
-		3FAA3D362F311D2300E25C61 /* XCRemoteSwiftPackageReference "ACarousel" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/JWAutumn/ACarousel";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.2.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -385,11 +373,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3F4259182D6E349600773DB2 /* XCRemoteSwiftPackageReference "ID3TagEditor" */;
 			productName = ID3TagEditor;
-		};
-		3FAA3D372F311D2300E25C61 /* ACarousel */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3FAA3D362F311D2300E25C61 /* XCRemoteSwiftPackageReference "ACarousel" */;
-			productName = ACarousel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

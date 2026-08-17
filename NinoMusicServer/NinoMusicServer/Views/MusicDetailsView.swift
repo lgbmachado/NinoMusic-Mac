@@ -164,6 +164,18 @@ struct TagView: View {
                     .aspectRatio(contentMode: .fit)
                     .border(.black)
                 
+                Text("Letra")
+                    .font(.caption2)
+                    .padding(.bottom, -7)
+                TextEditor(text: $tagEditorViewModel.musicLyric)
+                    .disabled(false)
+                    .font(.body)
+                    .padding(4)
+                    .background(Color(NSColor.textBackgroundColor))
+                    .cornerRadius(8)
+                    .frame(width: .infinity, height: 300, alignment: .bottom)
+                            
+                
                 Spacer()
                 HStack {
                     Spacer()

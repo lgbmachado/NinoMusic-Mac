@@ -72,14 +72,36 @@ public class Id3TagUtils {
             return nil
         }
 
-        for language in ID3FrameContentLanguage.allCases {
-            if let frame = id3Tag.frames[.unsynchronizedLyrics(language)] as? ID3FrameWithLocalizedContent,
-               !frame.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                return frame.content
+        func nonEmptyContent(in frame: ID3Frame) -> String? {
+            let content: String?
+            if let localizedFrame = frame as? ID3FrameWithLocalizedContent {
+                content = localizedFrame.content
+            } else {
+                content = (frame as? ID3FrameWithStringContent)?.content
             }
-            if let frame = id3Tag.frames[.comment(language)] as? ID3FrameWithLocalizedContent,
-               !frame.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                return frame.content
+
+            guard let content,
+                  !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return nil
+            }
+            return content
+        }
+
+        for (frameName, frame) in id3Tag.frames {
+            guard case .unsynchronizedLyrics = frameName else {
+                continue
+            }
+            if let content = nonEmptyContent(in: frame) {
+                return content
+            }
+        }
+
+        for (frameName, frame) in id3Tag.frames {
+            guard case .comment = frameName else {
+                continue
+            }
+            if let content = nonEmptyContent(in: frame) {
+                return content
             }
         }
 

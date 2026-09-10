@@ -99,7 +99,9 @@ struct TagView: View {
                 TextField(LocalizedStringKey("text_year"),
                           text: Binding(
                             get: { String(tagEditorViewModel.musicSelectedDraft.year) },
-                            set: {_,_ in }
+                                                        set: { newValue in
+                                                                tagEditorViewModel.musicSelectedDraft.year = Int(newValue) ?? 0
+                                                        }
                           ),
                           prompt: Text(LocalizedStringKey("text_year"))
                 )
@@ -159,21 +161,20 @@ struct TagView: View {
                 
                 Image(nsImage: Id3TagUtils.getImageCover(path: self.tagEditorViewModel.musicSelectedDraft.filePath) ?? NSImage())
                     .resizable()
-                    .frame(width: .infinity, height: .infinity, alignment: .bottom)
                     .scaledToFit()
-                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: 300, alignment: .bottom)
                     .border(.black)
                 
                 Text("Letra")
                     .font(.caption2)
                     .padding(.bottom, -7)
-                TextEditor(text: $tagEditorViewModel.musicLyric)
+                TextEditor(text: $tagEditorViewModel.musicLyricDraft)
                     .disabled(false)
                     .font(.body)
                     .padding(4)
                     .background(Color(NSColor.textBackgroundColor))
                     .cornerRadius(8)
-                    .frame(width: .infinity, height: 300, alignment: .bottom)
+                    .frame(maxWidth: .infinity, minHeight: 300, alignment: .bottom)
                             
                 
                 Spacer()
@@ -181,19 +182,24 @@ struct TagView: View {
                     Spacer()
                     Button("Salvar") {
                         successSaveTag = self.tagEditorViewModel.SetMusicTags(coverImagePath: pathCoverImage)
+                        if successSaveTag {
+                            self.tagEditorViewModel.musicSelected = self.tagEditorViewModel.musicSelectedDraft
+                            self.tagEditorViewModel.musicLyric = self.tagEditorViewModel.musicLyricDraft
+                        }
                         finishSaveTag = true
                     }
                     .padding()
-                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected))
-                    .alert(successSaveTag ? "Novas informações no arquivo de música salvas com suvesso." : "Falha ao salvar novas informações no arquivo de música.", isPresented: $finishSaveTag) {
+                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected || self.tagEditorViewModel.musicLyricDraft != self.tagEditorViewModel.musicLyric))
+                    .alert(successSaveTag ? "Novas informações no arquivo de música salvas com sucesso." : "Falha ao salvar novas informações no arquivo de música.", isPresented: $finishSaveTag) {
                         Button(LocalizedStringKey("text_ok"), role: .cancel) { }
                     }
                     
                     Button("Desfazer", role: .cancel) {
                         self.tagEditorViewModel.musicSelectedDraft = self.tagEditorViewModel.musicSelected
+                        self.tagEditorViewModel.musicLyricDraft = self.tagEditorViewModel.musicLyric
                     }
                     .padding()
-                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected))
+                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected || self.tagEditorViewModel.musicLyricDraft != self.tagEditorViewModel.musicLyric))
                     Spacer()
                 }
                 

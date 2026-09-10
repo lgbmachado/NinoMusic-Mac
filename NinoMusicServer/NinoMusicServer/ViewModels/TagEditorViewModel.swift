@@ -18,6 +18,7 @@ class TagEditorViewModel: BaseViewModel {
     @Published var musicsFileDir: [Music] = []
     @Published var musicSelectedDraft: Music = Music.emptyMusic
     @Published var musicLyric: String = String()
+    @Published var musicLyricDraft: String = String()
     
     var origin: EditOrigin = .fileDir
     
@@ -122,6 +123,16 @@ class TagEditorViewModel: BaseViewModel {
         let fileHasLyrics = item.hasLyric || Id3TagUtils.hasLyrics(path: item.filePath)
         self.musicSelected.hasLyric = fileHasLyrics
         self.musicLyric = fileHasLyrics ? (Id3TagUtils.getLyrics(path: item.filePath) ?? "") : ""
+        self.musicLyricDraft = self.musicLyric
+    }
+
+    private func fileURL(for path: String) -> URL? {
+        if let url = URL(string: path), url.isFileURL {
+            return url
+        }
+
+        let decodedPath = path.removingPercentEncoding ?? path
+        return URL(fileURLWithPath: decodedPath)
     }
 
     func setIdLibrarySelection(selection: Music.ID) {
@@ -169,7 +180,7 @@ class TagEditorViewModel: BaseViewModel {
     private func GetMusicTags(fileURL: URL) async -> Music {
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
         do {
-            let id3Tag = try id3TagEditor.read(from: fileURL.path().removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "")
+            let id3Tag = try id3TagEditor.read(from: fileURL.path)
             
             let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
             let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
@@ -201,11 +212,12 @@ class TagEditorViewModel: BaseViewModel {
     }
 
     func SetMusicTags(coverImagePath: String) -> Bool {
-        let normalizedPath = self.musicSelectedDraft.filePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? self.musicSelectedDraft.filePath
-        let musicUrl = URL(fileURLWithPath: normalizedPath)
+        guard let musicURL = fileURL(for: self.musicSelectedDraft.filePath) else {
+            return false
+        }
 
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
-        let currentTag = try? id3TagEditor.read(from: musicUrl.path)
+        let currentTag = try? id3TagEditor.read(from: musicURL.path)
 
         do {
             var builder = ID32v3TagBuilder()
@@ -216,13 +228,13 @@ class TagEditorViewModel: BaseViewModel {
                 .trackPosition(frame: ID3FramePartOfTotal(part: self.musicSelectedDraft.track, total: nil))
                 .genre(frame: .init(genre: nil, description: self.musicSelectedDraft.genre))
 
-            let trimmedLyric = self.musicLyric.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedLyric = self.musicLyricDraft.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmedLyric.isEmpty {
                 builder = builder.unsynchronisedLyrics(language: .eng,
                                                        frame: ID3FrameWithLocalizedContent(
                                                         language: ID3FrameContentLanguage.eng,
                                                         contentDescription: "Lyric - \(self.musicSelectedDraft.musicTitle)",
-                                                        content: self.musicLyric))
+                                                        content: trimmedLyric))
             }
 
             if !coverImagePath.isEmpty {
@@ -246,7 +258,7 @@ class TagEditorViewModel: BaseViewModel {
             }
 
             let id3Tag = builder.build()
-            try id3TagEditor.write(tag: id3Tag, to: musicUrl.path)
+            try id3TagEditor.write(tag: id3Tag, to: musicURL.path)
 
             self.musicSelected.hasLyric = !trimmedLyric.isEmpty
             self.musicSelectedDraft.hasLyric = !trimmedLyric.isEmpty
@@ -261,7 +273,11 @@ class TagEditorViewModel: BaseViewModel {
     func saveCover(coverImageUrl: URL) -> Bool {
         let id3TagEditor = ID3TagEditor()
         do {
-            if let id3Tag = try id3TagEditor.read(from: self.musicSelected.filePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? "") {
+            guard let musicURL = fileURL(for: self.musicSelected.filePath) else {
+                return false
+            }
+
+            if let id3Tag = try id3TagEditor.read(from: musicURL.path) {
                 if let artworkFrame = id3Tag.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
                     let imageData = artworkFrame.picture
                     let format = artworkFrame.format

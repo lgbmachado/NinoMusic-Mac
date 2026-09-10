@@ -47,6 +47,17 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "closure #14 in closure #1 in closure #1 in TagView.body.getter:MusicDetailsView.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.tagEditorViewModel.musicLyricDraft">
+            </PersistentString>
+            <PersistentString
+               value = "self.tagEditorViewModel.musicLyric">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "AlbunsViewModel.indexAlbumSelected.didset:AlbunsViewModel.swift">
          <PersistentStrings>
             <PersistentString

@@ -91,6 +91,14 @@ struct ContentView: View {
 
             showLoadingSheet = false
         }
+        .onReceive(NotificationCenter.default.publisher(for: .musicLibraryDidChange)) { _ in
+            Task {
+                libraryViewModel.reloadDirectories()
+                _ = await musicsViewModel.reloadMusics()
+                _ = await artistsViewModel.reloadArtists()
+                _ = await albunsViewModel.reloadAlbuns()
+            }
+        }
         .sheet(isPresented: $showConfig) {
             ConfigurationsView(tagEditorViewModel: tagEditorViewModel,
                                serverViewModel: serverViewModel)

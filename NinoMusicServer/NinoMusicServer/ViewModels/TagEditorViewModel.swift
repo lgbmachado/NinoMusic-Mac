@@ -13,9 +13,14 @@ enum EditOrigin {
     case library
 }
 
+extension Notification.Name {
+    static let musicLibraryDidChange = Notification.Name("musicLibraryDidChange")
+}
+
 class TagEditorViewModel: BaseViewModel {
     @Published var musicsLibrary: [Music] = []
     @Published var musicsFileDir: [Music] = []
+    @Published var libraryDirectories: [MusicDirectory] = []
     @Published var musicSelectedDraft: Music = Music.emptyMusic
     @Published var musicLyric: String = String()
     @Published var musicLyricDraft: String = String()
@@ -44,6 +49,43 @@ class TagEditorViewModel: BaseViewModel {
         }
     }
     
+    static let fileNameMaskFields = [
+        "{track}",
+        "{track:02}",
+        "{artist}",
+        "{title}",
+        "{album}",
+        "{year}",
+        "{genre}"
+    ]
+
+    func loadLibraryDirectories() {
+        let query = """
+            SELECT
+                \(DbConstants.TableDiretory.colDirName),
+                \(DbConstants.TableDiretory.colDirPath),
+                \(DbConstants.TableDiretory.colMusicsCount),
+                \(DbConstants.TableDiretory.colTotalTime)
+            FROM \(DbConstants.TableDiretory.tableName)
+            ORDER BY \(DbConstants.TableDiretory.colDirName)
+            """
+
+        do {
+            libraryDirectories = try helper?.sql(query: query).compactMap { row in
+                guard let name = row[DbConstants.TableDiretory.colDirName] as? String,
+                      let path = row[DbConstants.TableDiretory.colDirPath] as? String,
+                      let musicCount = row[DbConstants.TableDiretory.colMusicsCount] as? Int,
+                      let totalTime = row[DbConstants.TableDiretory.colTotalTime] as? Double else {
+                    return nil
+                }
+                return MusicDirectory(name: name, path: path, musicCount: musicCount, totalTime: totalTime)
+            } ?? []
+        } catch {
+            print(error)
+            libraryDirectories = []
+        }
+    }
+
     func reloadMusics() async {
         let sql = """
             SELECT
@@ -211,6 +253,7 @@ class TagEditorViewModel: BaseViewModel {
         }
     }
 
+
     func SetMusicTags(coverImagePath: String) -> Bool {
         guard let musicURL = fileURL(for: self.musicSelectedDraft.filePath) else {
             return false
@@ -298,6 +341,182 @@ class TagEditorViewModel: BaseViewModel {
         } catch {
             return false
         }
+    }
+
+    func fileNamePreview(mask: String) -> String {
+        let fileExtension = fileURL(for: musicSelectedDraft.filePath)?.pathExtension ?? "mp3"
+        let fileName = fileName(from: mask, music: musicSelectedDraft)
+        return fileName.isEmpty ? "" : "\(fileName).\(fileExtension)"
+    }
+
+    func renameSelectedMusicFile(using mask: String) -> Bool {
+        guard let sourceURL = fileURL(for: musicSelected.filePath),
+              FileManager.default.fileExists(atPath: sourceURL.path) else {
+            return false
+        }
+
+        let fileName = fileName(from: mask, music: musicSelectedDraft)
+        guard !fileName.isEmpty else {
+            return false
+        }
+
+        let destinationURL = sourceURL
+            .deletingLastPathComponent()
+            .appendingPathComponent(fileName)
+            .appendingPathExtension(sourceURL.pathExtension)
+
+        guard sourceURL.standardizedFileURL != destinationURL.standardizedFileURL,
+              !FileManager.default.fileExists(atPath: destinationURL.path) else {
+            return false
+        }
+
+        do {
+            try FileManager.default.moveItem(at: sourceURL, to: destinationURL)
+
+            if musicSelected.idServer > 0 {
+                let newFilePath = destinationURL.absoluteString.replacingOccurrences(of: "'", with: "''")
+                let query = """
+                    UPDATE \(DbConstants.TableMusic.tableName)
+                    SET \(DbConstants.TableMusic.colFilePath) = '\(newFilePath)'
+                    WHERE \(DbConstants.TableMusic.colMusicId) = \(musicSelected.idServer)
+                    """
+                guard helper?.executeQuery(query: query) == true else {
+                    try? FileManager.default.moveItem(at: destinationURL, to: sourceURL)
+                    return false
+                }
+            }
+
+            var renamedMusic = musicSelectedDraft
+            renamedMusic.filePath = destinationURL.absoluteString
+            musicSelected = renamedMusic
+            musicSelectedDraft = renamedMusic
+            fileSelected = destinationURL.lastPathComponent
+            musicsFileDir = musicsFileDir.map { $0.id == renamedMusic.id ? renamedMusic : $0 }
+            musicsLibrary = musicsLibrary.map { $0.id == renamedMusic.id ? renamedMusic : $0 }
+            musicPlayerViewModel.setMusicSelected(music: renamedMusic)
+            return true
+        } catch {
+            print(error)
+            return false
+        }
+    }
+
+    func exportSelectedMusic(to libraryPath: String) async -> Bool {
+        guard let sourceURL = fileURL(for: musicSelectedDraft.filePath),
+              FileManager.default.fileExists(atPath: sourceURL.path),
+              let library = libraryDirectories.first(where: { $0.path == libraryPath }) else {
+            return false
+        }
+
+        guard SetMusicTags(coverImagePath: "") else {
+            return false
+        }
+
+        let artistDirectory = sanitizedPathComponent(musicSelectedDraft.artist, fallback: "Artista desconhecido")
+        let albumDirectory = sanitizedPathComponent(musicSelectedDraft.album, fallback: "Album desconhecido")
+        let destinationDirectory = URL(fileURLWithPath: library.path)
+            .appendingPathComponent(artistDirectory, isDirectory: true)
+            .appendingPathComponent(albumDirectory, isDirectory: true)
+        let destinationURL = destinationDirectory.appendingPathComponent(sourceURL.lastPathComponent)
+
+        guard !FileManager.default.fileExists(atPath: destinationURL.path) else {
+            return false
+        }
+
+        do {
+            try FileManager.default.createDirectory(at: destinationDirectory, withIntermediateDirectories: true)
+            try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+
+            let duration = await Id3TagUtils.getDuration(url: destinationURL)
+            let exportedMusic = MusicFiles()
+            let filePath = destinationURL.absoluteString
+            guard !exportedMusic.musicExists(filePath: filePath),
+                  exportedMusic.AddMusic(filePath: filePath,
+                                         musicTitle: musicSelectedDraft.musicTitle,
+                                         artist: musicSelectedDraft.artist,
+                                         album: musicSelectedDraft.album,
+                                         year: musicSelectedDraft.year,
+                                         track: musicSelectedDraft.track,
+                                         duration: duration,
+                                         genre: musicSelectedDraft.genre,
+                                         hasLyric: !musicLyricDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) else {
+                try? FileManager.default.removeItem(at: destinationURL)
+                return false
+            }
+
+            let escapedPath = library.path.replacingOccurrences(of: "\"", with: "\"\"")
+            let updateQuery = """
+                UPDATE \(DbConstants.TableDiretory.tableName)
+                SET \(DbConstants.TableDiretory.colMusicsCount) = \(DbConstants.TableDiretory.colMusicsCount) + 1,
+                    \(DbConstants.TableDiretory.colTotalTime) = \(DbConstants.TableDiretory.colTotalTime) + \(Double(duration))
+                WHERE \(DbConstants.TableDiretory.colDirPath) = "\(escapedPath)"
+                """
+            guard helper?.executeQuery(query: updateQuery) == true else {
+                try? FileManager.default.removeItem(at: destinationURL)
+                return false
+            }
+
+            await reloadMusics()
+            loadLibraryDirectories()
+            NotificationCenter.default.post(name: .musicLibraryDidChange, object: nil)
+            return true
+        } catch {
+            print(error)
+            return false
+        }
+    }
+
+    private func fileName(from mask: String, music: Music) -> String {
+        let replacements = [
+            "artist": music.artist,
+            "title": music.musicTitle,
+            "album": music.album,
+            "year": music.year > 0 ? String(music.year) : "",
+            "genre": music.genre
+        ]
+        let pattern = #"\{(track|artist|title|album|year|genre)(?::(0\d+))?\}"#
+        guard let regularExpression = try? NSRegularExpression(pattern: pattern) else {
+            return sanitizedFileName(mask)
+        }
+        let range = NSRange(mask.startIndex..., in: mask)
+
+        var result = mask
+        for match in regularExpression.matches(in: mask, range: range).reversed() {
+            guard let tokenRange = Range(match.range(at: 1), in: mask) else {
+                continue
+            }
+
+            let token = String(mask[tokenRange])
+            let value: String
+            if token == "track" {
+                if let formatRange = Range(match.range(at: 2), in: mask),
+                   let width = Int(mask[formatRange]) {
+                    value = String(format: "%0\(width)d", music.track)
+                } else {
+                    value = music.track > 0 ? String(music.track) : ""
+                }
+            } else {
+                value = replacements[token] ?? ""
+            }
+
+            if let fullRange = Range(match.range, in: result) {
+                result.replaceSubrange(fullRange, with: value)
+            }
+        }
+
+        return sanitizedFileName(result)
+    }
+
+    private func sanitizedFileName(_ fileName: String) -> String {
+        let invalidCharacters = CharacterSet(charactersIn: "/:\\")
+            .union(.controlCharacters)
+        let sanitized = fileName.components(separatedBy: invalidCharacters).joined(separator: "-")
+        return sanitized.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func sanitizedPathComponent(_ component: String, fallback: String) -> String {
+        let sanitized = sanitizedFileName(component)
+        return sanitized.isEmpty ? fallback : sanitized
     }
 
 

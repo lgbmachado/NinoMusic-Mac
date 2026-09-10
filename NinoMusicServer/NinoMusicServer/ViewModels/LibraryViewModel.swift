@@ -50,6 +50,12 @@ class LibraryViewModel: ObservableObject, MusicFilesDelegate {
         }
         
     }
+
+    func reloadDirectories() {
+        self.directories = self.musicFiles.getDirectories()
+        self.totalMusics = self.directories.reduce(0) { $0 + $1.musicCount }
+        self.totalTime = self.directories.reduce(0.0) { $0 + $1.totalTime }
+    }
 }
 
 extension LibraryViewModel {

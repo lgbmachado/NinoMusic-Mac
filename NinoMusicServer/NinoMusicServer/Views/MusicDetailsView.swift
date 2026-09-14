@@ -24,6 +24,11 @@ struct MusicDetailsView: View {
                         Image(systemName: "folder")
                         Text(LocalizedStringKey("text_file"))
                     }
+                ExportView(tagEditorViewModel: tagEditorViewModel)
+                    .tabItem {
+                        Image(systemName: "folder")
+                        Text("Exportar")
+                    }
             }
         }
     }
@@ -249,8 +254,6 @@ struct FileView: View {
     @State private var didRenameFile = false
     @State private var showRenameResult = false
     @State private var selectedLibraryPath = ""
-    @State private var didExportFile = false
-    @State private var showExportResult = false
 
     private var matchingFields: [String] {
         guard let openingBrace = fileNameMask.lastIndex(of: "{") else {
@@ -270,6 +273,9 @@ struct FileView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            Text("Capitalização: **\(tagEditorViewModel.selectedCase.description)**")
+                .font(.subheadline)
+                .padding(.bottom, 10)
             Text("Nome atual")
                 .font(.caption2)
                 .padding(.bottom, -7)
@@ -330,10 +336,42 @@ struct FileView: View {
                 .alert(didRenameFile ? "Arquivo renomeado com sucesso." : "Não foi possível renomear o arquivo.", isPresented: $showRenameResult) {
                     Button(LocalizedStringKey("text_ok"), role: .cancel) { }
                 }
+                Spacer()
             }
 
-            Divider()
-                .padding(.vertical, 6)
+            Spacer()
+        }
+        .onAppear {
+            tagEditorViewModel.loadLibraryDirectories()
+            if selectedLibraryPath.isEmpty {
+                selectedLibraryPath = tagEditorViewModel.libraryDirectories.first?.path ?? ""
+            }
+        }
+    }
+
+    private func insert(_ field: String) {
+        fileNameMask += field
+    }
+
+    private func completeCurrentField(with field: String) {
+        guard let openingBrace = fileNameMask.lastIndex(of: "{") else {
+            insert(field)
+            return
+        }
+
+        fileNameMask.replaceSubrange(openingBrace..., with: field)
+    }
+}
+
+struct ExportView: View {
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
+
+    @State private var selectedLibraryPath = ""
+    @State private var didExportFile = false
+    @State private var showExportResult = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
 
             Text("Exportar para biblioteca")
                 .font(.caption2)
@@ -367,6 +405,7 @@ struct FileView: View {
                 .alert(didExportFile ? "Arquivo exportado para a biblioteca." : "Não foi possível exportar o arquivo.", isPresented: $showExportResult) {
                     Button(LocalizedStringKey("text_ok"), role: .cancel) { }
                 }
+                Spacer()
             }
             Spacer()
         }
@@ -376,18 +415,5 @@ struct FileView: View {
                 selectedLibraryPath = tagEditorViewModel.libraryDirectories.first?.path ?? ""
             }
         }
-    }
-
-    private func insert(_ field: String) {
-        fileNameMask += field
-    }
-
-    private func completeCurrentField(with field: String) {
-        guard let openingBrace = fileNameMask.lastIndex(of: "{") else {
-            insert(field)
-            return
-        }
-
-        fileNameMask.replaceSubrange(openingBrace..., with: field)
     }
 }

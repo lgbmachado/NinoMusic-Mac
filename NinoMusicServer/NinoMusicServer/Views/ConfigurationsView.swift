@@ -37,6 +37,11 @@ struct ConfigurationsView: View {
                         Image(systemName: "")
                         Text("Edição de Tags")
                     }
+                FileNameConfig(tagEditorViewModel: tagEditorViewModel)
+                    .tabItem {
+                        Image(systemName: "")
+                        Text("Nome do Arquivo")
+                    }
                 ServerConfig(serverViewModel: serverViewModel)
                     .tabItem {
                         Image(systemName: "")
@@ -77,10 +82,10 @@ struct TagEditorConfig: View {
                     ComboBox(
                         text: Binding(
                             get: {
-                                tagEditorViewModel.selectedCase.description
+                                tagEditorViewModel.selectedCaseTag.description
                             },
                             set: {
-                                tagEditorViewModel.selectedCase = CaseKind(rawValue: $0) ?? .uppercase
+                                tagEditorViewModel.selectedCaseTag = CaseKind(rawValue: $0) ?? .uppercase
                             }
                         ),
                         items: CaseKind.allDescriptions,
@@ -189,4 +194,48 @@ struct ServerConfig: View {
         }
         .frame(width: 500, height: 500, alignment: .top)
     }
+}
+
+struct FileNameConfig: View {
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
+    
+    @State private var inputText: String = ""
+    @State private var selectedGenres: [String] = [String]()
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            GroupBox("Capitalização nome do arquivo:") {
+                VStack(alignment: .leading, spacing: 8) {
+                    ComboBox(
+                        text: Binding(
+                            get: {
+                                tagEditorViewModel.selectedCaseFileName.description
+                            },
+                            set: {
+                                tagEditorViewModel.selectedCaseFileName = CaseKind(rawValue: $0) ?? .uppercase
+                            }
+                        ),
+                        items: CaseKind.allDescriptions,
+                        placeholder: "Capitalização:"
+                    )
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(width: 500, height: 500, alignment: .top)
+        .onAppear {
+            self.selectedGenres = tagEditorViewModel.genresAvaiables
+        }
+    }
+    
+    private func addItem(_ item: String) {
+        let trimmed = item.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        guard !selectedGenres.contains(trimmed) else { return }
+        
+        self.selectedGenres.append(trimmed)
+        tagEditorViewModel.genresAvaiables = self.selectedGenres
+        inputText = ""
+    }
+    
 }

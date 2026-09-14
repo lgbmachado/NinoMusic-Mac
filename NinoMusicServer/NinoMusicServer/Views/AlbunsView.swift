@@ -46,6 +46,17 @@ struct AlbunsView: View {
                 .font(.system(size: 30))
                 .frame(width: 300, height: 50, alignment: .center)
             }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    ForEach(albunsViewModel.availableAlbumLetters, id: \.self) { letter in
+                        Button(letter, action: {
+                            albunsViewModel.goToAlbumStartingWith(letter: letter)
+                        })
+                        .help("Ir para álbuns iniciados com \(letter)")
+                    }
+                }
+            }
+            .padding(.horizontal)
             Table(albunsViewModel.albumSelected.musics, selection: $albunsViewModel.idMusicSelected) {
                 TableColumn(LocalizedStringKey("text_track")) { music in
                     Text("\(music.track)")

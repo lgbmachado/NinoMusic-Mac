@@ -42,6 +42,26 @@ class AlbunsViewModel: BaseViewModel {
             self.filePathCover = self.albumSelected.musics.first?.filePath ?? ""
         }
     }
+
+    var availableAlbumLetters: [String] {
+        var letters = [String]()
+        for album in albuns {
+            guard let firstChar = album.album.first else { continue }
+            let letter = String(firstChar).uppercased()
+            if letters.last != letter {
+                letters.append(letter)
+            }
+        }
+        return letters
+    }
+
+    func goToAlbumStartingWith(letter: String) {
+        if let selected = self.albuns.first(where: { String($0.album.first ?? Character(" ")).uppercased() == letter }) {
+            self.idAlbumSelected = selected.id
+            self.albumSelected = selected
+            self.filePathCover = self.albumSelected.musics.first?.filePath ?? ""
+        }
+    }
     
     func setIdSelection(selection: UUID) {
         for album in albuns {

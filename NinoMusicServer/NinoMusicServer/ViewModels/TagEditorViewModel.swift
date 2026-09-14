@@ -27,7 +27,7 @@ class TagEditorViewModel: BaseViewModel {
     
     var origin: EditOrigin = .fileDir
     
-    var selectedCase: CaseKind {
+    var selectedCaseTag: CaseKind {
         get {
             let defaults = UserDefaults.standard
             return CaseKind(rawValue: defaults.string(forKey: "CaseKind") ?? "") ?? .capitalized
@@ -35,6 +35,17 @@ class TagEditorViewModel: BaseViewModel {
         set(newVal) {
             let defaults = UserDefaults.standard
             defaults.set(newVal.rawValue, forKey: "CaseKind")
+        }
+    }
+    
+    var selectedCaseFileName: CaseKind {
+        get {
+            let defaults = UserDefaults.standard
+            return CaseKind(rawValue: defaults.string(forKey: "CaseKindFileName") ?? "") ?? .capitalized
+        }
+        set(newVal) {
+            let defaults = UserDefaults.standard
+            defaults.set(newVal.rawValue, forKey: "CaseKindFileName")
         }
     }
     

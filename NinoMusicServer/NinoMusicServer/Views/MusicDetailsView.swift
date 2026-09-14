@@ -53,7 +53,7 @@ struct TagView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                Text("Capitalização: **\(tagEditorViewModel.selectedCase.description)**")
+                Text("Capitalização: **\(tagEditorViewModel.selectedCaseTag.description)**")
                     .font(.subheadline)
                     .padding(.bottom, 10)
                 Text(LocalizedStringKey("text_music"))
@@ -66,7 +66,7 @@ struct TagView: View {
                         set: { newValue in
                             tagEditorViewModel.musicSelectedDraft.musicTitle = newValue
                         }
-                    ).formattedText(self.tagEditorViewModel.selectedCase),
+                    ).formattedText(self.tagEditorViewModel.selectedCaseTag),
                     prompt: Text(LocalizedStringKey("text_music"))
                 )
                 
@@ -80,7 +80,7 @@ struct TagView: View {
                         set: { newValue in
                             tagEditorViewModel.musicSelectedDraft.artist = newValue
                         }
-                    ).formattedText(self.tagEditorViewModel.selectedCase),
+                    ).formattedText(self.tagEditorViewModel.selectedCaseTag),
                     prompt: Text(LocalizedStringKey("text_artist"))
                 )
                 
@@ -94,7 +94,7 @@ struct TagView: View {
                         set: { newValue in
                             tagEditorViewModel.musicSelectedDraft.album = newValue
                         }
-                    ).formattedText(self.tagEditorViewModel.selectedCase),
+                    ).formattedText(self.tagEditorViewModel.selectedCaseTag),
                     prompt: Text(LocalizedStringKey("text_album"))
                 )
                 
@@ -134,7 +134,7 @@ struct TagView: View {
                         set: { newValue in
                             tagEditorViewModel.musicSelectedDraft.genre = newValue
                         }
-                    ).formattedText(self.tagEditorViewModel.selectedCase),
+                    ).formattedText(self.tagEditorViewModel.selectedCaseTag),
                     items: tagEditorViewModel.genresAvaiables,
                     placeholder: String(localized: "text_genre")
                 )
@@ -273,7 +273,7 @@ struct FileView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Capitalização: **\(tagEditorViewModel.selectedCase.description)**")
+            Text("Capitalização: **\(tagEditorViewModel.selectedCaseTag.description)**")
                 .font(.subheadline)
                 .padding(.bottom, 10)
             Text("Nome atual")

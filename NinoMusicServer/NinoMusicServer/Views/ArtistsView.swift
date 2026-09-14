@@ -16,15 +16,19 @@ struct ArtistsView: View {
         
     var body: some View {
         List {
-            OutlineGroup(artistsViewModel.getNodes(), children: \.children) { node in
-                if node.children == nil {
-                    ArtistAlbumView(artistsViewModel: self.artistsViewModel,
-                                    musicPlayerViewModel: self.musicPlayerViewModel,
-                                    node: node)
-                } else {
-                    Label(node.name, systemImage: node.children == nil ? "opticaldisc" : "music.microphone")
+            ForEach(artistsViewModel.getGroupedNodes(), id: \.letter) { group in
+                Section(header: Text(group.letter)
+                    .font(.largeTitle)) {
+                    OutlineGroup(group.nodes, children: \.children) { node in
+                        if node.children == nil {
+                            ArtistAlbumView(artistsViewModel: self.artistsViewModel,
+                                            musicPlayerViewModel: self.musicPlayerViewModel,
+                                            node: node)
+                        } else {
+                            Label(node.name, systemImage: node.children == nil ? "opticaldisc" : "music.microphone")
+                        }
+                    }
                 }
-                
             }
         }
         .padding()

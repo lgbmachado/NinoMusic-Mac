@@ -50,6 +50,20 @@ class ArtistsViewModel: BaseViewModel {
         }
         return nodes
     }
+
+    // Artists are pre-sorted alphabetically, so grouping preserves order
+    func getGroupedNodes() -> [(letter: String, nodes: [Node])] {
+        var groups = [(letter: String, nodes: [Node])]()
+        for node in getNodes() {
+            let letter = String(node.name.first ?? " ").uppercased()
+            if groups.last?.letter == letter {
+                groups[groups.count - 1].nodes.append(node)
+            } else {
+                groups.append((letter: letter, nodes: [node]))
+            }
+        }
+        return groups
+    }
     
     func setIdSelection(selection: Music.ID) {
         for artist in self.artists {

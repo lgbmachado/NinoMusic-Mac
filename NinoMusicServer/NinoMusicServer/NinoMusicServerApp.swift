@@ -17,6 +17,7 @@ struct NinoMusicServerApp: App {
     var artistsViewModel: ArtistsViewModel
     var albunsViewModel: AlbunsViewModel
     var serverViewModel: ServerViewModel
+    var downloadViewModel: DownloadViewModel
     
     init() {
         self.musicPlayerViewModel = MusicPlayerViewModel()
@@ -26,6 +27,7 @@ struct NinoMusicServerApp: App {
         self.artistsViewModel = ArtistsViewModel(musicPlayerViewModel: musicPlayerViewModel)
         self.albunsViewModel = AlbunsViewModel(musicPlayerViewModel: musicPlayerViewModel)
         self.serverViewModel = ServerViewModel()
+        self.downloadViewModel = DownloadViewModel()
     }
     
     var body: some Scene {
@@ -36,7 +38,8 @@ struct NinoMusicServerApp: App {
                         tagEditorViewModel: tagEditorViewModel,
                         artistsViewModel: artistsViewModel,
                         albunsViewModel: albunsViewModel,
-                        serverViewModel: serverViewModel)
+                        serverViewModel: serverViewModel,
+                        downloadViewModel: downloadViewModel)
             .environmentObject(musicPlayerViewModel)
         }
     }

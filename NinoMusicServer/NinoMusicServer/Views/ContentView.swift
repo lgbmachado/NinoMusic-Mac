@@ -20,7 +20,7 @@ enum MusicContentViewType: Identifiable, CaseIterable, Hashable {
         case .artists:
             "artists"
         case .albuns:
-            "tagEditor"
+            "albuns"
         case .tagEditor:
             "tagEditor"
         }
@@ -37,6 +37,7 @@ struct ContentView: View {
     @ObservedObject var artistsViewModel: ArtistsViewModel
     @ObservedObject var albunsViewModel: AlbunsViewModel
     @ObservedObject var serverViewModel: ServerViewModel
+    @ObservedObject var downloadViewModel: DownloadViewModel
     
     @State private var selection: ItemMenu = .musics
     @State private var showConfig = false
@@ -65,6 +66,9 @@ struct ContentView: View {
                     .navigationTitle(String())
             case .server:
                 ServerView(serverViewModel: serverViewModel)
+                    .navigationTitle(String())
+            case .download:
+                DownloadView(downloadViewModel: downloadViewModel)
                     .navigationTitle(String())
             }
         }

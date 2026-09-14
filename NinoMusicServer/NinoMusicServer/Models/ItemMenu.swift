@@ -15,6 +15,7 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
     case albuns
     case tags
     case server
+    case download
     
     var id: String {
         switch self {
@@ -30,6 +31,8 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
             "tags"
         case .server:
             "server"
+        case .download:
+            "download"
         }
     }
     
@@ -47,6 +50,8 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
             "Editor de Tags"
         case .server:
             "Servidor de Músicas"
+        case .download:
+            "Download de Músicas"
         }
     }
     
@@ -64,10 +69,12 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
             "tag"
         case .server:
             "server.rack"
+        case .download:
+            "square.and.arrow.down"
         }
     }
     
     static var menu: [ItemMenu] {
-        [.libray, .musics, .artists, .albuns, .tags, .server]
+        [.libray, .musics, .artists, .albuns, .tags, .server, .download]
     }
 }

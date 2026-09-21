@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import WebKit
 
 struct DownloadView: View {
     @StateObject var downloadViewModel = DownloadViewModel()
     @State private var searchText = ""
+    @State private var selectedVideo: YouTubeItem?
     
     // Configuração do mosaico: colunas adaptáveis com largura mínima de 220
     let columns = [
@@ -52,7 +54,9 @@ struct DownloadView: View {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(downloadViewModel.videos) { video in
-                                VideoCardView(video: video)
+                                VideoCardView(video: video) {
+                                    selectedVideo = video
+                                }
                             }
                         }
                         .padding()
@@ -62,6 +66,9 @@ struct DownloadView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(minWidth: 600, minHeight: 400)
+        .sheet(item: $selectedVideo) { video in
+            YouTubePlayerView(video: video)
+        }
     }
     
     private func performSearch() {
@@ -69,11 +76,13 @@ struct DownloadView: View {
             await downloadViewModel.searchVideos(query: searchText)
         }
     }
+
 }
 
 // MARK: - Componente do Cartão de Vídeo
 struct VideoCardView: View {
     let video: YouTubeItem
+    let onSelect: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -111,11 +120,127 @@ struct VideoCardView: View {
         .background(Color(NSColor.controlBackgroundColor))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-        // Ao clicar no card, abre o vídeo no navegador padrão
-        .onTapGesture {
-            if let url = URL(string: "https://www.youtube.com/watch?v=\(video.id)") {
-                NSWorkspace.shared.open(url)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onSelect)
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+private struct YouTubePlayerView: View {
+    let video: YouTubeItem
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(video.snippet.title)
+                    .font(.headline)
+                    .lineLimit(1)
+
+                Spacer()
+
+                Button("Abrir no navegador") {
+                    openInBrowser()
+                }
+
+                Button("Fechar") {
+                    dismiss()
+                }
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(Color(NSColor.windowBackgroundColor))
+
+            Divider()
+
+            ZStack {
+                Color.black
+
+                    YouTubeWebView(videoID: video.id)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .frame(minWidth: 860, minHeight: 530)
+    }
+
+    private func openInBrowser() {
+        guard let url = URL(string: "https://www.youtube.com/watch?v=\(video.id)") else {
+            return
+        }
+
+        NSWorkspace.shared.open(url)
+    }
+}
+
+private struct YouTubeWebView: NSViewRepresentable {
+    let videoID: String
+
+    func makeNSView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.allowsAirPlayForMediaPlayback = true
+        configuration.mediaTypesRequiringUserActionForPlayback = .audio
+        configuration.userContentController.addUserScript(playerOnlyScript)
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.allowsMagnification = true
+        webView.navigationDelegate = context.coordinator
+        webView.load(pageRequest)
+        return webView
+    }
+
+    func updateNSView(_ webView: WKWebView, context: Context) {
+        guard webView.url != pageURL else {
+            return
+        }
+
+        webView.load(pageRequest)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    private var pageRequest: URLRequest {
+        URLRequest(url: pageURL)
+    }
+
+    private var pageURL: URL {
+        var components = URLComponents(string: "https://www.youtube.com/watch")!
+        components.queryItems = [URLQueryItem(name: "v", value: videoID)]
+        return components.url!
+    }
+
+    private var playerOnlyScript: WKUserScript {
+        let css = """
+        html, body { background: #000 !important; overflow: hidden !important;
+        width: 100% !important; height: 100% !important; min-height: 100vh !important; }
+        ytd-masthead, #masthead-container, #secondary, #below, ytd-watch-metadata,
+        ytd-comments, #comments, #chat, ytd-merch-shelf-renderer,
+        ytd-engagement-panel-section-list-renderer { display: none !important; }
+        #page-manager, ytd-watch-flexy, #columns, #primary, #player-container,
+        #player, #movie_player, .html5-video-container, video {
+        width: 100vw !important; height: 100vh !important; min-height: 100vh !important;
+        max-width: none !important; margin: 0 !important; padding: 0 !important;
+        background: #000 !important; }
+        #player { position: fixed !important; inset: 0 !important; }
+        video { object-fit: contain !important; }
+        .ytp-right-controls { display: none !important; }
+        """
+        let script = """
+        (() => {
+            const style = document.createElement('style');
+            style.textContent = `\(css)`;
+            document.documentElement.appendChild(style);
+        })();
+        """
+        return WKUserScript(source: script, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+    }
+
+    final class Coordinator: NSObject, WKNavigationDelegate {
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
+                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            decisionHandler(.allow)
         }
     }
 }

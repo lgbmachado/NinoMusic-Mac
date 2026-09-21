@@ -51,4 +51,5 @@ class DownloadViewModel: ObservableObject {
         
         isLoading = false
     }
+
 }

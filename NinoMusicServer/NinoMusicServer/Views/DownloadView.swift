@@ -54,9 +54,16 @@ struct DownloadView: View {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(downloadViewModel.videos) { video in
-                                VideoCardView(video: video) {
+                                VideoCardView(
+                                    video: video,
+                                    isDownloading: downloadViewModel.downloadingVideoID == video.id,
+                                    onSelect: {
                                     selectedVideo = video
-                                }
+                                    },
+                                    onDownload: {
+                                        downloadViewModel.downloadMP3(for: video)
+                                    }
+                                )
                             }
                         }
                         .padding()
@@ -68,6 +75,20 @@ struct DownloadView: View {
         .frame(minWidth: 600, minHeight: 400)
         .sheet(item: $selectedVideo) { video in
             YouTubePlayerView(video: video)
+        }
+        .alert("Download de MP3", isPresented: .init(
+            get: { downloadViewModel.downloadMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    downloadViewModel.downloadMessage = nil
+                }
+            }
+        )) {
+            Button("OK", role: .cancel) {
+                downloadViewModel.downloadMessage = nil
+            }
+        } message: {
+            Text(downloadViewModel.downloadMessage ?? "")
         }
     }
     
@@ -82,7 +103,9 @@ struct DownloadView: View {
 // MARK: - Componente do Cartão de Vídeo
 struct VideoCardView: View {
     let video: YouTubeItem
+    let isDownloading: Bool
     let onSelect: () -> Void
+    let onDownload: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -113,6 +136,15 @@ struct VideoCardView: View {
                 .font(.headline)
                 .lineLimit(2)
                 .truncationMode(.tail)
+
+            Button(action: onDownload) {
+                Label(
+                    isDownloading ? "Baixando..." : "Baixar MP3",
+                    systemImage: isDownloading ? "arrow.down.circle" : "music.note"
+                )
+            }
+            .buttonStyle(.bordered)
+            .disabled(isDownloading)
             
             Spacer()
         }

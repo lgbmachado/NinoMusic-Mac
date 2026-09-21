@@ -36,3 +36,12 @@ struct ThumbnailDetails: Decodable {
 struct YouTubeSearchResponse: Decodable {
     let items: [YouTubeItem]
 }
+
+struct YouTubeErrorResponse: Decodable {
+    let error: YouTubeErrorDetail
+}
+
+struct YouTubeErrorDetail: Decodable {
+    let code: Int
+    let message: String
+}

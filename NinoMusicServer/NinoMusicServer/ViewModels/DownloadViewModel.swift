@@ -13,7 +13,7 @@ class DownloadViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     
-    private let apiKey = "AIzaSyBArdtwxhPX1FkWkpmt-KBLznUtFIHOjdM"
+    private let apiKey = "AIzaSyAacul_yhlXIduptZzUrVSPBSWfYYTDEUk"
     
     func searchVideos(query: String) async {
         guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return }
@@ -28,10 +28,22 @@ class DownloadViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
             let decoder = JSONDecoder()
-            let response = try decoder.decode(YouTubeSearchResponse.self, from: data)
-            self.videos = response.items
+
+            if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+                if let errorResponse = try? decoder.decode(YouTubeErrorResponse.self, from: data) {
+                    self.errorMessage = "Erro ao buscar vídeos: \(errorResponse.error.message)"
+                } else {
+                    self.errorMessage = "Erro ao buscar vídeos: código HTTP \(httpResponse.statusCode)."
+                }
+                self.videos = []
+                isLoading = false
+                return
+            }
+
+            let searchResponse = try decoder.decode(YouTubeSearchResponse.self, from: data)
+            self.videos = searchResponse.items
         } catch {
             self.errorMessage = "Erro ao buscar vídeos: \(error.localizedDescription)"
             print(error)

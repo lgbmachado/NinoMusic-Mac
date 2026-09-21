@@ -14,8 +14,58 @@ class DownloadViewModel: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var downloadingVideoID: String?
     @Published var downloadMessage: String?
+    @Published var downloadDirectory: URL {
+        didSet {
+            UserDefaults.standard.set(downloadDirectory.path, forKey: "DownloadDirectory")
+        }
+    }
     
     private let apiKey = "AIzaSyAacul_yhlXIduptZzUrVSPBSWfYYTDEUk"
+    
+    init() {
+        let savedDirectory = UserDefaults.standard.string(forKey: "DownloadDirectory")
+        if let savedDirectory, !savedDirectory.isEmpty {
+            self.downloadDirectory = Self.validatedDirectory(from: URL(fileURLWithPath: savedDirectory, isDirectory: true))
+        } else {
+            self.downloadDirectory = Self.defaultDownloadDirectory()
+        }
+    }
+    
+    func updateDownloadDirectory(_ url: URL) {
+        self.downloadDirectory = Self.validatedDirectory(from: url)
+    }
+    
+    private static func defaultDownloadDirectory() -> URL {
+        if let downloadsDirectory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first {
+            return downloadsDirectory.appendingPathComponent("NinoMusic", isDirectory: true)
+        }
+        
+        if let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            return documentsDirectory.appendingPathComponent("NinoMusic", isDirectory: true)
+        }
+        
+        return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads/NinoMusic", isDirectory: true)
+    }
+    
+    private static func validatedDirectory(from url: URL) -> URL {
+        let directory = url.standardizedFileURL
+        var isDirectory: ObjCBool = false
+
+        if FileManager.default.fileExists(atPath: directory.path, isDirectory: &isDirectory), isDirectory.boolValue {
+            if FileManager.default.isWritableFile(atPath: directory.path) {
+                return directory
+            }
+        }
+
+        let fallback = defaultDownloadDirectory()
+        do {
+            try FileManager.default.createDirectory(at: fallback, withIntermediateDirectories: true)
+        } catch {
+            return directory
+        }
+
+        return fallback
+    }
     
     func searchVideos(query: String) async {
         guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return }
@@ -63,10 +113,8 @@ class DownloadViewModel: ObservableObject {
             let outputDirectory: URL
             let ytDlpExecutableURL: URL
             do {
-                outputDirectory = try downloadDirectory()
+                outputDirectory = try writableDownloadDirectory()
                 ytDlpExecutableURL = try ytDlpURL()
-                try FileManager.default.createDirectory(at: outputDirectory,
-                                                         withIntermediateDirectories: true)
             } catch {
                 downloadingVideoID = nil
                 downloadMessage = error.localizedDescription
@@ -116,13 +164,15 @@ class DownloadViewModel: ObservableObject {
             }
         }
 
-        private func downloadDirectory() throws -> URL {
-            guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory,
-                                                                      in: .userDomainMask).first else {
-                throw DownloadError.missingDirectory
+        private func writableDownloadDirectory() throws -> URL {
+            let directory = DownloadViewModel.validatedDirectory(from: downloadDirectory)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+            guard FileManager.default.isWritableFile(atPath: directory.path) else {
+                throw DownloadError.destinationReadOnly(directory.path)
             }
 
-            return documentsDirectory.appendingPathComponent("download", isDirectory: true)
+            return directory
         }
 
         private func ytDlpURL() throws -> URL {
@@ -143,6 +193,7 @@ class DownloadViewModel: ObservableObject {
             case missingDirectory
             case missingYTDLP
             case processFailed(String)
+            case destinationReadOnly(String)
 
             var errorDescription: String? {
                 switch self {
@@ -152,6 +203,8 @@ class DownloadViewModel: ObservableObject {
                     return "yt-dlp não foi encontrado. Instale yt-dlp e FFmpeg para baixar MP3."
                 case .processFailed(let details):
                     return "Falha ao baixar o MP3.\n\(details)"
+                case .destinationReadOnly(let path):
+                    return "O diretório de destino não é gravável: \(path). Escolha outra pasta de download."
                 }
             }
         }

@@ -11,6 +11,7 @@ import ID3TagEditor
 
 struct ConfigurationsView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
+    @ObservedObject var downloadViewModel: DownloadViewModel
     @ObservedObject var serverViewModel: ServerViewModel
     
     @Environment(\.dismiss) private var dismiss
@@ -41,6 +42,11 @@ struct ConfigurationsView: View {
                     .tabItem {
                         Image(systemName: "")
                         Text("Nome do Arquivo")
+                    }
+                DownloadConfig(downloadViewModel: downloadViewModel)
+                    .tabItem {
+                        Image(systemName: "")
+                        Text("Download")
                     }
                 ServerConfig(serverViewModel: serverViewModel)
                     .tabItem {
@@ -173,6 +179,47 @@ struct TagEditorConfig: View {
         inputText = ""
     }
     
+}
+
+struct DownloadConfig: View {
+    @ObservedObject var downloadViewModel: DownloadViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Diretório de download:")
+                .font(.caption2)
+            HStack {
+                Text(downloadViewModel.downloadDirectory.path)
+                    .font(.system(.body, design: .monospaced))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Button(action: addDiretory) {
+                    Image(systemName: "folder.fill")
+                        .font(.title2)
+                }
+                .buttonStyle(.borderless)
+            }
+            .padding(8)
+            .background(Color.gray.opacity(0.12))
+            .cornerRadius(8)
+            Spacer()
+        }
+        .frame(width: 500, height: 500, alignment: .top)
+    }
+    
+    func addDiretory() {
+        let dialog = NSOpenPanel()
+        dialog.title = String(localized: "text_select_dir")
+        dialog.showsHiddenFiles = false
+        dialog.canChooseFiles = false
+        dialog.canChooseDirectories = true
+        dialog.allowsMultipleSelection = false
+        
+        if dialog.runModal() == .OK, let url = dialog.url {
+            downloadViewModel.updateDownloadDirectory(url)
+        }
+    }
 }
 
 struct ServerConfig: View {

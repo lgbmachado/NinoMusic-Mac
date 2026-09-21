@@ -75,6 +75,6 @@ enum ItemMenu: Identifiable, CaseIterable, Hashable {
     }
     
     static var menu: [ItemMenu] {
-        [.libray, .musics, .artists, .albuns, .tags, .server, .download]
+        [.libray, .musics, .artists, .albuns, .tags, .download, .server ]
     }
 }

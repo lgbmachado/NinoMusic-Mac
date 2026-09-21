@@ -105,6 +105,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showConfig) {
             ConfigurationsView(tagEditorViewModel: tagEditorViewModel,
+                               downloadViewModel: downloadViewModel,
                                serverViewModel: serverViewModel)
         }
         .toolbar{

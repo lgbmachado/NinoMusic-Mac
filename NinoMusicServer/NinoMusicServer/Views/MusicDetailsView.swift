@@ -383,6 +383,7 @@ struct ExportView: View {
                         .tag(library.path)
                 }
             }
+            
 
             if let selectedLibrary = tagEditorViewModel.libraryDirectories.first(where: { $0.path == selectedLibraryPath }) {
                 Text("\(selectedLibrary.path)/\(tagEditorViewModel.musicSelectedDraft.artist)/\(tagEditorViewModel.musicSelectedDraft.album)")

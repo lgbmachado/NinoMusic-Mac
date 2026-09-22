@@ -15,28 +15,37 @@ struct ServerView: View {
     }
     
     @State private var showAlert = false
-    @State private var disableButtonStartServer = false
-    @State private var disableButtonStoptServer = true
     
     var body: some View {
-        Table(tableData) {
-            TableColumn(LocalizedStringKey("text_date_time")) {serverLog in
-                Text(DateString(serverLog.dateTime))
-            }
-            .width(140)
-            TableColumn(LocalizedStringKey("text_type")) { serverLog in
-                switch serverLog.type {
-                case .info:
-                    Image(systemName: ServerLogType.info.iconName)
-                case .warning:
-                    Image(systemName: ServerLogType.warning.iconName)
-                case .error:
-                    Image(systemName: ServerLogType.error.iconName)
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Protocolo", selection: $serverViewModel.sharingProtocol) {
+                ForEach(MusicSharingProtocol.allCases) { sharingProtocol in
+                    Text(sharingProtocol.rawValue).tag(sharingProtocol)
                 }
             }
-            .width(40)
-            .alignment(.center)
-            TableColumn(LocalizedStringKey("text_description"), value: \.descr)
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 280)
+            .disabled(serverViewModel.isRunning)
+
+            Table(tableData) {
+                TableColumn(LocalizedStringKey("text_date_time")) {serverLog in
+                    Text(DateString(serverLog.dateTime))
+                }
+                .width(140)
+                TableColumn(LocalizedStringKey("text_type")) { serverLog in
+                    switch serverLog.type {
+                    case .info:
+                        Image(systemName: ServerLogType.info.iconName)
+                    case .warning:
+                        Image(systemName: ServerLogType.warning.iconName)
+                    case .error:
+                        Image(systemName: ServerLogType.error.iconName)
+                    }
+                }
+                .width(40)
+                .alignment(.center)
+                TableColumn(LocalizedStringKey("text_description"), value: \.descr)
+            }
         }
         .padding()
         .confirmationDialog(LocalizedStringKey("text_confirm_start_server"), isPresented: $showAlert) {
@@ -52,21 +61,17 @@ struct ServerView: View {
                 HStack {
                     Button(String(), systemImage: "flag.pattern.checkered.circle", action: {
                         showAlert = true
-                        disableButtonStartServer = true
-                        disableButtonStoptServer = false
                     })
                     .font(.system(size: 30))
                     .buttonStyle(.borderless)
-                    .disabled(disableButtonStartServer)
+                    .disabled(serverViewModel.isRunning)
                     
                     Button(String(), systemImage: "stop.circle", action: {
                         serverViewModel.stopServer()
-                        disableButtonStartServer = false
-                        disableButtonStoptServer = true
                     })
                     .font(.system(size: 30))
                     .buttonStyle(.borderless)
-                    .disabled(disableButtonStoptServer)
+                    .disabled(!serverViewModel.isRunning)
                 }
             }
         }

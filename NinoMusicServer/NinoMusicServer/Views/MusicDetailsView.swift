@@ -44,6 +44,7 @@ struct TagView: View {
     @State private var successSaveCoverImage = false
     
     @State private var pathCoverImage = String()
+    @State private var coverImage = NSImage()
     
     let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -164,11 +165,12 @@ struct TagView: View {
                     }
                 }
                 
-                Image(nsImage: Id3TagUtils.getImageCover(path: self.tagEditorViewModel.musicSelectedDraft.filePath) ?? NSImage())
+                Image(nsImage: coverImage)
                     .resizable()
                     .scaledToFit()
                     .frame(maxWidth: .infinity, maxHeight: 300, alignment: .bottom)
                     .border(.black)
+                    .id("\(tagEditorViewModel.musicSelectedDraft.id)-\(tagEditorViewModel.coverRevision)")
                 
                 Text("Letra")
                     .font(.caption2)
@@ -188,13 +190,13 @@ struct TagView: View {
                     Button("Salvar") {
                         successSaveTag = self.tagEditorViewModel.SetMusicTags(coverImagePath: pathCoverImage)
                         if successSaveTag {
-                            self.tagEditorViewModel.musicSelected = self.tagEditorViewModel.musicSelectedDraft
-                            self.tagEditorViewModel.musicLyric = self.tagEditorViewModel.musicLyricDraft
+                            pathCoverImage = ""
+                            reloadCoverImage()
                         }
                         finishSaveTag = true
                     }
                     .padding()
-                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected || self.tagEditorViewModel.musicLyricDraft != self.tagEditorViewModel.musicLyric))
+                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected || self.tagEditorViewModel.musicLyricDraft != self.tagEditorViewModel.musicLyric || !pathCoverImage.isEmpty))
                     .alert(successSaveTag ? "Novas informações no arquivo de música salvas com sucesso." : "Falha ao salvar novas informações no arquivo de música.", isPresented: $finishSaveTag) {
                         Button(LocalizedStringKey("text_ok"), role: .cancel) { }
                     }
@@ -202,12 +204,25 @@ struct TagView: View {
                     Button("Desfazer", role: .cancel) {
                         self.tagEditorViewModel.musicSelectedDraft = self.tagEditorViewModel.musicSelected
                         self.tagEditorViewModel.musicLyricDraft = self.tagEditorViewModel.musicLyric
+                        pathCoverImage = ""
                     }
                     .padding()
-                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected || self.tagEditorViewModel.musicLyricDraft != self.tagEditorViewModel.musicLyric))
+                    .disabled(!(self.tagEditorViewModel.musicSelectedDraft != self.tagEditorViewModel.musicSelected || self.tagEditorViewModel.musicLyricDraft != self.tagEditorViewModel.musicLyric || !pathCoverImage.isEmpty))
                     Spacer()
                 }
                 
+            }
+        }
+        .onAppear {
+            reloadCoverImage()
+        }
+        .onChange(of: tagEditorViewModel.musicSelectedDraft.id) { _, _ in
+            pathCoverImage = ""
+            reloadCoverImage()
+        }
+        .onChange(of: tagEditorViewModel.coverRevision) { _, _ in
+            if pathCoverImage.isEmpty {
+                reloadCoverImage()
             }
         }
     }
@@ -223,11 +238,16 @@ struct TagView: View {
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             if let url = dialog.url {
                 self.pathCoverImage = url.absoluteString
+                self.coverImage = NSImage(contentsOf: url) ?? NSImage()
             }
         } else {
             return
         }
         return
+    }
+
+    private func reloadCoverImage() {
+        coverImage = Id3TagUtils.getImageCover(path: tagEditorViewModel.musicSelectedDraft.filePath) ?? NSImage()
     }
     
     private func saveCoverImage() {
@@ -273,7 +293,7 @@ struct FileView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Capitalização: **\(tagEditorViewModel.selectedCaseTag.description)**")
+            Text("Capitalização: **\(tagEditorViewModel.selectedCaseFileName.description)**")
                 .font(.subheadline)
                 .padding(.bottom, 10)
             Text("Nome atual")
@@ -367,8 +387,24 @@ struct ExportView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
 
     @State private var selectedLibraryPath = ""
-    @State private var didExportFile = false
+    @State private var deleteOriginal = false
+    @State private var exportResult: MusicExportResult = .failed
     @State private var showExportResult = false
+
+    private var exportMessage: String {
+        switch exportResult {
+        case .exported:
+            return "Arquivo exportado para a biblioteca."
+        case .exportedAndRemovedOriginal:
+            return "Arquivo exportado e original excluído com sucesso."
+        case .exportedButCouldNotRemoveOriginal:
+            return "Arquivo exportado, mas não foi possível excluir o original."
+        case .alreadyExists:
+            return "O arquivo já existe na biblioteca selecionada."
+        case .failed:
+            return "Não foi possível exportar o arquivo."
+        }
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -392,18 +428,24 @@ struct ExportView: View {
                     .textSelection(.enabled)
             }
 
+            Toggle("Excluir arquivo original após exportar", isOn: $deleteOriginal)
+                .disabled(tagEditorViewModel.origin != .fileDir)
+
             HStack {
                 Spacer()
                 Button {
                     Task {
-                        didExportFile = await tagEditorViewModel.exportSelectedMusic(to: selectedLibraryPath)
+                        exportResult = await tagEditorViewModel.exportSelectedMusic(
+                            to: selectedLibraryPath,
+                            deleteOriginal: deleteOriginal
+                        )
                         showExportResult = true
                     }
                 } label: {
                     Label("Exportar arquivo", systemImage: "square.and.arrow.up")
                 }
                 .disabled(selectedLibraryPath.isEmpty || tagEditorViewModel.musicSelected.filePath.isEmpty)
-                .alert(didExportFile ? "Arquivo exportado para a biblioteca." : "Não foi possível exportar o arquivo.", isPresented: $showExportResult) {
+                .alert(exportMessage, isPresented: $showExportResult) {
                     Button(LocalizedStringKey("text_ok"), role: .cancel) { }
                 }
                 Spacer()

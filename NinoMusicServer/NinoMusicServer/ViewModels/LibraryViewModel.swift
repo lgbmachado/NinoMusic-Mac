@@ -137,7 +137,9 @@ class MusicFiles {
                                         
                                         let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
                                         let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
-                                        let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int
+                                        let year = (id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value
+                                            ?? (id3Tag?.frames[.recordingDateTime] as? ID3FrameRecordingDateTime)?.recordingDateTime.date?.year
+                                            ?? 0
                                         let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
                                         let duration = await Id3TagUtils.getDuration(url: fileURL)
                                         let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? String()) as String

@@ -49,6 +49,7 @@ struct TagEditorView: View {
 
 struct MusicsFilesAndFoldersView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
+    @State private var selectedMusicID: Music.ID?
     @State private var openFile: Bool = false
     @State private var openFolder: Bool = false
     @State private var showMenu: Bool = false
@@ -79,14 +80,15 @@ struct MusicsFilesAndFoldersView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            Table(tagEditorViewModel.musicsFileDir, selection: $tagEditorViewModel.idMusicSelected) {
+            Table(tagEditorViewModel.musicsFileDir, selection: $selectedMusicID) {
                 TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
                     Text(verbatim: "\((music.filePath as NSString).removingPercentEncoding ?? "")")
                 }
             }
             .padding()
-            .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-                tagEditorViewModel.setIdFilesSelection(selection: newSelected ?? UUID())
+            .onChange(of: selectedMusicID) { _, newSelected in
+                guard let newSelected else { return }
+                tagEditorViewModel.setIdFilesSelection(selection: newSelected)
             }
         }
     }
@@ -126,10 +128,11 @@ struct MusicsFilesAndFoldersView: View {
 
 struct MusicsLibraryView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
+    @State private var selectedMusicID: Music.ID?
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
     
     var body: some View {
-        Table(tagEditorViewModel.musicsLibrary, selection: $tagEditorViewModel.idMusicSelected, sortOrder: $sortOrder) {
+        Table(tagEditorViewModel.musicsLibrary, selection: $selectedMusicID, sortOrder: $sortOrder) {
             TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
                 Text(verbatim: "\(((music.filePath as NSString).lastPathComponent).removingPercentEncoding ?? "")")
             }
@@ -149,8 +152,9 @@ struct MusicsLibraryView: View {
                 .width(100)
         }
         .padding()
-        .onChange(of: tagEditorViewModel.idMusicSelected) { oldSelected, newSelected in
-            tagEditorViewModel.setIdLibrarySelection(selection: newSelected ?? UUID())
+        .onChange(of: selectedMusicID) { _, newSelected in
+            guard let newSelected else { return }
+            tagEditorViewModel.setIdLibrarySelection(selection: newSelected)
         }
     }
 }

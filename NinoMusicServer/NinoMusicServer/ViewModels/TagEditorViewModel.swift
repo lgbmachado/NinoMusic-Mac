@@ -13,6 +13,23 @@ enum EditOrigin {
     case library
 }
 
+enum MusicExportResult {
+    case exported
+    case exportedAndRemovedOriginal
+    case exportedButCouldNotRemoveOriginal
+    case alreadyExists
+    case failed
+
+    var succeeded: Bool {
+        switch self {
+        case .exported, .exportedAndRemovedOriginal, .exportedButCouldNotRemoveOriginal:
+            return true
+        case .alreadyExists, .failed:
+            return false
+        }
+    }
+}
+
 extension Notification.Name {
     static let musicLibraryDidChange = Notification.Name("musicLibraryDidChange")
 }
@@ -24,6 +41,7 @@ class TagEditorViewModel: BaseViewModel {
     @Published var musicSelectedDraft: Music = Music.emptyMusic
     @Published var musicLyric: String = String()
     @Published var musicLyricDraft: String = String()
+    @Published private(set) var coverRevision = 0
     
     var origin: EditOrigin = .fileDir
     
@@ -189,6 +207,7 @@ class TagEditorViewModel: BaseViewModel {
     }
 
     func setIdLibrarySelection(selection: Music.ID) {
+        origin = .library
         self.idMusicSelected = selection
         if let item = self.musicsLibrary.first(where: { $0.id == self.idMusicSelected }) {
             self.idMusicSelected = item.id
@@ -199,9 +218,11 @@ class TagEditorViewModel: BaseViewModel {
             self.musicSelected = Music.emptyMusic
         }
         self.musicSelectedDraft = self.musicSelected
+        refreshCover()
     }
     
     func setIdFilesSelection(selection: Music.ID) {
+        origin = .fileDir
         self.idMusicSelected = selection
         if let item = self.musicsFileDir.first(where: { $0.id == self.idMusicSelected }) {
             self.idMusicSelected = item.id
@@ -212,6 +233,7 @@ class TagEditorViewModel: BaseViewModel {
             self.musicSelected = Music.emptyMusic
         }
         self.musicSelectedDraft = self.musicSelected
+        refreshCover()
     }
     
     func AddFile(url: URL) async {
@@ -237,7 +259,9 @@ class TagEditorViewModel: BaseViewModel {
             
             let artist = ((id3Tag?.frames[.artist] as? ID3FrameWithStringContent)?.content ?? String()) as String
             let album = ((id3Tag?.frames[.album] as? ID3FrameWithStringContent)?.content ?? String()) as String
-            let year = ((id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value ?? Int()) as Int
+            let year = (id3Tag?.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value
+                ?? (id3Tag?.frames[.recordingDateTime] as? ID3FrameRecordingDateTime)?.recordingDateTime.date?.year
+                ?? 0
             let track = ((id3Tag?.frames[.trackPosition] as? ID3FramePartOfTotal)?.part ?? Int()) as Int
             let duration = await Id3TagUtils.getDuration(url: fileURL)
             let musicTitle = ((id3Tag?.frames[.title] as? ID3FrameWithStringContent)?.content ?? String()) as String
@@ -274,54 +298,110 @@ class TagEditorViewModel: BaseViewModel {
         let currentTag = try? id3TagEditor.read(from: musicURL.path)
 
         do {
-            var builder = ID32v3TagBuilder()
-                .title(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.musicTitle))
-                .artist(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.artist))
-                .album(frame: ID3FrameWithStringContent(content: self.musicSelectedDraft.album))
-                .recordingYear(frame: ID3FrameWithIntegerContent(value: self.musicSelectedDraft.year))
-                .trackPosition(frame: ID3FramePartOfTotal(part: self.musicSelectedDraft.track, total: nil))
-                .genre(frame: .init(genre: nil, description: self.musicSelectedDraft.genre))
+            var frames = currentTag?.frames ?? [:]
+            var expectedCoverData: Data?
+            frames[.title] = ID3FrameWithStringContent(content: self.musicSelectedDraft.musicTitle)
+            frames[.artist] = ID3FrameWithStringContent(content: self.musicSelectedDraft.artist)
+            frames[.album] = ID3FrameWithStringContent(content: self.musicSelectedDraft.album)
+            if currentTag?.properties.version == .version4 {
+                let currentDateTime = (frames[.recordingDateTime] as? ID3FrameRecordingDateTime)?.recordingDateTime
+                let recordingDate = RecordingDate(day: currentDateTime?.date?.day,
+                                                  month: currentDateTime?.date?.month,
+                                                  year: self.musicSelectedDraft.year)
+                frames[.recordingDateTime] = ID3FrameRecordingDateTime(
+                    recordingDateTime: RecordingDateTime(date: recordingDate, time: currentDateTime?.time)
+                )
+                frames.removeValue(forKey: .recordingYear)
+            } else {
+                frames[.recordingYear] = ID3FrameWithIntegerContent(value: self.musicSelectedDraft.year)
+            }
+            frames[.trackPosition] = ID3FramePartOfTotal(part: self.musicSelectedDraft.track, total: nil)
+            frames[.genre] = ID3FrameGenre(genre: nil, description: self.musicSelectedDraft.genre)
 
             let trimmedLyric = self.musicLyricDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+            for frameName in Array(frames.keys) {
+                if case .unsynchronizedLyrics = frameName {
+                    frames.removeValue(forKey: frameName)
+                }
+            }
             if !trimmedLyric.isEmpty {
-                builder = builder.unsynchronisedLyrics(language: .eng,
-                                                       frame: ID3FrameWithLocalizedContent(
-                                                        language: ID3FrameContentLanguage.eng,
-                                                        contentDescription: "Lyric - \(self.musicSelectedDraft.musicTitle)",
-                                                        content: trimmedLyric))
+                frames[.unsynchronizedLyrics(.eng)] = ID3FrameWithLocalizedContent(
+                    language: .eng,
+                    contentDescription: "Lyric - \(self.musicSelectedDraft.musicTitle)",
+                    content: trimmedLyric
+                )
             }
 
             if !coverImagePath.isEmpty {
-                let imageURL = URL(fileURLWithPath: coverImagePath.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? coverImagePath)
-
-                if let imageData = try? Data(contentsOf: imageURL) {
-                    let format: ID3PictureFormat = imageURL.pathExtension.lowercased() == "png" ? .png : .jpeg
-
-                    let coverFrame = ID3FrameAttachedPicture(
-                        picture: imageData,
-                        type: .frontCover,
-                        format: format
-                    )
-
-                    builder = builder.attachedPicture(pictureType: .frontCover, frame: coverFrame)
+                guard let imageURL = fileURL(for: coverImagePath),
+                      let imageData = try? Data(contentsOf: imageURL) else {
+                    return false
                 }
-            } else {
-                if let existingCoverFrame = currentTag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
-                    builder = builder.attachedPicture(pictureType: .frontCover, frame: existingCoverFrame)
-                }
+                                expectedCoverData = imageData
+                let format: ID3PictureFormat = imageURL.pathExtension.lowercased() == "png" ? .png : .jpeg
+
+                frames[.attachedPicture(.frontCover)] = ID3FrameAttachedPicture(
+                    picture: imageData,
+                    type: .frontCover,
+                    format: format
+                )
             }
 
-            let id3Tag = builder.build()
+            let id3Tag: ID3Tag
+            switch currentTag?.properties.version {
+            case .version2:
+                id3Tag = ID32v2TagBuilder().build()
+            case .version4:
+                id3Tag = ID32v4TagBuilder().build()
+            default:
+                id3Tag = ID32v3TagBuilder().build()
+            }
+            id3Tag.frames = frames
             try id3TagEditor.write(tag: id3Tag, to: musicURL.path)
 
-            self.musicSelected.hasLyric = !trimmedLyric.isEmpty
-            self.musicSelectedDraft.hasLyric = !trimmedLyric.isEmpty
+            guard let savedTag = try id3TagEditor.read(from: musicURL.path) else {
+                return false
+            }
+            let savedYear = (savedTag.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value
+                ?? (savedTag.frames[.recordingDateTime] as? ID3FrameRecordingDateTime)?.recordingDateTime.date?.year
+            let savedCoverData = (savedTag.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture)?.picture
+            guard
+                  (savedTag.frames[.title] as? ID3FrameWithStringContent)?.content == self.musicSelectedDraft.musicTitle,
+                  (savedTag.frames[.artist] as? ID3FrameWithStringContent)?.content == self.musicSelectedDraft.artist,
+                  (savedTag.frames[.album] as? ID3FrameWithStringContent)?.content == self.musicSelectedDraft.album,
+                  savedYear == self.musicSelectedDraft.year,
+                  (savedTag.frames[.trackPosition] as? ID3FramePartOfTotal)?.part == self.musicSelectedDraft.track,
+                  expectedCoverData == nil || savedCoverData == expectedCoverData else {
+                return false
+            }
+
+            var savedMusic = self.musicSelectedDraft
+            savedMusic.hasLyric = !trimmedLyric.isEmpty
+            self.musicSelected = savedMusic
+            self.musicSelectedDraft = savedMusic
             self.musicLyric = trimmedLyric
+            self.musicLyricDraft = trimmedLyric
+            updateCachedMusic(savedMusic)
+            refreshCover()
             return true
         } catch {
             print(error)
             return false
         }
+    }
+
+    private func updateCachedMusic(_ music: Music) {
+        if let index = musicsFileDir.firstIndex(where: { $0.id == music.id }) {
+            musicsFileDir[index] = music
+        }
+        if let index = musicsLibrary.firstIndex(where: { $0.id == music.id }) {
+            musicsLibrary[index] = music
+        }
+    }
+
+    private func refreshCover() {
+        Id3TagUtils.invalidateCoverCache()
+        coverRevision += 1
     }
 
     func saveCover(coverImageUrl: URL) -> Bool {
@@ -412,15 +492,11 @@ class TagEditorViewModel: BaseViewModel {
         }
     }
 
-    func exportSelectedMusic(to libraryPath: String) async -> Bool {
+    func exportSelectedMusic(to libraryPath: String, deleteOriginal: Bool) async -> MusicExportResult {
         guard let sourceURL = fileURL(for: musicSelectedDraft.filePath),
               FileManager.default.fileExists(atPath: sourceURL.path),
               let library = libraryDirectories.first(where: { $0.path == libraryPath }) else {
-            return false
-        }
-
-        guard SetMusicTags(coverImagePath: "") else {
-            return false
+            return .failed
         }
 
         let artistDirectory = sanitizedPathComponent(musicSelectedDraft.artist, fallback: "Artista desconhecido")
@@ -429,9 +505,17 @@ class TagEditorViewModel: BaseViewModel {
             .appendingPathComponent(artistDirectory, isDirectory: true)
             .appendingPathComponent(albumDirectory, isDirectory: true)
         let destinationURL = destinationDirectory.appendingPathComponent(sourceURL.lastPathComponent)
+        let exportedMusic = MusicFiles()
+        let destinationFilePath = destinationURL.absoluteString
 
-        guard !FileManager.default.fileExists(atPath: destinationURL.path) else {
-            return false
+        guard sourceURL.standardizedFileURL != destinationURL.standardizedFileURL,
+              !FileManager.default.fileExists(atPath: destinationURL.path),
+              !exportedMusic.musicExists(filePath: destinationFilePath) else {
+            return .alreadyExists
+        }
+
+        guard SetMusicTags(coverImagePath: "") else {
+            return .failed
         }
 
         do {
@@ -439,10 +523,7 @@ class TagEditorViewModel: BaseViewModel {
             try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
 
             let duration = await Id3TagUtils.getDuration(url: destinationURL)
-            let exportedMusic = MusicFiles()
-            let filePath = destinationURL.absoluteString
-            guard !exportedMusic.musicExists(filePath: filePath),
-                  exportedMusic.AddMusic(filePath: filePath,
+        guard exportedMusic.AddMusic(filePath: destinationFilePath,
                                          musicTitle: musicSelectedDraft.musicTitle,
                                          artist: musicSelectedDraft.artist,
                                          album: musicSelectedDraft.album,
@@ -452,7 +533,7 @@ class TagEditorViewModel: BaseViewModel {
                                          genre: musicSelectedDraft.genre,
                                          hasLyric: !musicLyricDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) else {
                 try? FileManager.default.removeItem(at: destinationURL)
-                return false
+                return .failed
             }
 
             let escapedPath = library.path.replacingOccurrences(of: "\"", with: "\"\"")
@@ -464,16 +545,34 @@ class TagEditorViewModel: BaseViewModel {
                 """
             guard helper?.executeQuery(query: updateQuery) == true else {
                 try? FileManager.default.removeItem(at: destinationURL)
-                return false
+                return .failed
             }
 
             await reloadMusics()
             loadLibraryDirectories()
             NotificationCenter.default.post(name: .musicLibraryDidChange, object: nil)
-            return true
+
+            guard deleteOriginal && origin == .fileDir else {
+                return .exported
+            }
+            do {
+                try FileManager.default.removeItem(at: sourceURL)
+                musicsFileDir.removeAll { $0.id == musicSelectedDraft.id }
+                idMusicSelected = nil
+                musicSelected = .emptyMusic
+                musicSelectedDraft = .emptyMusic
+                fileSelected = ""
+                musicLyric = ""
+                musicLyricDraft = ""
+                refreshCover()
+                return .exportedAndRemovedOriginal
+            } catch {
+                print(error)
+                return .exportedButCouldNotRemoveOriginal
+            }
         } catch {
             print(error)
-            return false
+            return .failed
         }
     }
 
@@ -514,7 +613,16 @@ class TagEditorViewModel: BaseViewModel {
                 result.replaceSubrange(fullRange, with: value)
             }
         }
-
+        switch self.selectedCaseFileName {
+            case .uppercase:
+                result = result.uppercased()
+            case .lowercase:
+                result = result.lowercased()
+            case .capitalized:
+                result = result.capitalized
+            case .none:
+                break
+            }
         return sanitizedFileName(result)
     }
 

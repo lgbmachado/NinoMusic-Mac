@@ -45,6 +45,10 @@ public class Id3TagUtils {
         }
         return nil
     }
+
+    static func invalidateCoverCache() {
+        coverCache.removeAllObjects()
+    }
     
     static func getLyrics(path: String) -> String? {
         let normalizedPath = path.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? path

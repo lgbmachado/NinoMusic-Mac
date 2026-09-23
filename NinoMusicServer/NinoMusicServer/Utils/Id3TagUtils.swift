@@ -26,22 +26,73 @@ public class Id3TagUtils {
             return cachedImage
         }
 
+        if let coverData = coverImageData(path: normalizedPath),
+           let image = NSImage(data: coverData) {
+            let finalImage = maxPixelSize.map { image.resized(maxPixelSize: $0) } ?? image
+            coverCache.setObject(finalImage, forKey: cacheKey)
+            return finalImage
+        }
+
+        return nil
+    }
+
+    static func coverImageData(path: String) -> Data? {
+        let normalizedPath = path.removingPercentEncoding?.replacingOccurrences(of: "file://", with: "") ?? path
+        guard !normalizedPath.isEmpty else {
+            return nil
+        }
+
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
         do {
             let id3Tag = try id3TagEditor.read(from: normalizedPath)
-            
-            if let coverImage = id3Tag?.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
-                guard let image = NSImage(data: coverImage.picture) else {
-                    return nil
-                }
-
-                let finalImage = maxPixelSize.map { image.resized(maxPixelSize: $0) } ?? image
-                coverCache.setObject(finalImage, forKey: cacheKey)
-                return finalImage
+            if let coverImage = firstReadableAttachedPicture(in: id3Tag) {
+                return coverImage.picture
             }
-        }
-        catch {
+        } catch {
             print(error)
+        }
+
+        return avFoundationCoverImageData(path: normalizedPath)
+    }
+
+    static func firstAttachedPicture(in id3Tag: ID3Tag?) -> ID3FrameAttachedPicture? {
+        attachedPictures(in: id3Tag).first
+    }
+
+    static func attachedPictureData(in id3Tag: ID3Tag?) -> [Data] {
+        attachedPictures(in: id3Tag).map(\.picture)
+    }
+
+    private static func firstReadableAttachedPicture(in id3Tag: ID3Tag?) -> ID3FrameAttachedPicture? {
+        attachedPictures(in: id3Tag).first { NSImage(data: $0.picture) != nil }
+    }
+
+    private static func attachedPictures(in id3Tag: ID3Tag?) -> [ID3FrameAttachedPicture] {
+        guard let id3Tag else {
+            return []
+        }
+
+        let frontCover = id3Tag.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture
+        let otherPictures = id3Tag.frames.compactMap { frameName, frame -> ID3FrameAttachedPicture? in
+            if case .attachedPicture(.frontCover) = frameName {
+                return nil
+            }
+            return frame as? ID3FrameAttachedPicture
+        }
+        return frontCover.map { [$0] + otherPictures } ?? otherPictures
+    }
+
+    private static func avFoundationCoverImageData(path: String) -> Data? {
+        let asset = AVURLAsset(url: URL(fileURLWithPath: path))
+        let artworkItems = AVMetadataItem.metadataItems(from: asset.commonMetadata,
+                                                        filteredByIdentifier: .commonIdentifierArtwork)
+        for artworkItem in artworkItems {
+            if let data = artworkItem.dataValue, NSImage(data: data) != nil {
+                return data
+            }
+            if let data = artworkItem.value as? Data, NSImage(data: data) != nil {
+                return data
+            }
         }
         return nil
     }

@@ -374,14 +374,15 @@ class TagEditorViewModel: BaseViewModel {
             }
             let savedYear = (savedTag.frames[.recordingYear] as? ID3FrameWithIntegerContent)?.value
                 ?? (savedTag.frames[.recordingDateTime] as? ID3FrameRecordingDateTime)?.recordingDateTime.date?.year
-            let savedCoverData = (savedTag.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture)?.picture
+            let savedCoverData = Id3TagUtils.attachedPictureData(in: savedTag)
+            let readableCoverData = Id3TagUtils.coverImageData(path: musicURL.path)
             guard
                   (savedTag.frames[.title] as? ID3FrameWithStringContent)?.content == self.musicSelectedDraft.musicTitle,
                   (savedTag.frames[.artist] as? ID3FrameWithStringContent)?.content == self.musicSelectedDraft.artist,
                   (savedTag.frames[.album] as? ID3FrameWithStringContent)?.content == self.musicSelectedDraft.album,
                   savedYear == self.musicSelectedDraft.year,
                   (savedTag.frames[.trackPosition] as? ID3FramePartOfTotal)?.part == self.musicSelectedDraft.track,
-                  expectedCoverData == nil || savedCoverData == expectedCoverData else {
+                  expectedCoverData == nil || savedCoverData.contains(expectedCoverData!) || readableCoverData == expectedCoverData else {
                 return false
             }
 
@@ -416,31 +417,48 @@ class TagEditorViewModel: BaseViewModel {
 
     func saveCover(coverImageUrl: URL) -> Bool {
         let id3TagEditor = ID3TagEditor()
-        do {
-            guard let musicURL = fileURL(for: self.musicSelected.filePath) else {
+        guard let musicURL = fileURL(for: self.musicSelected.filePath) else {
+            return false
+        }
+
+        func writeCoverData(_ imageData: Data, format: ID3PictureFormat) throws {
+            let extensionStr = (format == .jpeg) ? "jpg" : "png"
+            let imageOutputURL = coverImageUrl
+                .deletingPathExtension()
+                .appendingPathExtension(extensionStr)
+            try imageData.write(to: imageOutputURL)
+        }
+
+        func saveReadableCoverFallback() -> Bool {
+            guard let imageData = Id3TagUtils.coverImageData(path: musicURL.path),
+                  let format = pictureFormat(for: imageData) else {
                 return false
             }
+            do {
+                try writeCoverData(imageData, format: format)
+                return true
+            } catch {
+                return false
+            }
+        }
 
+        do {
             if let id3Tag = try id3TagEditor.read(from: musicURL.path) {
-                if let artworkFrame = id3Tag.frames[.attachedPicture(.frontCover)] as? ID3FrameAttachedPicture {
+                if let artworkFrame = Id3TagUtils.firstAttachedPicture(in: id3Tag) {
                     let imageData = artworkFrame.picture
                     let format = artworkFrame.format
-                    let extensionStr = (format == .jpeg) ? "jpg" : "png"
-                    let imageOutputURL = coverImageUrl
-                        .deletingPathExtension()
-                        .appendingPathExtension(extensionStr)
-                    try imageData.write(to: imageOutputURL)
+                    try writeCoverData(imageData, format: format)
                     
                     return true
                 } else {
-                    return false
+                    return saveReadableCoverFallback()
                 }
             } else {
-                return false
+                return saveReadableCoverFallback()
             }
             
         } catch {
-            return false
+            return saveReadableCoverFallback()
         }
     }
 

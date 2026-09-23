@@ -206,6 +206,16 @@ class TagEditorViewModel: BaseViewModel {
         return URL(fileURLWithPath: decodedPath)
     }
 
+    private func pictureFormat(for imageData: Data) -> ID3PictureFormat? {
+        if imageData.starts(with: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]) {
+            return .png
+        }
+        if imageData.starts(with: [0xFF, 0xD8, 0xFF]) {
+            return .jpeg
+        }
+        return nil
+    }
+
     func setIdLibrarySelection(selection: Music.ID) {
         origin = .library
         self.idMusicSelected = selection
@@ -334,11 +344,11 @@ class TagEditorViewModel: BaseViewModel {
 
             if !coverImagePath.isEmpty {
                 guard let imageURL = fileURL(for: coverImagePath),
-                      let imageData = try? Data(contentsOf: imageURL) else {
+                      let imageData = try? Data(contentsOf: imageURL),
+                      let format = pictureFormat(for: imageData) else {
                     return false
                 }
-                                expectedCoverData = imageData
-                let format: ID3PictureFormat = imageURL.pathExtension.lowercased() == "png" ? .png : .jpeg
+                expectedCoverData = imageData
 
                 frames[.attachedPicture(.frontCover)] = ID3FrameAttachedPicture(
                     picture: imageData,

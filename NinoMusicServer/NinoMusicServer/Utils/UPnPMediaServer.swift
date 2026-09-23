@@ -96,7 +96,7 @@ struct UPnPMediaServer {
 
     func browseResponse(requestData: Data, musics: [Music], baseURL: String) -> String {
         let request = String(data: requestData, encoding: .utf8) ?? ""
-        let objectID = request.xmlValue(named: "ObjectID") ?? "0"
+        let objectID = (request.xmlValue(named: "ObjectID") ?? "0").normalizedUPnPObjectID
         let browseMetadata = request.xmlValue(named: "BrowseFlag") == "BrowseMetadata"
         let startingIndex = Int(request.xmlValue(named: "StartingIndex") ?? "0") ?? 0
         let requestedCount = Int(request.xmlValue(named: "RequestedCount") ?? "0") ?? 0
@@ -153,21 +153,21 @@ struct UPnPMediaServer {
         case "all":
             return musics.map { item($0, parentID: "all", baseURL: baseURL) }
         case "albums":
-            return albums(in: musics).enumerated().map { index, album in
+            return albums(in: musics).map { album in
                 let albumMusics = musics.filter { $0.album == album }
                 let artworkURI = albumMusics.first.map { "\(baseURL)/getCover/\($0.idServer)" }
-                return container(id: "album:\(index)", parentID: "albums", title: album, childCount: albumMusics.count, artworkURI: artworkURI)
+                return container(id: albumObjectID(for: album), parentID: "albums", title: album, childCount: albumMusics.count, artworkURI: artworkURI)
             }
         case "artists":
-            return artists(in: musics).enumerated().map { index, artist in
-                container(id: "artist:\(index)", parentID: "artists", title: artist, childCount: musics.filter { $0.artist == artist }.count)
+            return artists(in: musics).map { artist in
+                container(id: artistObjectID(for: artist), parentID: "artists", title: artist, childCount: musics.filter { $0.artist == artist }.count)
             }
         default:
-            if objectID.hasPrefix("album:"), let index = Int(objectID.dropFirst(6)), albums(in: musics).indices.contains(index) {
-                return musics.filter { $0.album == albums(in: musics)[index] }.map { item($0, parentID: objectID, baseURL: baseURL) }
+            if let album = album(for: objectID, musics: musics) {
+                return musics.filter { $0.album == album }.map { item($0, parentID: objectID, baseURL: baseURL) }
             }
-            if objectID.hasPrefix("artist:"), let index = Int(objectID.dropFirst(7)), artists(in: musics).indices.contains(index) {
-                return musics.filter { $0.artist == artists(in: musics)[index] }.map { item($0, parentID: objectID, baseURL: baseURL) }
+            if let artist = artist(for: objectID, musics: musics) {
+                return musics.filter { $0.artist == artist }.map { item($0, parentID: objectID, baseURL: baseURL) }
             }
             return []
         }
@@ -180,8 +180,15 @@ struct UPnPMediaServer {
         if let music = musics.first(where: { "track:\($0.idServer)" == objectID }) {
             return [item(music, parentID: "all", baseURL: baseURL)]
         }
-        return children(of: objectID.hasPrefix("album:") ? "albums" : "artists", musics: musics, baseURL: baseURL)
-            .filter { $0.contains("id=\"\(objectID)\"") }
+        if let album = album(for: objectID, musics: musics) {
+            let albumMusics = musics.filter { $0.album == album }
+            let artworkURI = albumMusics.first.map { "\(baseURL)/getCover/\($0.idServer)" }
+            return [container(id: objectID, parentID: "albums", title: album, childCount: albumMusics.count, artworkURI: artworkURI)]
+        }
+        if let artist = artist(for: objectID, musics: musics) {
+            return [container(id: objectID, parentID: "artists", title: artist, childCount: musics.filter { $0.artist == artist }.count)]
+        }
+        return []
     }
 
     private func item(_ music: Music, parentID: String, baseURL: String) -> String {
@@ -202,6 +209,30 @@ struct UPnPMediaServer {
 
     private func artists(in musics: [Music]) -> [String] {
         Array(Set(musics.map(\.artist))).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    private func albumObjectID(for album: String) -> String {
+        "album-\(album.stableUPnPObjectIDComponent)"
+    }
+
+    private func artistObjectID(for artist: String) -> String {
+        "artist-\(artist.stableUPnPObjectIDComponent)"
+    }
+
+    private func album(for objectID: String, musics: [Music]) -> String? {
+        let albums = albums(in: musics)
+        if objectID.hasPrefix("album:"), let index = Int(objectID.dropFirst(6)), albums.indices.contains(index) {
+            return albums[index]
+        }
+        return albums.first { albumObjectID(for: $0) == objectID }
+    }
+
+    private func artist(for objectID: String, musics: [Music]) -> String? {
+        let artists = artists(in: musics)
+        if objectID.hasPrefix("artist:"), let index = Int(objectID.dropFirst(7)), artists.indices.contains(index) {
+            return artists[index]
+        }
+        return artists.first { artistObjectID(for: $0) == objectID }
     }
 
     private func soapEnvelope(action: String, service: String, content: String) -> String {
@@ -370,6 +401,16 @@ final class SSDPService {
 }
 
 extension String {
+    fileprivate var normalizedUPnPObjectID: String {
+        let decoded = removingPercentEncoding ?? self
+        return decoded.split(separator: "/").last.map(String.init) ?? decoded
+    }
+
+    fileprivate var stableUPnPObjectIDComponent: String {
+        let data = Data(utf8)
+        return data.map { String(format: "%02x", $0) }.joined()
+    }
+
     fileprivate var xmlEscaped: String {
         replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")

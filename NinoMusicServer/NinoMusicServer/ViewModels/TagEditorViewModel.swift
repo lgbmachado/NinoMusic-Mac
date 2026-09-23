@@ -30,6 +30,152 @@ enum MusicExportResult {
     }
 }
 
+struct DiscogsAlbumTrack: Identifiable, Hashable {
+    let id = UUID()
+    let position: String
+    let title: String
+    let duration: String
+}
+
+struct DiscogsAlbumResult: Identifiable, Hashable {
+    let id: Int
+    let title: String
+    let artist: String
+    let year: Int?
+    let coverURL: URL?
+    let tracks: [DiscogsAlbumTrack]
+}
+
+private struct DiscogsSearchResponse: Decodable {
+    let results: [DiscogsSearchResult]
+}
+
+private struct DiscogsSearchResult: Decodable {
+    let id: Int
+    let title: String
+    let year: Int?
+    let resourceURL: URL?
+    let coverURL: URL?
+    let thumbnailURL: URL?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case year
+        case resourceURL = "resource_url"
+        case coverURL = "cover_image"
+        case thumbnailURL = "thumb"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        year = container.decodeDiscogsYearIfPresent(forKey: .year)
+        resourceURL = try container.decodeIfPresent(URL.self, forKey: .resourceURL)
+        coverURL = container.decodeDiscogsURLIfPresent(forKey: .coverURL)
+        thumbnailURL = container.decodeDiscogsURLIfPresent(forKey: .thumbnailURL)
+    }
+}
+
+private struct DiscogsReleaseResponse: Decodable {
+    let id: Int
+    let title: String
+    let year: Int?
+    let artistsSort: String?
+    let images: [DiscogsReleaseImage]
+    let tracklist: [DiscogsReleaseTrack]
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case year
+        case artistsSort = "artists_sort"
+        case images
+        case tracklist
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        year = container.decodeDiscogsYearIfPresent(forKey: .year)
+        artistsSort = try container.decodeIfPresent(String.self, forKey: .artistsSort)
+        images = try container.decodeIfPresent([DiscogsReleaseImage].self, forKey: .images) ?? []
+        tracklist = try container.decodeIfPresent([DiscogsReleaseTrack].self, forKey: .tracklist) ?? []
+    }
+}
+
+private struct DiscogsReleaseImage: Decodable {
+    let uri: URL?
+    let resourceURL: URL?
+    let type: String?
+
+    enum CodingKeys: String, CodingKey {
+        case uri
+        case resourceURL = "resource_url"
+        case type
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        uri = container.decodeDiscogsURLIfPresent(forKey: .uri)
+        resourceURL = container.decodeDiscogsURLIfPresent(forKey: .resourceURL)
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+    }
+}
+
+private struct DiscogsReleaseTrack: Decodable {
+    let position: String?
+    let title: String
+    let duration: String?
+    let type: String?
+
+    enum CodingKeys: String, CodingKey {
+        case position
+        case title
+        case duration
+        case type = "type_"
+    }
+}
+
+private struct DiscogsErrorResponse: Decodable {
+    let message: String
+}
+
+private enum DiscogsLookupError: LocalizedError {
+    case requestFailed(Int, String)
+    case invalidResponse
+
+    var errorDescription: String? {
+        switch self {
+        case .requestFailed(let statusCode, let message):
+            return "Discogs retornou HTTP \(statusCode): \(message)"
+        case .invalidResponse:
+            return "A resposta do Discogs não está no formato esperado."
+        }
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeDiscogsYearIfPresent(forKey key: Key) -> Int? {
+        if let value = try? decodeIfPresent(Int.self, forKey: key) {
+            return value
+        }
+        if let value = try? decodeIfPresent(String.self, forKey: key) {
+            return Int(value.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+        return nil
+    }
+
+    func decodeDiscogsURLIfPresent(forKey key: Key) -> URL? {
+        guard let value = try? decodeIfPresent(String.self, forKey: key), !value.isEmpty else {
+            return nil
+        }
+        return URL(string: value)
+    }
+}
+
 extension Notification.Name {
     static let musicLibraryDidChange = Notification.Name("musicLibraryDidChange")
 }
@@ -42,6 +188,9 @@ class TagEditorViewModel: BaseViewModel {
     @Published var musicLyric: String = String()
     @Published var musicLyricDraft: String = String()
     @Published private(set) var coverRevision = 0
+    @Published var discogsAlbums: [DiscogsAlbumResult] = []
+    @Published var isSearchingDiscogs = false
+    @Published var discogsErrorMessage: String? = nil
     
     var origin: EditOrigin = .fileDir
     
@@ -260,6 +409,141 @@ class TagEditorViewModel: BaseViewModel {
                 await self.AddFile(url: fileURL)
             }
         }
+    }
+
+    func searchDiscogsAlbums() async {
+        let artist = musicSelectedDraft.artist.trimmingCharacters(in: .whitespacesAndNewlines)
+        let track = musicSelectedDraft.musicTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !artist.isEmpty, !track.isEmpty else {
+            discogsAlbums = []
+            discogsErrorMessage = "Informe o nome da música e do artista para buscar no Discogs."
+            return
+        }
+
+        await MainActor.run {
+            self.isSearchingDiscogs = true
+            self.discogsErrorMessage = nil
+            self.discogsAlbums = []
+        }
+
+        do {
+            let albums = try await fetchDiscogsAlbums(artist: artist, track: track)
+            await MainActor.run {
+                self.discogsAlbums = albums
+                self.discogsErrorMessage = albums.isEmpty ? "Nenhum álbum encontrado no Discogs." : nil
+                self.isSearchingDiscogs = false
+            }
+        } catch {
+            await MainActor.run {
+                self.discogsAlbums = []
+                self.discogsErrorMessage = "Erro ao buscar no Discogs: \(error.localizedDescription)"
+                self.isSearchingDiscogs = false
+            }
+        }
+    }
+
+    private func fetchDiscogsAlbums(artist: String, track: String) async throws -> [DiscogsAlbumResult] {
+        let decoder = JSONDecoder()
+        var searchResults = try await discogsSearchResults(queryItems: [
+            URLQueryItem(name: "artist", value: artist),
+            URLQueryItem(name: "track", value: track),
+            URLQueryItem(name: "type", value: "release"),
+            URLQueryItem(name: "per_page", value: "10")
+        ])
+
+        if searchResults.isEmpty {
+            searchResults = try await discogsSearchResults(queryItems: [
+                URLQueryItem(name: "q", value: "\(artist) \(track)"),
+                URLQueryItem(name: "type", value: "release"),
+                URLQueryItem(name: "per_page", value: "10")
+            ])
+        }
+
+        var albums = [DiscogsAlbumResult]()
+        var seenReleaseIds = Set<Int>()
+
+        for result in searchResults where seenReleaseIds.insert(result.id).inserted {
+            guard let releaseURL = result.resourceURL else {
+                continue
+            }
+            let release: DiscogsReleaseResponse
+            do {
+                let releaseData = try await discogsData(for: releaseURL)
+                release = try decoder.decode(DiscogsReleaseResponse.self, from: releaseData)
+            } catch is DecodingError {
+                continue
+            }
+            let tracks = release.tracklist
+                .filter { $0.type == nil || $0.type == "track" }
+                .map {
+                    DiscogsAlbumTrack(
+                        position: $0.position ?? "",
+                        title: $0.title,
+                        duration: $0.duration ?? ""
+                    )
+                }
+
+            albums.append(
+                DiscogsAlbumResult(
+                    id: release.id,
+                    title: release.title,
+                    artist: release.artistsSort ?? artistFromDiscogsTitle(result.title),
+                    year: release.year ?? result.year,
+                    coverURL: releaseCoverURL(from: release) ?? result.coverURL ?? result.thumbnailURL,
+                    tracks: tracks
+                )
+            )
+        }
+
+        return albums
+    }
+
+    private func discogsSearchResults(queryItems: [URLQueryItem]) async throws -> [DiscogsSearchResult] {
+        var components = URLComponents(string: "https://api.discogs.com/database/search")!
+        components.queryItems = queryItems
+        guard let url = components.url else {
+            return []
+        }
+
+        let searchData = try await discogsData(for: url)
+        return try JSONDecoder().decode(DiscogsSearchResponse.self, from: searchData).results
+    }
+
+    private func discogsData(for url: URL) async throws -> Data {
+        let (data, response) = try await URLSession.shared.data(for: discogsRequest(url: url))
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw DiscogsLookupError.invalidResponse
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let message = (try? JSONDecoder().decode(DiscogsErrorResponse.self, from: data).message) ?? HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode)
+            throw DiscogsLookupError.requestFailed(httpResponse.statusCode, message)
+        }
+
+        return data
+    }
+
+    private func discogsRequest(url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.setValue("NinoMusicServer/1.0 +https://nino.musicserver", forHTTPHeaderField: "User-Agent")
+        let token = UserDefaults.standard.string(forKey: "DiscogsUserToken")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !token.isEmpty {
+            request.setValue("Discogs token=\(token)", forHTTPHeaderField: "Authorization")
+        }
+        return request
+    }
+
+    private func artistFromDiscogsTitle(_ title: String) -> String {
+        let parts = title.components(separatedBy: " - ")
+        return parts.first ?? ""
+    }
+
+    private func releaseCoverURL(from release: DiscogsReleaseResponse) -> URL? {
+        release.images.first(where: { $0.type == "primary" })?.resourceURL
+            ?? release.images.first(where: { $0.type == "primary" })?.uri
+            ?? release.images.first?.resourceURL
+            ?? release.images.first?.uri
     }
     
     private func GetMusicTags(fileURL: URL) async -> Music {

@@ -36,9 +36,11 @@ struct MusicDetailsView: View {
 
 struct TagView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
+    @AppStorage("DiscogsUserToken") private var discogsUserToken = ""
     
     @State private var successSaveTag = false
     @State private var finishSaveTag = false
+    @State private var showDiscogsResults = false
     
     @State private var finishSaveCoverImage = false
     @State private var successSaveCoverImage = false
@@ -84,6 +86,25 @@ struct TagView: View {
                     ).formattedText(self.tagEditorViewModel.selectedCaseTag),
                     prompt: Text(LocalizedStringKey("text_artist"))
                 )
+
+                Text("Discogs")
+                    .font(.caption2)
+                    .padding(.bottom, -7)
+                HStack {
+                    SecureField("Token do Discogs", text: $discogsUserToken)
+                    Button {
+                        showDiscogsResults = true
+                        Task {
+                            await tagEditorViewModel.searchDiscogsAlbums()
+                        }
+                    } label: {
+                        Label("Buscar álbuns", systemImage: "magnifyingglass")
+                    }
+                    .disabled(tagEditorViewModel.musicSelectedDraft.musicTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || tagEditorViewModel.musicSelectedDraft.artist.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || tagEditorViewModel.isSearchingDiscogs)
+                }
+                .sheet(isPresented: $showDiscogsResults) {
+                    DiscogsAlbumsSheet(tagEditorViewModel: tagEditorViewModel)
+                }
                 
                 Text(LocalizedStringKey("text_album"))
                     .font(.caption2)
@@ -264,6 +285,129 @@ struct TagView: View {
             self.finishSaveCoverImage = false
         }
         self.finishSaveCoverImage = true
+    }
+}
+
+struct DiscogsAlbumsSheet: View {
+    @ObservedObject var tagEditorViewModel: TagEditorViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Álbuns encontrados no Discogs")
+                    .font(.title3)
+                    .bold()
+                Spacer()
+                if tagEditorViewModel.isSearchingDiscogs {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+
+            if let errorMessage = tagEditorViewModel.discogsErrorMessage {
+                Text(errorMessage)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else if tagEditorViewModel.isSearchingDiscogs && tagEditorViewModel.discogsAlbums.isEmpty {
+                ProgressView("Buscando álbuns...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 12) {
+                        ForEach(tagEditorViewModel.discogsAlbums) { album in
+                            HStack(alignment: .top, spacing: 12) {
+                                DiscogsCoverThumbnail(url: album.coverURL)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack(alignment: .firstTextBaseline) {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(album.title)
+                                                .font(.headline)
+                                            Text(album.artist)
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        Spacer()
+                                        Text(album.year.map(String.init) ?? "Ano desconhecido")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+
+                                    if album.tracks.isEmpty {
+                                        Text("Sem faixas disponíveis para este álbum.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            ForEach(album.tracks) { track in
+                                                HStack(spacing: 8) {
+                                                    Text(track.position)
+                                                        .font(.caption)
+                                                        .foregroundStyle(.secondary)
+                                                        .monospacedDigit()
+                                                        .frame(width: 44, alignment: .leading)
+                                                    Text(track.title)
+                                                        .lineLimit(1)
+                                                    Spacer()
+                                                    if !track.duration.isEmpty {
+                                                        Text(track.duration)
+                                                            .font(.caption)
+                                                            .foregroundStyle(.secondary)
+                                                            .monospacedDigit()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .padding(10)
+                            .background(Color(NSColor.controlBackgroundColor))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .frame(minWidth: 650, minHeight: 460)
+    }
+}
+
+struct DiscogsCoverThumbnail: View {
+    let url: URL?
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color(NSColor.windowBackgroundColor))
+
+            if let url {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .controlSize(.small)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        Image(systemName: "photo")
+                            .foregroundStyle(.secondary)
+                    @unknown default:
+                        Image(systemName: "photo")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                Image(systemName: "photo")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 86, height: 86)
+        .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }
 

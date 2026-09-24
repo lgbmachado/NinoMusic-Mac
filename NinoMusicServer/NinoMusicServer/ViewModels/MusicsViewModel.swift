@@ -110,4 +110,29 @@ class MusicsViewModel: BaseViewModel {
         }
     }
     
+    func filteredMusics(searchTerm: String) -> [Music] {
+        guard !searchTerm.isEmpty else { return self.musics }
+        return self.musics.filter {
+            $0.musicTitle.localizedCaseInsensitiveContains(searchTerm) ||
+            $0.artist.localizedCaseInsensitiveContains(searchTerm) ||
+            $0.album.localizedCaseInsensitiveContains(searchTerm)
+        }
+    }
+    
+    // Musics are pre-sorted alphabetically by title, so letters come out in order
+    func availableLetters(in musics: [Music]) -> [String] {
+        var letters = [String]()
+        for music in musics {
+            let letter = String(music.musicTitle.first ?? " ").uppercased()
+            if letters.last != letter {
+                letters.append(letter)
+            }
+        }
+        return letters
+    }
+    
+    func firstMusicId(forLetter letter: String, in musics: [Music]) -> Music.ID? {
+        musics.first(where: { String($0.musicTitle.first ?? " ").uppercased() == letter })?.id
+    }
+    
 }

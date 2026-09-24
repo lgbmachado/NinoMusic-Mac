@@ -103,7 +103,21 @@ struct TagView: View {
                     .disabled(tagEditorViewModel.musicSelectedDraft.musicTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || tagEditorViewModel.musicSelectedDraft.artist.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || tagEditorViewModel.isSearchingDiscogs)
                 }
                 .sheet(isPresented: $showDiscogsResults) {
-                    DiscogsAlbumsSheet(tagEditorViewModel: tagEditorViewModel)
+                    DiscogsAlbumsSheet(tagEditorViewModel: tagEditorViewModel) { album, track in
+                        Task {
+                            let coverURL = await tagEditorViewModel.applyDiscogsMetadata(album: album, track: track)
+                            await MainActor.run {
+                                if let coverURL {
+                                    pathCoverImage = coverURL.absoluteString
+                                    coverImage = NSImage(contentsOf: coverURL) ?? NSImage()
+                                } else {
+                                    pathCoverImage = ""
+                                    reloadCoverImage()
+                                }
+                                showDiscogsResults = false
+                            }
+                        }
+                    }
                 }
                 
                 Text(LocalizedStringKey("text_album"))
@@ -290,6 +304,7 @@ struct TagView: View {
 
 struct DiscogsAlbumsSheet: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
+    let onSelect: (DiscogsAlbumResult, DiscogsAlbumTrack) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -355,6 +370,12 @@ struct DiscogsAlbumsSheet: View {
                                                             .foregroundStyle(.secondary)
                                                             .monospacedDigit()
                                                     }
+                                                    Button {
+                                                        onSelect(album, track)
+                                                    } label: {
+                                                        Label("Usar", systemImage: "checkmark.circle")
+                                                    }
+                                                    .buttonStyle(.borderless)
                                                 }
                                             }
                                         }

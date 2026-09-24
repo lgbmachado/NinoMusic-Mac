@@ -32,6 +32,7 @@ enum MusicExportResult {
 
 struct DiscogsAlbumTrack: Identifiable, Hashable {
     let id = UUID()
+    let sequence: Int
     let position: String
     let title: String
     let duration: String
@@ -476,11 +477,13 @@ class TagEditorViewModel: BaseViewModel {
             }
             let tracks = release.tracklist
                 .filter { $0.type == nil || $0.type == "track" }
-                .map {
+                .enumerated()
+                .map { index, track in
                     DiscogsAlbumTrack(
-                        position: $0.position ?? "",
-                        title: $0.title,
-                        duration: $0.duration ?? ""
+                        sequence: index + 1,
+                        position: track.position ?? "",
+                        title: track.title,
+                        duration: track.duration ?? ""
                     )
                 }
 
@@ -497,6 +500,22 @@ class TagEditorViewModel: BaseViewModel {
         }
 
         return albums
+    }
+
+    func applyDiscogsMetadata(album: DiscogsAlbumResult, track: DiscogsAlbumTrack) async -> URL? {
+        await MainActor.run {
+            self.musicSelectedDraft.musicTitle = track.title
+            self.musicSelectedDraft.artist = album.artist
+            self.musicSelectedDraft.album = album.title
+            self.musicSelectedDraft.year = album.year ?? 0
+            self.musicSelectedDraft.track = self.trackNumber(from: track)
+        }
+
+        guard let coverURL = album.coverURL else {
+            return nil
+        }
+
+        return try? await downloadDiscogsCover(from: coverURL, albumId: album.id)
     }
 
     private func discogsSearchResults(queryItems: [URLQueryItem]) async throws -> [DiscogsSearchResult] {
@@ -534,16 +553,47 @@ class TagEditorViewModel: BaseViewModel {
         return request
     }
 
+    private func downloadDiscogsCover(from url: URL, albumId: Int) async throws -> URL? {
+        let data = try await discogsData(for: url)
+        guard let format = pictureFormat(for: data) else {
+            return nil
+        }
+
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("NinoMusicDiscogsCovers", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let fileExtension = format == .jpeg ? "jpg" : "png"
+        let coverURL = directory
+            .appendingPathComponent("\(albumId)-\(UUID().uuidString)")
+            .appendingPathExtension(fileExtension)
+        try data.write(to: coverURL, options: .atomic)
+        return coverURL
+    }
+
+    private func trackNumber(from track: DiscogsAlbumTrack) -> Int {
+        guard let regularExpression = try? NSRegularExpression(pattern: #"\d+"#) else {
+            return track.sequence
+        }
+
+        let range = NSRange(track.position.startIndex..., in: track.position)
+        guard let match = regularExpression.matches(in: track.position, range: range).last,
+              let matchRange = Range(match.range, in: track.position),
+              let number = Int(track.position[matchRange]) else {
+            return track.sequence
+        }
+
+        return number
+    }
+
     private func artistFromDiscogsTitle(_ title: String) -> String {
         let parts = title.components(separatedBy: " - ")
         return parts.first ?? ""
     }
 
     private func releaseCoverURL(from release: DiscogsReleaseResponse) -> URL? {
-        release.images.first(where: { $0.type == "primary" })?.resourceURL
-            ?? release.images.first(where: { $0.type == "primary" })?.uri
-            ?? release.images.first?.resourceURL
+        release.images.first(where: { $0.type == "primary" })?.uri
+            ?? release.images.first(where: { $0.type == "primary" })?.resourceURL
             ?? release.images.first?.uri
+            ?? release.images.first?.resourceURL
     }
     
     private func GetMusicTags(fileURL: URL) async -> Music {

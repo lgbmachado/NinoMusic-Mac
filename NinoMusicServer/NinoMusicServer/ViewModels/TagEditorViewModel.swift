@@ -5,6 +5,7 @@
 //  Created by Luiz Guilherme Baptista Machado on 06/02/26.
 //
 
+import AppKit
 import SwiftUI
 import ID3TagEditor
 
@@ -147,11 +148,14 @@ private struct DiscogsErrorResponse: Decodable {
 private enum DiscogsLookupError: LocalizedError {
     case requestFailed(Int, String)
     case invalidResponse
+    case unsupportedImageFormat
 
     var errorDescription: String? {
         switch self {
         case .requestFailed(let statusCode, let message):
             return "Discogs retornou HTTP \(statusCode): \(message)"
+        case .unsupportedImageFormat:
+            return "Não foi possível reconhecer o formato da imagem da capa retornada pelo Discogs."
         case .invalidResponse:
             return "A resposta do Discogs não está no formato esperado."
         }
@@ -192,6 +196,8 @@ class TagEditorViewModel: BaseViewModel {
     @Published var discogsAlbums: [DiscogsAlbumResult] = []
     @Published var isSearchingDiscogs = false
     @Published var discogsErrorMessage: String? = nil
+    @Published var discogsCoverErrorMessage: String? = nil
+    @Published private(set) var pendingDiscogsCoverURL: URL?
     
     var origin: EditOrigin = .fileDir
     
@@ -503,6 +509,7 @@ class TagEditorViewModel: BaseViewModel {
     }
 
     func applyDiscogsMetadata(album: DiscogsAlbumResult, track: DiscogsAlbumTrack) async -> URL? {
+        clearPendingDiscogsCover()
         await MainActor.run {
             self.musicSelectedDraft.musicTitle = track.title
             self.musicSelectedDraft.artist = album.artist
@@ -515,7 +522,25 @@ class TagEditorViewModel: BaseViewModel {
             return nil
         }
 
-        return try? await downloadDiscogsCover(from: coverURL, albumId: album.id)
+        do {
+            let downloadedURL = try await downloadDiscogsCover(from: coverURL, albumId: album.id)
+            await MainActor.run {
+                self.pendingDiscogsCoverURL = downloadedURL
+            }
+            return downloadedURL
+        } catch {
+            await MainActor.run {
+                self.discogsCoverErrorMessage = "Erro ao baixar a capa do álbum no Discogs: \(error.localizedDescription)"
+            }
+            return nil
+        }
+    }
+
+    func clearPendingDiscogsCover() {
+        if let pendingDiscogsCoverURL {
+            try? FileManager.default.removeItem(at: pendingDiscogsCoverURL)
+        }
+        pendingDiscogsCoverURL = nil
     }
 
     private func discogsSearchResults(queryItems: [URLQueryItem]) async throws -> [DiscogsSearchResult] {
@@ -555,18 +580,55 @@ class TagEditorViewModel: BaseViewModel {
 
     private func downloadDiscogsCover(from url: URL, albumId: Int) async throws -> URL? {
         let data = try await discogsData(for: url)
-        guard let format = pictureFormat(for: data) else {
-            return nil
+
+        let imageData: Data
+        let format: ID3PictureFormat
+        if let detectedFormat = pictureFormat(for: data) {
+            imageData = data
+            format = detectedFormat
+        } else if let convertedData = jpegData(from: data) {
+            // Discogs can serve covers in formats (e.g. WebP) that pictureFormat doesn't recognize, so re-encode as JPEG
+            imageData = convertedData
+            format = .jpeg
+        } else {
+            throw DiscogsLookupError.unsupportedImageFormat
+        }
+
+        return try makeTemporaryCoverFile(from: imageData, prefix: "\(albumId)", format: format)
+    }
+
+    private func makeTemporaryCoverFile(from data: Data, prefix: String, format: ID3PictureFormat? = nil) throws -> URL {
+        let imageData: Data
+        let imageFormat: ID3PictureFormat
+        if let format {
+            imageData = data
+            imageFormat = format
+        } else if let detectedFormat = pictureFormat(for: data) {
+            imageData = data
+            imageFormat = detectedFormat
+        } else if let convertedData = jpegData(from: data) {
+            imageData = convertedData
+            imageFormat = .jpeg
+        } else {
+            throw DiscogsLookupError.unsupportedImageFormat
         }
 
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("NinoMusicDiscogsCovers", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let fileExtension = format == .jpeg ? "jpg" : "png"
+        let fileExtension = imageFormat == .jpeg ? "jpg" : "png"
         let coverURL = directory
-            .appendingPathComponent("\(albumId)-\(UUID().uuidString)")
+            .appendingPathComponent("\(prefix)-\(UUID().uuidString)")
             .appendingPathExtension(fileExtension)
-        try data.write(to: coverURL, options: .atomic)
+        try imageData.write(to: coverURL, options: .atomic)
         return coverURL
+    }
+
+    private func jpegData(from data: Data) -> Data? {
+        guard let image = NSImage(data: data),
+              let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return nil
+        }
+        return NSBitmapImageRep(cgImage: cgImage).representation(using: .jpeg, properties: [:])
     }
 
     private func trackNumber(from track: DiscogsAlbumTrack) -> Int {
@@ -633,8 +695,8 @@ class TagEditorViewModel: BaseViewModel {
     }
 
 
-    func SetMusicTags(coverImagePath: String) -> Bool {
-        guard let musicURL = fileURL(for: self.musicSelectedDraft.filePath) else {
+    func SetMusicTags(coverImagePath: String, filePath: String? = nil) -> Bool {
+        guard let musicURL = fileURL(for: filePath ?? self.musicSelectedDraft.filePath) else {
             return false
         }
 
@@ -683,6 +745,13 @@ class TagEditorViewModel: BaseViewModel {
                     return false
                 }
                 expectedCoverData = imageData
+
+                // Remove any pre-existing attached pictures (e.g. type .other from imports) so only the new front cover remains
+                for frameName in Array(frames.keys) {
+                    if case .attachedPicture = frameName {
+                        frames.removeValue(forKey: frameName)
+                    }
+                }
 
                 frames[.attachedPicture(.frontCover)] = ID3FrameAttachedPicture(
                     picture: imageData,
@@ -876,13 +945,36 @@ class TagEditorViewModel: BaseViewModel {
             return .alreadyExists
         }
 
-        guard SetMusicTags(coverImagePath: "") else {
-            return .failed
+        let pendingCoverURL = pendingDiscogsCoverURL
+        let exportedCoverURL: URL?
+        if let pendingCoverURL {
+            exportedCoverURL = pendingCoverURL
+        } else if let sourceCoverData = Id3TagUtils.coverImageData(path: sourceURL.path) {
+            exportedCoverURL = try? makeTemporaryCoverFile(from: sourceCoverData, prefix: "source")
+        } else {
+            exportedCoverURL = nil
+        }
+
+        defer {
+            if pendingDiscogsCoverURL == pendingCoverURL {
+                clearPendingDiscogsCover()
+            }
+            if exportedCoverURL != pendingCoverURL, let exportedCoverURL {
+                try? FileManager.default.removeItem(at: exportedCoverURL)
+            }
         }
 
         do {
             try FileManager.default.createDirectory(at: destinationDirectory, withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+
+            guard SetMusicTags(
+                coverImagePath: exportedCoverURL?.absoluteString ?? "",
+                filePath: destinationURL.absoluteString
+            ) else {
+                try? FileManager.default.removeItem(at: destinationURL)
+                return .failed
+            }
 
             let duration = await Id3TagUtils.getDuration(url: destinationURL)
         guard exportedMusic.AddMusic(filePath: destinationFilePath,

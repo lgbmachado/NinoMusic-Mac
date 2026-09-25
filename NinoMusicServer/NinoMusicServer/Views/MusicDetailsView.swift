@@ -108,8 +108,7 @@ struct TagView: View {
                             let coverURL = await tagEditorViewModel.applyDiscogsMetadata(album: album, track: track)
                             await MainActor.run {
                                 if let coverURL {
-                                    pathCoverImage = coverURL.absoluteString
-                                    coverImage = NSImage(contentsOf: coverURL) ?? NSImage()
+                                    loadCoverImage(from: coverURL)
                                 } else {
                                     pathCoverImage = ""
                                     reloadCoverImage()
@@ -118,6 +117,19 @@ struct TagView: View {
                             }
                         }
                     }
+                }
+                .alert(
+                    tagEditorViewModel.discogsCoverErrorMessage ?? "",
+                    isPresented: Binding(
+                        get: { tagEditorViewModel.discogsCoverErrorMessage != nil },
+                        set: { isPresented in
+                            if !isPresented {
+                                tagEditorViewModel.discogsCoverErrorMessage = nil
+                            }
+                        }
+                    )
+                ) {
+                    Button(LocalizedStringKey("text_ok"), role: .cancel) { }
                 }
                 
                 Text(LocalizedStringKey("text_album"))
@@ -224,8 +236,9 @@ struct TagView: View {
                     Spacer()
                     Button("Salvar") {
                         successSaveTag = self.tagEditorViewModel.SetMusicTags(coverImagePath: pathCoverImage)
+                        tagEditorViewModel.clearPendingDiscogsCover()
+                        pathCoverImage = ""
                         if successSaveTag {
-                            pathCoverImage = ""
                             reloadCoverImage()
                         }
                         finishSaveTag = true
@@ -239,6 +252,7 @@ struct TagView: View {
                     Button("Desfazer", role: .cancel) {
                         self.tagEditorViewModel.musicSelectedDraft = self.tagEditorViewModel.musicSelected
                         self.tagEditorViewModel.musicLyricDraft = self.tagEditorViewModel.musicLyric
+                        tagEditorViewModel.clearPendingDiscogsCover()
                         pathCoverImage = ""
                     }
                     .padding()
@@ -279,6 +293,18 @@ struct TagView: View {
             return
         }
         return
+    }
+
+    private func loadCoverImage(from url: URL) {
+        guard let image = NSImage(contentsOf: url) else {
+            pathCoverImage = ""
+            coverImage = NSImage()
+            return
+        }
+
+        // Keep the downloaded file in the same state as a manually selected cover.
+        coverImage = image
+        pathCoverImage = url.absoluteString
     }
 
     private func reloadCoverImage() {

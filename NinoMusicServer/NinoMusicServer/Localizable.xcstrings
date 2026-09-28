@@ -467,6 +467,24 @@
         }
       }
     },
+    "text_count_execution" : {
+      "comment" : "Texto \"Execuções\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Execuções"
+          }
+        }
+      }
+    },
     "text_date_time" : {
       "comment" : "Texto \"Data/Hora\".",
       "extractionState" : "manual",
@@ -643,6 +661,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Biblioteca"
+          }
+        }
+      }
+    },
+    "text_last_execution" : {
+      "comment" : "Texto \"Última execução\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last played"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Última execução"
+          }
+        }
+      }
+    },
+    "text_last_update" : {
+      "comment" : "Texto \"Adicionada em\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date added"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionada em"
           }
         }
       }

@@ -11,6 +11,30 @@ import SQLite3
 class MusicsViewModel: BaseViewModel {
     @Published var musics: [Music] = []
     
+    override init(musicPlayerViewModel: MusicPlayerViewModel) {
+        super.init(musicPlayerViewModel: musicPlayerViewModel)
+        NotificationCenter.default.addObserver(forName: Notification.Name("musicExecuted"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self,
+                  let idServer = notification.userInfo?["idServer"] as? Int,
+                  let lastExecution = notification.userInfo?["lastExecution"] as? Date,
+                  let countExecution = notification.userInfo?["countExecution"] as? Int else { return }
+            self.updateExecution(idServer: idServer, lastExecution: lastExecution, countExecution: countExecution)
+        }
+    }
+    
+    private func updateExecution(idServer: Int, lastExecution: Date, countExecution: Int) {
+        if let index = self.musics.firstIndex(where: { $0.idServer == idServer }) {
+            self.musics[index].lastExecution = lastExecution
+            self.musics[index].countExecution = countExecution
+        }
+        if self.musicSelected.idServer == idServer {
+            self.musicSelected.lastExecution = lastExecution
+            self.musicSelected.countExecution = countExecution
+        }
+    }
+    
     override func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .musics {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1

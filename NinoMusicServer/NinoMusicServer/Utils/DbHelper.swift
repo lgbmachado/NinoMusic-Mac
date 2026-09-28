@@ -69,12 +69,14 @@ final class DbHelper {
     
     func executeQuery(query: String) -> Bool {
         var statement: OpaquePointer?
+        defer {
+            sqlite3_finalize(statement)
+        }
         if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
             if sqlite3_step(statement) == SQLITE_DONE {
                 return true
             }
         }
-        sqlite3_finalize(statement)
         return false
     }
     

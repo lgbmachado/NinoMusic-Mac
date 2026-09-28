@@ -24,6 +24,7 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     @Published var timePosition: String = "00:00"
     
     private var player: AVAudioPlayer?
+    private let helper = DbHelper(path: DbConstants.databasePath)
     
     override init() {
         self.player = AVAudioPlayer()
@@ -51,6 +52,7 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
                 self.player?.isMeteringEnabled = true
                 self.player?.play()
                 self.isPlaying = true
+                self.registerExecution()
                 
                 Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
                     self.position = self.player?.currentTime ?? 0
@@ -97,6 +99,39 @@ class MusicPlayerViewModel: NSObject, ObservableObject {
     
     func getLyrics() -> String? {
         return Id3TagUtils.getLyrics(path: self.currentMusic?.filePath ?? "")
+    }
+    
+    private func registerExecution() {
+        guard let idServer = self.currentMusic?.idServer, idServer > 0 else { return }
+        let now = Int(Date().timeIntervalSince1970)
+        let update = """
+            UPDATE \(DbConstants.TableMusic.tableName)
+            SET
+               \(DbConstants.TableMusic.colLastExecution) = \(now),
+               \(DbConstants.TableMusic.colCountExecution) = \(DbConstants.TableMusic.colCountExecution) + 1
+            WHERE
+               \(DbConstants.TableMusic.colMusicId) = \(idServer)
+            """
+        guard self.helper?.executeQuery(query: update) == true else { return }
+        
+        let select = """
+            SELECT \(DbConstants.TableMusic.colCountExecution)
+            FROM \(DbConstants.TableMusic.tableName)
+            WHERE \(DbConstants.TableMusic.colMusicId) = \(idServer)
+            """
+        var countExecution = (self.currentMusic?.countExecution ?? 0) + 1
+        if let count = (try? self.helper?.sql(query: select))?.first?[DbConstants.TableMusic.colCountExecution] as? Int {
+            countExecution = count
+        }
+        let lastExecution = Date(timeIntervalSince1970: TimeInterval(now))
+        
+        self.currentMusic?.lastExecution = lastExecution
+        self.currentMusic?.countExecution = countExecution
+        NotificationCenter.default.post(name: Notification.Name("musicExecuted"),
+                                        object: nil,
+                                        userInfo: ["idServer": idServer,
+                                                   "lastExecution": lastExecution,
+                                                   "countExecution": countExecution])
     }
 }
 

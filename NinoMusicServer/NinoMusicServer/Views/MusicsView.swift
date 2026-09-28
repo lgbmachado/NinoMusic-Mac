@@ -18,46 +18,68 @@ struct MusicsView: View {
         musicsViewModel.filteredMusics(searchTerm: searchTerm)
     }
     
+    @TableColumnBuilder<Music, KeyPathComparator<Music>>
+    private var infoColumns: some TableColumnContent<Music, KeyPathComparator<Music>> {
+        TableColumn(LocalizedStringKey("text_favorite")) { (music: Music) in
+            Button {
+                musicsViewModel.toggleFavorite(music: music)
+            } label: {
+                Image(systemName: music.isFavorite ? "star.fill" : "star")
+                    .foregroundStyle(music.isFavorite ? Color.yellow : Color.secondary.opacity(0.3))
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .width(50)
+        TableColumn(LocalizedStringKey("text_title"), value: \Music.musicTitle)
+        TableColumn(LocalizedStringKey("text_artists"), value: \Music.artist)
+        TableColumn(LocalizedStringKey("text_album"), value: \Music.album)
+        TableColumn(LocalizedStringKey("text_track")) { (music: Music) in
+            Text("\(music.track)")
+        }
+        .width(40)
+        .alignment(.trailing)
+        TableColumn(LocalizedStringKey("text_year")) { (music: Music) in
+            Text("\(music.year)")
+        }
+        .width(50)
+        TableColumn(LocalizedStringKey("text_genre"), value: \Music.genre)
+            .width(100)
+        TableColumn(LocalizedStringKey("text_lyric")) { (music: Music) in
+            if music.hasLyric {
+                Image(systemName: "music.note.tv")
+            }
+        }
+        .width(50)
+    }
+    
+    @TableColumnBuilder<Music, KeyPathComparator<Music>>
+    private var executionColumns: some TableColumnContent<Music, KeyPathComparator<Music>> {
+        TableColumn(LocalizedStringKey("text_last_update")) { (music: Music) in
+            Text(music.lastUpdate.formatted(date: .numeric, time: .shortened))
+        }
+        .width(120)
+        TableColumn(LocalizedStringKey("text_last_execution")) { (music: Music) in
+            // LastExecution is stored as -1 when the music was never played
+            if music.lastExecution.timeIntervalSince1970 >= 0 {
+                Text(music.lastExecution.formatted(date: .numeric, time: .shortened))
+            }
+        }
+        .width(120)
+        TableColumn(LocalizedStringKey("text_count_execution")) { (music: Music) in
+            Text("\(music.countExecution)")
+        }
+        .width(70)
+        .alignment(.trailing)
+    }
+    
     var body: some View {
         ScrollViewReader { proxy in
             HStack(spacing: 0) {
                 Table(displayedMusics, selection: $musicsViewModel.idMusicSelected, sortOrder: $sortOrder) {
-                    TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
-                    TableColumn(LocalizedStringKey("text_artists"), value: \.artist)
-                    TableColumn(LocalizedStringKey("text_album"), value: \.album)
-                    TableColumn(LocalizedStringKey("text_track")) { music in
-                        Text("\(music.track)")
-                    }
-                    .width(40)
-                    .alignment(.trailing)
-                    TableColumn(LocalizedStringKey("text_year")) { music in
-                        Text("\(music.year)")
-                    }
-                        .width(50)
-                    TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
-                        .width(100)
-                    TableColumn(LocalizedStringKey("text_lyric")){ music in
-                        if music.hasLyric {
-                            Image(systemName: "music.note.tv")
-                        }
-                    }
-                    .width(50)
-                    TableColumn(LocalizedStringKey("text_last_update")) { music in
-                        Text(music.lastUpdate.formatted(date: .numeric, time: .shortened))
-                    }
-                    .width(120)
-                    TableColumn(LocalizedStringKey("text_last_execution")) { music in
-                        // LastExecution is stored as -1 when the music was never played
-                        if music.lastExecution.timeIntervalSince1970 >= 0 {
-                            Text(music.lastExecution.formatted(date: .numeric, time: .shortened))
-                        }
-                    }
-                    .width(120)
-                    TableColumn(LocalizedStringKey("text_count_execution")) { music in
-                        Text("\(music.countExecution)")
-                    }
-                    .width(70)
-                    .alignment(.trailing)
+                    infoColumns
+                    executionColumns
                 }
                 
                 AlphabetIndexView(letters: musicsViewModel.availableLetters(in: displayedMusics)) { letter in

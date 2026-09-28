@@ -136,6 +136,26 @@ class MusicsViewModel: BaseViewModel {
         }
     }
     
+    func toggleFavorite(music: Music) {
+        let isFavorite = !music.isFavorite
+        let sql = """
+            UPDATE \(DbConstants.TableMusic.tableName)
+            SET \(DbConstants.TableMusic.colIsFavorite) = \(isFavorite ? 1 : 0)
+            WHERE \(DbConstants.TableMusic.colMusicId) = \(music.idServer)
+            """
+        guard self.helper?.executeQuery(query: sql) == true else { return }
+        
+        if let index = self.musics.firstIndex(where: { $0.id == music.id }) {
+            self.musics[index].isFavorite = isFavorite
+        }
+        if self.musicSelected.idServer == music.idServer {
+            self.musicSelected.isFavorite = isFavorite
+        }
+        if self.musicPlayerViewModel.currentMusic?.idServer == music.idServer {
+            self.musicPlayerViewModel.currentMusic?.isFavorite = isFavorite
+        }
+    }
+    
     func setIdSelection(selection: Music.ID) {
         self.idMusicSelected = selection
         if let item = self.musics.first(where: { $0.id == self.idMusicSelected }) {

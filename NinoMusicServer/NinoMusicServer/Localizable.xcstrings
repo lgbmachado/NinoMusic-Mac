@@ -593,6 +593,24 @@
         }
       }
     },
+    "text_favorite" : {
+      "comment" : "Texto \"Favorita\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorite"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorita"
+          }
+        }
+      }
+    },
     "text_file" : {
       "comment" : "Texto \"Arquivo\".",
       "extractionState" : "manual",

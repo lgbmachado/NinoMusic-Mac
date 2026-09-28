@@ -43,6 +43,9 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
     let duration: Int
     var filePath: String
     var hasLyric: Bool
+    var lastUpdate: Date
+    var lastExecution: Date
+    var countExecution: Int
     
     enum CodingKeys: String, CodingKey {
         case seq = "seq"
@@ -52,6 +55,9 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
         case duration = "duration"
         case filePath = "filePath"
         case hasLyric = "hasLyric"
+        case lastUpdate = "lastUpdate"
+        case lastExecution = "lastExecution"
+        case countExecution = "countExecution"
     }
     
     static let emptyMusic = AlbumMusic(seq: Int(),
@@ -60,5 +66,8 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
                                        musicTitle: String(),
                                        duration: Int(),
                                        filePath: String(),
-                                       hasLyric: false)
+                                       hasLyric: false,
+                                       lastUpdate: Date(),
+                                       lastExecution: Date(),
+                                       countExecution: 0)
 }

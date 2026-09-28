@@ -67,6 +67,25 @@ struct AlbunsView: View {
                 TableColumn(LocalizedStringKey("text_duration")) { music in
                     Text(String().secondsToTime(seconds: music.duration))
                 }
+                TableColumn(LocalizedStringKey("text_lyric")) { music in
+                    if music.hasLyric {
+                        Image(systemName: "music.note.tv")
+                    }
+                }
+                .width(50)
+                TableColumn(LocalizedStringKey("text_last_update")) { music in
+                    Text(music.lastUpdate.formatted(date: .numeric, time: .shortened))
+                }
+                TableColumn(LocalizedStringKey("text_last_execution")) { music in
+                    // LastExecution is stored as -1 when the music was never played
+                    if music.lastExecution.timeIntervalSince1970 >= 0 {
+                        Text(music.lastExecution.formatted(date: .numeric, time: .shortened))
+                    }
+                }
+                TableColumn(LocalizedStringKey("text_count_execution")) { music in
+                    Text("\(music.countExecution)")
+                }
+                .alignment(.trailing)
             }
             .padding()
             .onChange(of: albunsViewModel.idMusicSelected) { oldSelected, newSelected in

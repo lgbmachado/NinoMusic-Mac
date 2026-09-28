@@ -13,6 +13,35 @@ class AlbunsViewModel: BaseViewModel {
     @Published var filePathCover: String = String()
     @Published var albumSelected: Album = Album.emptyAlbum
     
+    override init(musicPlayerViewModel: MusicPlayerViewModel) {
+        super.init(musicPlayerViewModel: musicPlayerViewModel)
+        NotificationCenter.default.addObserver(forName: Notification.Name("musicExecuted"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self,
+                  let idServer = notification.userInfo?["idServer"] as? Int,
+                  let lastExecution = notification.userInfo?["lastExecution"] as? Date,
+                  let countExecution = notification.userInfo?["countExecution"] as? Int else { return }
+            self.updateExecution(idServer: idServer, lastExecution: lastExecution, countExecution: countExecution)
+        }
+    }
+    
+    private func updateExecution(idServer: Int, lastExecution: Date, countExecution: Int) {
+        for albumIndex in self.albuns.indices {
+            if let musicIndex = self.albuns[albumIndex].musics.firstIndex(where: { $0.idServer == idServer }) {
+                self.albuns[albumIndex].musics[musicIndex].lastExecution = lastExecution
+                self.albuns[albumIndex].musics[musicIndex].countExecution = countExecution
+                if self.albumSelected.id == self.albuns[albumIndex].id {
+                    self.albumSelected = self.albuns[albumIndex]
+                }
+            }
+        }
+        if self.musicSelected.idServer == idServer {
+            self.musicSelected.lastExecution = lastExecution
+            self.musicSelected.countExecution = countExecution
+        }
+    }
+    
     override func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
         if originNotification == .albuns {
             let searchCount = kind == .next ? musicSelected.seq + 1 : musicSelected.seq - 1
@@ -78,6 +107,9 @@ class AlbunsViewModel: BaseViewModel {
                 self.musicSelected.duration = item.duration
                 self.musicSelected.filePath = item.filePath
                 self.musicSelected.hasLyric = item.hasLyric
+                self.musicSelected.lastUpdate = item.lastUpdate
+                self.musicSelected.lastExecution = item.lastExecution
+                self.musicSelected.countExecution = item.countExecution
                 return
             }
         }
@@ -98,7 +130,10 @@ class AlbunsViewModel: BaseViewModel {
                         \(DbConstants.TableMusic.colTitle),
                         \(DbConstants.TableMusic.colDuration),
                         \(DbConstants.TableMusic.colFilePath),
-                        \(DbConstants.TableMusic.colHasLyrics)
+                        \(DbConstants.TableMusic.colHasLyrics),
+                        \(DbConstants.TableMusic.colLastUpdate),
+                        \(DbConstants.TableMusic.colLastExecution),
+                        \(DbConstants.TableMusic.colCountExecution)
                     FROM
                         \(DbConstants.TableMusic.tableName)
                         INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colArtistId) = \(DbConstants.TableMusic.colIdArtist)
@@ -155,7 +190,10 @@ class AlbunsViewModel: BaseViewModel {
                                 let musicTitle = rowAlbum[DbConstants.TableMusic.colTitle] as? String,
                                 let duration = rowAlbum[DbConstants.TableMusic.colDuration] as? Int,
                                 let filePath = rowAlbum[DbConstants.TableMusic.colFilePath] as? String,
-                                let hasLyric = rowAlbum[DbConstants.TableMusic.colHasLyrics] as? Int
+                                let hasLyric = rowAlbum[DbConstants.TableMusic.colHasLyrics] as? Int,
+                                let lastUpdate = rowAlbum[DbConstants.TableMusic.colLastUpdate] as? Int,
+                                let lastExecution = rowAlbum[DbConstants.TableMusic.colLastExecution] as? Int,
+                                let countExecution = rowAlbum[DbConstants.TableMusic.colCountExecution] as? Int
                             {
                                 if currentAlbumId != idAlbum {
                                     appendCurrentAlbumIfNeeded()
@@ -173,7 +211,10 @@ class AlbunsViewModel: BaseViewModel {
                                                                 musicTitle: musicTitle,
                                                                 duration: duration,
                                                                 filePath: filePath,
-                                                                hasLyric: hasLyric == 1))
+                                                                hasLyric: hasLyric == 1,
+                                                                lastUpdate: Date(timeIntervalSince1970: TimeInterval(lastUpdate)),
+                                                                lastExecution: Date(timeIntervalSince1970: TimeInterval(lastExecution)),
+                                                                countExecution: countExecution))
                             }
                         }
 

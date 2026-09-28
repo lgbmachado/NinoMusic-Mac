@@ -33,6 +33,34 @@ class ArtistsViewModel: BaseViewModel {
                   let countExecution = notification.userInfo?["countExecution"] as? Int else { return }
             self.updateExecution(idServer: idServer, lastExecution: lastExecution, countExecution: countExecution)
         }
+        NotificationCenter.default.addObserver(forName: Notification.Name("musicFavoriteChanged"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self,
+                  let idServer = notification.userInfo?["idServer"] as? Int,
+                  let isFavorite = notification.userInfo?["isFavorite"] as? Bool else { return }
+            self.updateFavorite(idServer: idServer, isFavorite: isFavorite)
+        }
+    }
+    
+    func toggleFavorite(music: ArtistMusic) {
+        saveFavorite(idServer: music.idServer, isFavorite: !music.isFavorite)
+    }
+    
+    private func updateFavorite(idServer: Int, isFavorite: Bool) {
+        for artistIndex in self.artists.indices {
+            for albumIndex in self.artists[artistIndex].albuns.indices {
+                if let musicIndex = self.artists[artistIndex].albuns[albumIndex].musics.firstIndex(where: { $0.idServer == idServer }) {
+                    self.artists[artistIndex].albuns[albumIndex].musics[musicIndex].isFavorite = isFavorite
+                    if self.albumSelected.id == self.artists[artistIndex].albuns[albumIndex].id {
+                        self.albumSelected = self.artists[artistIndex].albuns[albumIndex]
+                    }
+                }
+            }
+        }
+        if self.musicSelected.idServer == idServer {
+            self.musicSelected.isFavorite = isFavorite
+        }
     }
     
     private func updateExecution(idServer: Int, lastExecution: Date, countExecution: Int) {
@@ -115,6 +143,7 @@ class ArtistsViewModel: BaseViewModel {
                     self.musicSelected.duration = item.duration
                     self.musicSelected.filePath = item.filePath
                     self.musicSelected.hasLyric = item.hasLyric
+                    self.musicSelected.isFavorite = item.isFavorite
                     self.musicSelected.lastUpdate = item.lastUpdate
                     self.musicSelected.lastExecution = item.lastExecution
                     self.musicSelected.countExecution = item.countExecution
@@ -190,6 +219,7 @@ class ArtistsViewModel: BaseViewModel {
                                                             \(DbConstants.TableMusic.colDuration),
                                                             \(DbConstants.TableMusic.colFilePath),
                                                             \(DbConstants.TableMusic.colHasLyrics),
+                                                            \(DbConstants.TableMusic.colIsFavorite),
                                                             \(DbConstants.TableMusic.colLastUpdate),
                                                             \(DbConstants.TableMusic.colLastExecution),
                                                             \(DbConstants.TableMusic.colCountExecution)
@@ -212,6 +242,7 @@ class ArtistsViewModel: BaseViewModel {
                                                                let duration = rowMusicAlbum[DbConstants.TableMusic.colDuration] as? Int,
                                                                let filePath = rowMusicAlbum[DbConstants.TableMusic.colFilePath] as? String,
                                                                let hasLyric = rowMusicAlbum[DbConstants.TableMusic.colHasLyrics] as? Int,
+                                                               let isFavorite = rowMusicAlbum[DbConstants.TableMusic.colIsFavorite] as? Int,
                                                                let lastUpdate = rowMusicAlbum[DbConstants.TableMusic.colLastUpdate] as? Int,
                                                                let lastExecution = rowMusicAlbum[DbConstants.TableMusic.colLastExecution] as? Int,
                                                                let countExecution = rowMusicAlbum[DbConstants.TableMusic.colCountExecution] as? Int
@@ -224,6 +255,7 @@ class ArtistsViewModel: BaseViewModel {
                                                                                                    duration: duration,
                                                                                                    filePath: filePath,
                                                                                                    hasLyric: hasLyric == 1,
+                                                                                                   isFavorite: isFavorite == 1,
                                                                                                    lastUpdate: Date(timeIntervalSince1970: TimeInterval(lastUpdate)),
                                                                                                    lastExecution: Date(timeIntervalSince1970: TimeInterval(lastExecution)),
                                                                                                    countExecution: countExecution))

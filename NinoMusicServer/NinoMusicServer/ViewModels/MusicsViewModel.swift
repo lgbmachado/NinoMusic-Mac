@@ -22,6 +22,23 @@ class MusicsViewModel: BaseViewModel {
                   let countExecution = notification.userInfo?["countExecution"] as? Int else { return }
             self.updateExecution(idServer: idServer, lastExecution: lastExecution, countExecution: countExecution)
         }
+        NotificationCenter.default.addObserver(forName: Notification.Name("musicFavoriteChanged"),
+                                               object: nil,
+                                               queue: .main) { [weak self] notification in
+            guard let self = self,
+                  let idServer = notification.userInfo?["idServer"] as? Int,
+                  let isFavorite = notification.userInfo?["isFavorite"] as? Bool else { return }
+            self.updateFavorite(idServer: idServer, isFavorite: isFavorite)
+        }
+    }
+    
+    private func updateFavorite(idServer: Int, isFavorite: Bool) {
+        if let index = self.musics.firstIndex(where: { $0.idServer == idServer }) {
+            self.musics[index].isFavorite = isFavorite
+        }
+        if self.musicSelected.idServer == idServer {
+            self.musicSelected.isFavorite = isFavorite
+        }
     }
     
     private func updateExecution(idServer: Int, lastExecution: Date, countExecution: Int) {
@@ -137,23 +154,7 @@ class MusicsViewModel: BaseViewModel {
     }
     
     func toggleFavorite(music: Music) {
-        let isFavorite = !music.isFavorite
-        let sql = """
-            UPDATE \(DbConstants.TableMusic.tableName)
-            SET \(DbConstants.TableMusic.colIsFavorite) = \(isFavorite ? 1 : 0)
-            WHERE \(DbConstants.TableMusic.colMusicId) = \(music.idServer)
-            """
-        guard self.helper?.executeQuery(query: sql) == true else { return }
-        
-        if let index = self.musics.firstIndex(where: { $0.id == music.id }) {
-            self.musics[index].isFavorite = isFavorite
-        }
-        if self.musicSelected.idServer == music.idServer {
-            self.musicSelected.isFavorite = isFavorite
-        }
-        if self.musicPlayerViewModel.currentMusic?.idServer == music.idServer {
-            self.musicPlayerViewModel.currentMusic?.isFavorite = isFavorite
-        }
+        saveFavorite(idServer: music.idServer, isFavorite: !music.isFavorite)
     }
     
     func setIdSelection(selection: Music.ID) {

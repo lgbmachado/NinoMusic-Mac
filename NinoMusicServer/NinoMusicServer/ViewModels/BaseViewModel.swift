@@ -40,6 +40,22 @@ class BaseViewModel: NSObject, ObservableObject {
     func onNavigateMusics(kind: NavigationKind, originNotification: MusicContentViewType?) {
     }
     
+    func saveFavorite(idServer: Int, isFavorite: Bool) {
+        let sql = """
+            UPDATE \(DbConstants.TableMusic.tableName)
+            SET \(DbConstants.TableMusic.colIsFavorite) = \(isFavorite ? 1 : 0)
+            WHERE \(DbConstants.TableMusic.colMusicId) = \(idServer)
+            """
+        guard self.helper?.executeQuery(query: sql) == true else { return }
+        
+        if self.musicPlayerViewModel.currentMusic?.idServer == idServer {
+            self.musicPlayerViewModel.currentMusic?.isFavorite = isFavorite
+        }
+        NotificationCenter.default.post(name: Notification.Name("musicFavoriteChanged"),
+                                        object: nil,
+                                        userInfo: ["idServer": idServer, "isFavorite": isFavorite])
+    }
+    
     func OpenDb() -> OpaquePointer? {
         var database: OpaquePointer?
         if sqlite3_open_v2(DbConstants.databasePath, &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK {

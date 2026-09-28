@@ -71,7 +71,7 @@ struct ArtistAlbumView: View {
                 Text(verbatim: String(album?.year ?? 0))
                     .font(.caption2)
             }
-            .frame(maxWidth: 300, alignment: .leading)
+            .frame(maxWidth: 200, alignment: .leading)
             .padding()
             
             ArtistAlbumMusicView(artistsViewModel: self.artistsViewModel,
@@ -88,6 +88,18 @@ struct ArtistAlbumMusicView: View {
     
     var body: some View {
             Table(musics, selection: $artistsViewModel.idMusicSelected) {
+                TableColumn(LocalizedStringKey("text_favorite")) { music in
+                    Button {
+                        artistsViewModel.toggleFavorite(music: music)
+                    } label: {
+                        Image(systemName: music.isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(music.isFavorite ? Color.yellow : Color.secondary.opacity(0.3))
+                            .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .width(50)
                 TableColumn(LocalizedStringKey("text_track")) { music in
                     Text("\(music.track)")
                 }
@@ -97,23 +109,28 @@ struct ArtistAlbumMusicView: View {
                 TableColumn(LocalizedStringKey("text_duration")) { music in
                     Text(String().secondsToTime(seconds: music.duration))
                 }
+                .width(100)
                 TableColumn(LocalizedStringKey("text_lyric")){ music in
                     if music.hasLyric {
                         Image(systemName: "music.note.tv")
                     }
                 }
+                .width(40)
                 TableColumn(LocalizedStringKey("text_last_update")) { music in
                     Text(music.lastUpdate.formatted(date: .numeric, time: .shortened))
                 }
+                .width(120)
                 TableColumn(LocalizedStringKey("text_last_execution")) { music in
                     // LastExecution is stored as -1 when the music was never played
                     if music.lastExecution.timeIntervalSince1970 >= 0 {
                         Text(music.lastExecution.formatted(date: .numeric, time: .shortened))
                     }
                 }
+                .width(120)
                 TableColumn(LocalizedStringKey("text_count_execution")) { music in
                     Text("\(music.countExecution)")
                 }
+                .width(65)
                 .alignment(.trailing)
             }
             .onAppear {

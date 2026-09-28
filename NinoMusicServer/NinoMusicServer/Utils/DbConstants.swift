@@ -51,5 +51,9 @@ struct DbConstants {
         static let colDuration = "Duration"
         static let colFilePath = "FilePath"
         static let colHasLyrics = "HasLyrics"
+        static let colLastUpdate = "LastUpdate"
+        static let colIsFavorite = "IsFavorite"
+        static let colLastExecution = "LastExecution"
+        static let colCountExecution = "CountExecution"
     }
 }

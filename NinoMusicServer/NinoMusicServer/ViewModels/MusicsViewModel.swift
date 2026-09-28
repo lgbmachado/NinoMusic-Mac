@@ -35,7 +35,11 @@ class MusicsViewModel: BaseViewModel {
                \(DbConstants.TableMusic.colDuration),
                \(DbConstants.TableAlbum.colYear),
                \(DbConstants.TableMusic.colFilePath),
-               \(DbConstants.TableMusic.colHasLyrics)
+               \(DbConstants.TableMusic.colHasLyrics),
+               \(DbConstants.TableMusic.colIsFavorite),
+               \(DbConstants.TableMusic.colLastUpdate),
+               \(DbConstants.TableMusic.colLastExecution),
+               \(DbConstants.TableMusic.colCountExecution)
             FROM
                \(DbConstants.TableMusic.tableName)
                INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colArtistId) = \(DbConstants.TableMusic.colIdArtist)
@@ -69,7 +73,11 @@ class MusicsViewModel: BaseViewModel {
                                 let genre = row[DbConstants.TableGenre.colGenre] as? String,
                                 let duration = row[DbConstants.TableMusic.colDuration] as? Int,
                                 let filePath = row[DbConstants.TableMusic.colFilePath] as? String,
-                                let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int
+                                let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int,
+                                let isFavorite = row[DbConstants.TableMusic.colIsFavorite] as? Int,
+                                let lastUpdate = row[DbConstants.TableMusic.colLastUpdate] as? Int,
+                                let lastExecution = row[DbConstants.TableMusic.colLastExecution] as? Int,
+                                let countExecution = row[DbConstants.TableMusic.colCountExecution] as? Int
                             {
                                 musicList.append(Music(seq: seq,
                                                        idServer: idServer,
@@ -81,7 +89,12 @@ class MusicsViewModel: BaseViewModel {
                                                        genre: genre,
                                                        duration: duration,
                                                        filePath: filePath,
-                                                       hasLyric: hasLyric == 1))
+                                                       hasLyric: hasLyric == 1,
+                                                       isFavorite: isFavorite == 1,
+                                                       lastUpdate: Date(timeIntervalSince1970: TimeInterval(lastUpdate)),
+                                                       lastExecution: Date(timeIntervalSince1970: TimeInterval(lastExecution)),
+                                                       countExecution: countExecution)
+                                                 )
                             }
                         }
                     }
@@ -119,7 +132,6 @@ class MusicsViewModel: BaseViewModel {
         }
     }
     
-    // Musics are pre-sorted alphabetically by title, so letters come out in order
     func availableLetters(in musics: [Music]) -> [String] {
         var letters = [String]()
         for music in musics {

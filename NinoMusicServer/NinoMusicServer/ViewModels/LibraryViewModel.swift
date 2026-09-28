@@ -300,7 +300,35 @@ class MusicFiles {
         let idAlbum = getRowId(table: DbConstants.TableAlbum.tableName, columnId: DbConstants.TableAlbum.colAlbumId, column1: DbConstants.TableAlbum.colAlbum, value1: album, column2: DbConstants.TableAlbum.colYear, value2: String(year))
         let idGenre = getRowId(table: DbConstants.TableGenre.tableName, columnId: DbConstants.TableGenre.colGenreId, column1: DbConstants.TableGenre.colGenre, value1: genre)
         
-        let sql = "INSERT INTO \(DbConstants.TableMusic.tableName) (\(DbConstants.TableMusic.colFilePath), \(DbConstants.TableMusic.colIdArtist), \(DbConstants.TableMusic.colTrack), \(DbConstants.TableMusic.colDuration), \(DbConstants.TableMusic.colIdAlbum), \(DbConstants.TableMusic.colTitle), \(DbConstants.TableMusic.colIdGenre), \(DbConstants.TableMusic.colHasLyrics)) VALUES (\"\(filePath)\", \(idArtist), \(track), \(duration), \(idAlbum), \"\(musicTitle.replacingOccurrences(of: "\"", with: "'"))\", \(idGenre), \(hasLyric ? 1 : 0) );"
+        let sql = """
+                    INSERT INTO \(DbConstants.TableMusic.tableName) (
+                       \(DbConstants.TableMusic.colFilePath), 
+                       \(DbConstants.TableMusic.colIdArtist), 
+                       \(DbConstants.TableMusic.colTrack), 
+                       \(DbConstants.TableMusic.colDuration), 
+                       \(DbConstants.TableMusic.colIdAlbum), 
+                       \(DbConstants.TableMusic.colTitle), 
+                       \(DbConstants.TableMusic.colIdGenre), 
+                       \(DbConstants.TableMusic.colHasLyrics),
+                       \(DbConstants.TableMusic.colIsFavorite), 
+                       \(DbConstants.TableMusic.colLastUpdate), 
+                       \(DbConstants.TableMusic.colLastExecution), 
+                       \(DbConstants.TableMusic.colCountExecution) ) 
+                    VALUES (
+                       \"\(filePath)\", 
+                       \(idArtist), 
+                       \(track), 
+                       \(duration), 
+                       \(idAlbum), 
+                       \"\(musicTitle.replacingOccurrences(of: "\"", with: "'"))\", 
+                       \(idGenre), 
+                       \(hasLyric ? 1 : 0),
+                       \(0),
+                       \(Int(Date().timeIntervalSince1970)),
+                       \(-1),
+                       \(0) );
+                """
+
         if ((self.helper?.executeQuery(query: sql)) != nil) {
             return true
         }
@@ -350,9 +378,14 @@ class MusicFiles {
                     \(DbConstants.TableMusic.colIdGenre) INTEGER REFERENCES \(DbConstants.TableGenre.tableName)(\(DbConstants.TableGenre.colGenreId)) ON DELETE SET NULL,
                     \(DbConstants.TableMusic.colDuration) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colDuration) >= 0),
                     \(DbConstants.TableMusic.colTrack) INTEGER CHECK (\(DbConstants.TableMusic.colTrack) >= 0),
-                    \(DbConstants.TableMusic.colHasLyrics) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colHasLyrics) IN (0, 1))
+                    \(DbConstants.TableMusic.colHasLyrics) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colHasLyrics) IN (0, 1)),
+                    \(DbConstants.TableMusic.colLastUpdate) INTEGER NOT NULL,
+                    \(DbConstants.TableMusic.colIsFavorite) INTEGER NOT NULL DEFAULT 0 CHECK (\(DbConstants.TableMusic.colIsFavorite) IN (0, 1)),
+                    \(DbConstants.TableMusic.colLastExecution) INTEGER NOT NULL,
+                    \(DbConstants.TableMusic.colCountExecution) INTEGER NOT NULL 
                     );
-                    """]
+                    """
+        ]
         
         var result = true
         for sql in statements {

@@ -219,9 +219,38 @@ struct TagView: View {
                     .border(.black)
                     .id("\(tagEditorViewModel.musicSelectedDraft.id)-\(tagEditorViewModel.coverRevision)")
                 
-                Text("Letra")
-                    .font(.caption2)
-                    .padding(.bottom, -7)
+                HStack {
+                    Text("Letra")
+                        .font(.caption2)
+                    Spacer()
+                    Button {
+                        Task {
+                            await tagEditorViewModel.searchLyrics()
+                        }
+                    } label: {
+                        Label("Buscar letra", systemImage: "text.magnifyingglass")
+                    }
+                    .controlSize(.small)
+                    .disabled(tagEditorViewModel.musicSelectedDraft.musicTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || tagEditorViewModel.musicSelectedDraft.artist.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || tagEditorViewModel.isSearchingLyrics)
+                    if tagEditorViewModel.isSearchingLyrics {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                }
+                .padding(.bottom, -7)
+                .alert(
+                    tagEditorViewModel.lyricsErrorMessage ?? "",
+                    isPresented: Binding(
+                        get: { tagEditorViewModel.lyricsErrorMessage != nil },
+                        set: { isPresented in
+                            if !isPresented {
+                                tagEditorViewModel.lyricsErrorMessage = nil
+                            }
+                        }
+                    )
+                ) {
+                    Button(LocalizedStringKey("text_ok"), role: .cancel) { }
+                }
                 TextEditor(text: $tagEditorViewModel.musicLyricDraft)
                     .disabled(false)
                     .font(.body)

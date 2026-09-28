@@ -362,7 +362,11 @@ class ServerViewModel: ObservableObject {
                                              genre: genre,
                                              duration: duration,
                                              filePath: "",
-                                             hasLyric: hasLyric))
+                                             hasLyric: hasLyric,
+                                             isFavorite: false,
+                                             lastUpdate: Date(),
+                                             lastExecution: Date(),
+                                             countExecution: 0))
             }
         }
         sqlite3_finalize(queryStatement)

@@ -145,6 +145,17 @@ private struct DiscogsErrorResponse: Decodable {
     let message: String
 }
 
+private struct LrclibLyricsResponse: Decodable {
+    let trackName: String?
+    let artistName: String?
+    let plainLyrics: String?
+    let syncedLyrics: String?
+}
+
+private struct LrclibErrorResponse: Decodable {
+    let message: String?
+}
+
 private enum DiscogsLookupError: LocalizedError {
     case requestFailed(Int, String)
     case invalidResponse
@@ -158,6 +169,20 @@ private enum DiscogsLookupError: LocalizedError {
             return "Não foi possível reconhecer o formato da imagem da capa retornada pelo Discogs."
         case .invalidResponse:
             return "A resposta do Discogs não está no formato esperado."
+        }
+    }
+}
+
+private enum LrclibLookupError: LocalizedError {
+    case requestFailed(Int, String)
+    case noLyrics
+
+    var errorDescription: String? {
+        switch self {
+        case .requestFailed(let statusCode, let message):
+            return "LRCLIB retornou HTTP \(statusCode): \(message)"
+        case .noLyrics:
+            return "Nenhuma letra encontrada no LRCLIB para esta música."
         }
     }
 }
@@ -198,6 +223,8 @@ class TagEditorViewModel: BaseViewModel {
     @Published var discogsErrorMessage: String? = nil
     @Published var discogsCoverErrorMessage: String? = nil
     @Published private(set) var pendingDiscogsCoverURL: URL?
+    @Published var isSearchingLyrics = false
+    @Published var lyricsErrorMessage: String? = nil
     
     var origin: EditOrigin = .fileDir
     
@@ -283,7 +310,11 @@ class TagEditorViewModel: BaseViewModel {
                \(DbConstants.TableMusic.colDuration),
                \(DbConstants.TableAlbum.colYear),
                \(DbConstants.TableMusic.colFilePath),
-               \(DbConstants.TableMusic.colHasLyrics)
+               \(DbConstants.TableMusic.colHasLyrics),
+               \(DbConstants.TableMusic.colIsFavorite),
+               \(DbConstants.TableMusic.colLastUpdate),
+               \(DbConstants.TableMusic.colLastExecution),
+               \(DbConstants.TableMusic.colCountExecution)
             FROM
                \(DbConstants.TableMusic.tableName)
                INNER JOIN \(DbConstants.TableArtist.tableName) ON \(DbConstants.TableArtist.tableName).\(DbConstants.TableArtist.colArtistId) = \(DbConstants.TableMusic.colIdArtist)
@@ -316,7 +347,11 @@ class TagEditorViewModel: BaseViewModel {
                                 let genre = row[DbConstants.TableGenre.colGenre] as? String,
                                 let duration = row[DbConstants.TableMusic.colDuration] as? Int,
                                 let filePath = row[DbConstants.TableMusic.colFilePath] as? String,
-                                let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int
+                                let hasLyric = row[DbConstants.TableMusic.colHasLyrics] as? Int,
+                                let isFavorite = row[DbConstants.TableMusic.colIsFavorite] as? Int,
+                                let lastUpdate = row[DbConstants.TableMusic.colLastUpdate] as? Int,
+                                let lastExecution = row[DbConstants.TableMusic.colLastExecution] as? Int,
+                                let countExecution = row[DbConstants.TableMusic.colCountExecution] as? Int
                             {
                                 musicList.append(Music(seq: seq,
                                                        idServer: idServer,
@@ -328,7 +363,11 @@ class TagEditorViewModel: BaseViewModel {
                                                        genre: genre,
                                                        duration: duration,
                                                        filePath: filePath,
-                                                       hasLyric: hasLyric == 1))
+                                                       hasLyric: hasLyric == 1,
+                                                       isFavorite: isFavorite == 1,
+                                                       lastUpdate: Date(timeIntervalSince1970: TimeInterval(lastUpdate)),
+                                                       lastExecution: Date(timeIntervalSince1970: TimeInterval(lastExecution)),
+                                                       countExecution: countExecution))
                             }
                         }
                     }
@@ -416,6 +455,108 @@ class TagEditorViewModel: BaseViewModel {
                 await self.AddFile(url: fileURL)
             }
         }
+    }
+
+    func searchLyrics() async {
+        let title = musicSelectedDraft.musicTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let artist = musicSelectedDraft.artist.trimmingCharacters(in: .whitespacesAndNewlines)
+        let album = musicSelectedDraft.album.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !title.isEmpty, !artist.isEmpty else {
+            lyricsErrorMessage = "Informe o nome da música e do artista para buscar a letra."
+            return
+        }
+
+        await MainActor.run {
+            self.isSearchingLyrics = true
+            self.lyricsErrorMessage = nil
+        }
+
+        do {
+            let lyrics = try await fetchLyrics(title: title, artist: artist, album: album)
+            await MainActor.run {
+                self.musicLyricDraft = lyrics
+                self.isSearchingLyrics = false
+            }
+        } catch {
+            await MainActor.run {
+                self.isSearchingLyrics = false
+                self.lyricsErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func fetchLyrics(title: String, artist: String, album: String) async throws -> String {
+        var components = URLComponents(string: "https://lrclib.net/api/get")!
+        components.queryItems = [
+            URLQueryItem(name: "track_name", value: title),
+            URLQueryItem(name: "artist_name", value: artist)
+        ]
+        if !album.isEmpty {
+            components.queryItems?.append(URLQueryItem(name: "album_name", value: album))
+        }
+        if musicSelectedDraft.duration > 0 {
+            components.queryItems?.append(URLQueryItem(name: "duration", value: String(musicSelectedDraft.duration)))
+        }
+
+        if let url = components.url,
+           let response = try? await fetchLrclibResponse(from: url),
+           let lyrics = lyricsText(from: response) {
+            return lyrics
+        }
+
+        var searchComponents = URLComponents(string: "https://lrclib.net/api/search")!
+        searchComponents.queryItems = [
+            URLQueryItem(name: "track_name", value: title),
+            URLQueryItem(name: "artist_name", value: artist)
+        ]
+        guard let searchURL = searchComponents.url else {
+            throw LrclibLookupError.noLyrics
+        }
+
+        let searchData = try await lrclibData(from: searchURL)
+        let results = try JSONDecoder().decode([LrclibLyricsResponse].self, from: searchData)
+        guard let result = results.first(where: { lyricsText(from: $0) != nil }),
+              let lyrics = lyricsText(from: result) else {
+            throw LrclibLookupError.noLyrics
+        }
+        return lyrics
+    }
+
+    private func fetchLrclibResponse(from url: URL) async throws -> LrclibLyricsResponse {
+        let data = try await lrclibData(from: url)
+        return try JSONDecoder().decode(LrclibLyricsResponse.self, from: data)
+    }
+
+    private func lrclibData(from url: URL) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.setValue("NinoMusicServer/1.0", forHTTPHeaderField: "User-Agent")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw LrclibLookupError.requestFailed(0, "Resposta inválida.")
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let message = (try? JSONDecoder().decode(LrclibErrorResponse.self, from: data).message) ?? HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode)
+            throw LrclibLookupError.requestFailed(httpResponse.statusCode, message ?? "Erro desconhecido.")
+        }
+        return data
+    }
+
+    private func lyricsText(from response: LrclibLyricsResponse) -> String? {
+        if let plainLyrics = response.plainLyrics?.trimmingCharacters(in: .whitespacesAndNewlines), !plainLyrics.isEmpty {
+            return plainLyrics
+        }
+
+        guard let syncedLyrics = response.syncedLyrics else {
+            return nil
+        }
+
+        let plainText = syncedLyrics
+            .components(separatedBy: .newlines)
+            .map { $0.replacingOccurrences(of: #"\[\d{1,2}:\d{2}(?:\.\d{1,3})?\]"#, with: "", options: .regularExpression) }
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return plainText.isEmpty ? nil : plainText
     }
 
     func searchDiscogsAlbums() async {
@@ -686,7 +827,11 @@ class TagEditorViewModel: BaseViewModel {
                          genre: genre,
                          duration: 0,
                          filePath: filePath,
-                         hasLyric: hasLyric)
+                         hasLyric: hasLyric,
+                         isFavorite: false,
+                         lastUpdate: Date(),
+                         lastExecution: Date(),
+                         countExecution: 0)
         }
         catch {
             print(error)

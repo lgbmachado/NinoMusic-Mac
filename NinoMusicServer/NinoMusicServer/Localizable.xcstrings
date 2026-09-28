@@ -593,6 +593,60 @@
         }
       }
     },
+    "text_export_favorites" : {
+      "comment" : "Texto \"Exportar favoritas para M3U\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export favorites to M3U"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportar favoritas para M3U"
+          }
+        }
+      }
+    },
+    "text_export_favorites_error" : {
+      "comment" : "Mensagem de erro ao exportar favoritas.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not export the playlist."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível exportar a playlist."
+          }
+        }
+      }
+    },
+    "text_export_favorites_success" : {
+      "comment" : "Mensagem de sucesso ao exportar favoritas.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist exported successfully."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist exportada com sucesso."
+          }
+        }
+      }
+    },
     "text_favorite" : {
       "comment" : "Texto \"Favorita\".",
       "extractionState" : "manual",

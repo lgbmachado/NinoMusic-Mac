@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: MusicsView
 struct MusicsView: View {
@@ -13,6 +14,8 @@ struct MusicsView: View {
     @StateObject var musicsViewModel: MusicsViewModel
     @State private var sortOrder = [KeyPathComparator(\Music.seq)]
     @State private var searchTerm: String = ""
+    @State private var showExportResult = false
+    @State private var exportSucceeded = false
     
     private var displayedMusics: [Music] {
         musicsViewModel.filteredMusics(searchTerm: searchTerm)
@@ -99,8 +102,29 @@ struct MusicsView: View {
                 ToolbarItem(placement: .navigation) {
                     MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $musicsViewModel.idMusicSelected)
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    Button(LocalizedStringKey("text_export_favorites"), systemImage: "star.square.on.square") {
+                        exportFavorites()
+                    }
+                    .help(LocalizedStringKey("text_export_favorites"))
+                    .disabled(!musicsViewModel.hasFavorites)
+                }
+            }
+            .alert(LocalizedStringKey(exportSucceeded ? "text_export_favorites_success" : "text_export_favorites_error"),
+                   isPresented: $showExportResult) {
+                Button("OK", role: .cancel) { }
             }
             .searchable(text: $searchTerm)
+        }
+    }
+    
+    private func exportFavorites() {
+        let dialog = NSSavePanel()
+        dialog.allowedContentTypes = [.m3uPlaylist]
+        dialog.nameFieldStringValue = "Favoritas.m3u"
+        if dialog.runModal() == .OK, let url = dialog.url {
+            exportSucceeded = musicsViewModel.exportFavoritesToM3U(url: url)
+            showExportResult = true
         }
     }
 }

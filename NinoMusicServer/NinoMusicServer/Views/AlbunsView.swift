@@ -58,6 +58,18 @@ struct AlbunsView: View {
             }
             .padding(.horizontal)
             Table(albunsViewModel.albumSelected.musics, selection: $albunsViewModel.idMusicSelected) {
+                TableColumn(LocalizedStringKey("text_favorite")) { music in
+                    Button {
+                        albunsViewModel.toggleFavorite(music: music)
+                    } label: {
+                        Image(systemName: music.isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(music.isFavorite ? Color.yellow : Color.secondary.opacity(0.3))
+                            .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .width(50)
                 TableColumn(LocalizedStringKey("text_track")) { music in
                     Text("\(music.track)")
                 }

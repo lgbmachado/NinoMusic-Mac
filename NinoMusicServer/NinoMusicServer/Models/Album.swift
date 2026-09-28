@@ -43,6 +43,7 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
     let duration: Int
     var filePath: String
     var hasLyric: Bool
+    var isFavorite: Bool
     var lastUpdate: Date
     var lastExecution: Date
     var countExecution: Int
@@ -55,6 +56,7 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
         case duration = "duration"
         case filePath = "filePath"
         case hasLyric = "hasLyric"
+        case isFavorite = "isFavorite"
         case lastUpdate = "lastUpdate"
         case lastExecution = "lastExecution"
         case countExecution = "countExecution"
@@ -67,6 +69,7 @@ struct AlbumMusic: Encodable, Decodable, Identifiable {
                                        duration: Int(),
                                        filePath: String(),
                                        hasLyric: false,
+                                       isFavorite: false,
                                        lastUpdate: Date(),
                                        lastExecution: Date(),
                                        countExecution: 0)

@@ -157,6 +157,26 @@ class MusicsViewModel: BaseViewModel {
         saveFavorite(idServer: music.idServer, isFavorite: !music.isFavorite)
     }
     
+    var hasFavorites: Bool {
+        self.musics.contains(where: { $0.isFavorite })
+    }
+    
+    func exportFavoritesToM3U(url: URL) -> Bool {
+        var lines = ["#EXTM3U"]
+        for music in self.musics where music.isFavorite {
+            let path = URL(string: music.filePath)?.path ?? music.filePath
+            lines.append("#EXTINF:\(music.duration),\(music.artist) - \(music.musicTitle)")
+            lines.append(path)
+        }
+        do {
+            try (lines.joined(separator: "\n") + "\n").write(to: url, atomically: true, encoding: .utf8)
+            return true
+        } catch {
+            print(error)
+            return false
+        }
+    }
+    
     func setIdSelection(selection: Music.ID) {
         self.idMusicSelected = selection
         if let item = self.musics.first(where: { $0.id == self.idMusicSelected }) {

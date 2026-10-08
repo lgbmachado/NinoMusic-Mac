@@ -9,7 +9,7 @@ import Foundation
 
 struct DbConstants {
     
-//    static let databasePath = (Bundle.main.bundlePath as NSString).deletingLastPathComponent + "/MusicDatabase.db"
+//    static let databasePath = (Bundle.main.bundlePath as NSString).deletingLastPathComponent + "/NinoMusic.sqlite"
     static let databasePath = "/Users/nino/NinoMusic.sqlite"
 
     struct TableAlbum {

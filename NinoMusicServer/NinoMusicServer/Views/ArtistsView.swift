@@ -13,25 +13,51 @@ struct ArtistsView: View {
     @ObservedObject var artistsViewModel: ArtistsViewModel
     
     @State var selection: UUID? = nil
+    @State private var expandedArtists: Set<UUID> = []
         
     var body: some View {
         List {
             ForEach(artistsViewModel.getGroupedNodes(), id: \.letter) { group in
                 Section(header: Text(group.letter)
                     .font(.largeTitle)) {
-                    OutlineGroup(group.nodes, children: \.children) { node in
-                        if node.children == nil {
-                            ArtistAlbumView(artistsViewModel: self.artistsViewModel,
-                                            musicPlayerViewModel: self.musicPlayerViewModel,
-                                            node: node)
-                        } else {
-                            Label(node.name, systemImage: node.children == nil ? "opticaldisc" : "music.microphone")
+                    ForEach(group.nodes) { node in
+                        Button {
+                            if expandedArtists.contains(node.id) {
+                                expandedArtists.remove(node.id)
+                            } else {
+                                expandedArtists.insert(node.id)
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: expandedArtists.contains(node.id) ? "chevron.down" : "chevron.right")
+                                    .frame(width: 12)
+                                Label(node.name, systemImage: "music.microphone")
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+
+                        if expandedArtists.contains(node.id) {
+                            ForEach(node.children ?? []) { albumNode in
+                                ArtistAlbumView(artistsViewModel: self.artistsViewModel,
+                                                musicPlayerViewModel: self.musicPlayerViewModel,
+                                                node: albumNode)
+                            }
                         }
                     }
                 }
             }
         }
         .padding()
+        .onChange(of: artistsViewModel.idMusicSelected) { _, newSelected in
+            guard let newSelected else {
+                return
+            }
+            artistsViewModel.setIdSelection(selection: newSelected)
+            musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
+            musicPlayerViewModel.originCurrentMusic = .artists
+        }
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 MusicPlayerView(musicsPlayerViewModel: musicPlayerViewModel, selection: $selection)
@@ -46,29 +72,20 @@ struct ArtistAlbumView: View {
     @ObservedObject var musicPlayerViewModel: MusicPlayerViewModel
 
     var node: Node
-    var album: ArtistAlbum? {
-        for artist in artistsViewModel.artists {
-            for album in artist.albuns {
-                if album.id == node.id {
-                    return album
-                }
-            }
-        }
-        return ArtistAlbum.emptyAlbum
-    }
+    @State private var coverImage: NSImage?
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
-                Image(nsImage: Id3TagUtils.getImageCover(path: album?.musics.first?.filePath ?? "") ?? NSImage())
+                Image(nsImage: coverImage ?? NSImage())
                     .resizable()
                     .frame(width: 75, height: 75, alignment: .bottom)
                     .scaledToFit()
                     .aspectRatio(contentMode: .fit)
                     .border(.black)
-                Text(verbatim: album?.album ?? "")
+                Text(verbatim: node.album?.album ?? "")
                     .font(.title3)
-                Text(verbatim: String(album?.year ?? 0))
+                Text(verbatim: String(node.album?.year ?? 0))
                     .font(.caption2)
             }
             .frame(maxWidth: 200, alignment: .leading)
@@ -76,7 +93,22 @@ struct ArtistAlbumView: View {
             
             ArtistAlbumMusicView(artistsViewModel: self.artistsViewModel,
                                  musicPlayerViewModel: self.musicPlayerViewModel,
-                                 musics: node.musics ?? [ArtistMusic]())
+                                 musics: node.album?.musics ?? [ArtistMusic]())
+        }
+        .task(id: node.album?.musics.first?.filePath) {
+            coverImage = nil
+            guard let path = node.album?.musics.first?.filePath, !path.isEmpty else {
+                return
+            }
+            let image = await withCheckedContinuation { (continuation: CheckedContinuation<NSImage?, Never>) in
+                DispatchQueue.global(qos: .utility).async {
+                    continuation.resume(returning: Id3TagUtils.getImageCover(path: path, maxPixelSize: 150))
+                }
+            }
+            guard !Task.isCancelled else {
+                return
+            }
+            coverImage = image
         }
     }
 }
@@ -133,13 +165,6 @@ struct ArtistAlbumMusicView: View {
                 .width(65)
                 .alignment(.trailing)
             }
-            .onAppear {
-
-            }
-            .onChange(of: artistsViewModel.idMusicSelected) { oldSelected, newSelected in
-                artistsViewModel.setIdSelection(selection: (newSelected ?? UUID()))
-                musicPlayerViewModel.setMusicSelected(music: artistsViewModel.musicSelected)
-                musicPlayerViewModel.originCurrentMusic = .artists
-            }
+            .frame(height: min(420, max(180, CGFloat(musics.count) * 28 + 36)))
     }
 }

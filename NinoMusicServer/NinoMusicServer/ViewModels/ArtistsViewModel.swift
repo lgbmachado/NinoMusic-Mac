@@ -9,14 +9,19 @@ import Foundation
 import SQLite3
 
 struct Node: Identifiable {
-    var id: UUID?
+    var id: UUID
     let name: String
     var children: [Node]?
-    var musics: [ArtistMusic]?
+    var album: ArtistAlbum?
 }
 
 class ArtistsViewModel: BaseViewModel {
-    @Published var artists: [Artist] = []
+    @Published var artists: [Artist] = [] {
+        didSet {
+            groupedNodes = makeGroupedNodes()
+        }
+    }
+    private var groupedNodes: [(letter: String, nodes: [Node])] = []
     @Published var idAlbumSelected: UUID? = nil
     @Published var idArtistSelected: Artist.ID? = nil
     @Published var albumSelected: ArtistAlbum = ArtistAlbum.emptyAlbum
@@ -98,11 +103,10 @@ class ArtistsViewModel: BaseViewModel {
         for artist in self.artists {
             var node = Node(id: artist.id, name: artist.artist)
             node.children = [Node]()
-            node.musics = nil
             for album in artist.albuns {
                 var subNode = Node(id: album.id, name: album.album)
                 subNode.children = nil
-                subNode.musics = album.musics
+                subNode.album = album
                 node.children?.append(subNode)
             }
             nodes.append(node)
@@ -112,16 +116,22 @@ class ArtistsViewModel: BaseViewModel {
 
     // Artists are pre-sorted alphabetically, so grouping preserves order
     func getGroupedNodes() -> [(letter: String, nodes: [Node])] {
+        groupedNodes
+    }
+
+    private func makeGroupedNodes() -> [(letter: String, nodes: [Node])] {
         var groups = [(letter: String, nodes: [Node])]()
+        var groupIndices = [String: Int]()
         for node in getNodes() {
             let letter = String(node.name.first ?? " ").uppercased()
-            if groups.last?.letter == letter {
-                groups[groups.count - 1].nodes.append(node)
+            if let groupIndex = groupIndices[letter] {
+                groups[groupIndex].nodes.append(node)
             } else {
+                groupIndices[letter] = groups.count
                 groups.append((letter: letter, nodes: [node]))
             }
         }
-        return groups
+        return groups.sorted { $0.letter.localizedStandardCompare($1.letter) == .orderedAscending }
     }
     
     func setIdSelection(selection: Music.ID) {

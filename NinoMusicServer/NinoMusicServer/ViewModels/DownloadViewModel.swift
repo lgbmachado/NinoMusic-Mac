@@ -72,7 +72,6 @@ class DownloadViewModel: ObservableObject {
         guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return }
         
         let urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=\(encodedQuery)&type=video&videoCategoryId=10&maxResults=20&key=\(apiKey)"
-
         
         guard let url = URL(string: urlString) else { return }
         

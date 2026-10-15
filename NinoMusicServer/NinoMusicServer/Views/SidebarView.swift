@@ -15,7 +15,8 @@ struct SidebarView: View {
             HStack(spacing: 10) {
                 Image(nsImage: NSImage(named: "NinoMusic") ?? NSImage(named: NSImage.applicationIconName)!)
                     .resizable()
-                    .renderingMode(.original)
+                    .renderingMode(.template)
+                    .foregroundStyle(.primary)
                     .scaledToFit()
                     .frame(width: 96, height: 96)
                 Text("Nino Music Server")

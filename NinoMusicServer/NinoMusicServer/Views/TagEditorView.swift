@@ -50,6 +50,7 @@ struct TagEditorView: View {
 struct MusicsFilesAndFoldersView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
     @State private var selectedMusicID: Music.ID?
+    @State private var sortOrder = [KeyPathComparator(\Music.filePath)]
     @State private var openFile: Bool = false
     @State private var openFolder: Bool = false
     @State private var showMenu: Bool = false
@@ -80,10 +81,14 @@ struct MusicsFilesAndFoldersView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            Table(tagEditorViewModel.musicsFileDir, selection: $selectedMusicID) {
-                TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
-                    Text(verbatim: "\((music.filePath as NSString).removingPercentEncoding ?? "")")
-                }
+            Table(sortedMusics, selection: $selectedMusicID, sortOrder: $sortOrder) {
+                TableColumn(LocalizedStringKey("text_file_name"), value: \.filePath)
+                TableColumn(LocalizedStringKey("text_title"), value: \.musicTitle)
+                TableColumn(LocalizedStringKey("text_artists"), value: \.artist)
+                TableColumn(LocalizedStringKey("text_album"), value: \.album)
+                TableColumn(LocalizedStringKey("text_track"), value: \.trackDisplay, comparator: .localizedStandard)
+                TableColumn(LocalizedStringKey("text_year"), value: \.yearDisplay, comparator: .localizedStandard)
+                TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
             }
             .padding()
             .onChange(of: selectedMusicID) { _, newSelected in
@@ -91,6 +96,10 @@ struct MusicsFilesAndFoldersView: View {
                 tagEditorViewModel.setIdFilesSelection(selection: newSelected)
             }
         }
+    }
+
+    private var sortedMusics: [Music] {
+        tagEditorViewModel.musicsFileDir.sorted(using: sortOrder)
     }
     
     func AddFile() {
@@ -130,9 +139,13 @@ struct MusicsLibraryView: View {
     @ObservedObject var tagEditorViewModel: TagEditorViewModel
     @State private var selectedMusicID: Music.ID?
     @State private var sortOrder = [KeyPathComparator(\Music.musicTitle)]
+
+    private var sortedMusics: [Music] {
+        tagEditorViewModel.musicsLibrary.sorted(using: sortOrder)
+    }
     
     var body: some View {
-        Table(tagEditorViewModel.musicsLibrary, selection: $selectedMusicID, sortOrder: $sortOrder) {
+        Table(sortedMusics, selection: $selectedMusicID, sortOrder: $sortOrder) {
             TableColumn(LocalizedStringKey("text_file_name")) { (music: Music) in
                 Text(verbatim: "\(((music.filePath as NSString).lastPathComponent).removingPercentEncoding ?? "")")
             }
@@ -140,13 +153,9 @@ struct MusicsLibraryView: View {
             TableColumn(LocalizedStringKey("text_artist"), value: \.artist)
                 .width(150)
             TableColumn(LocalizedStringKey("text_album"), value: \.album)
-            TableColumn(LocalizedStringKey("text_track")) { music in
-                Text("\(music.track)")
-            }
+            TableColumn(LocalizedStringKey("text_track"), value: \.trackDisplay, comparator: .localizedStandard)
             .width(40)
-            TableColumn(LocalizedStringKey("text_year")) { music in
-                Text("\(music.year)")
-            }
+            TableColumn(LocalizedStringKey("text_year"), value: \.yearDisplay, comparator: .localizedStandard)
                 .width(50)
             TableColumn(LocalizedStringKey("text_genre"), value: \.genre)
                 .width(100)
@@ -157,5 +166,10 @@ struct MusicsLibraryView: View {
             tagEditorViewModel.setIdLibrarySelection(selection: newSelected)
         }
     }
+}
+
+private extension Music {
+    var trackDisplay: String { String(track) }
+    var yearDisplay: String { String(year) }
 }
 

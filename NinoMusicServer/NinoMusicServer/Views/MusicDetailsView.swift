@@ -664,7 +664,7 @@ struct ExportView: View {
                 } label: {
                     Label("Exportar arquivo", systemImage: "square.and.arrow.up")
                 }
-                .disabled(selectedLibraryPath.isEmpty || tagEditorViewModel.musicSelected.filePath.isEmpty)
+                .disabled(selectedLibraryPath.isEmpty || tagEditorViewModel.musicSelected.filePath.isEmpty || tagEditorViewModel.selectedMusicIsInLibrary)
                 .alert(exportMessage, isPresented: $showExportResult) {
                     Button(LocalizedStringKey("text_ok"), role: .cancel) { }
                 }

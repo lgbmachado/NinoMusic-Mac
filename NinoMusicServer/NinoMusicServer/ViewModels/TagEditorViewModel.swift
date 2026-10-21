@@ -227,6 +227,10 @@ class TagEditorViewModel: BaseViewModel {
     @Published var lyricsErrorMessage: String? = nil
     
     var origin: EditOrigin = .fileDir
+
+    var selectedMusicIsInLibrary: Bool {
+        origin == .library && musicSelected.idServer > 0
+    }
     
     var selectedCaseTag: CaseKind {
         get {
@@ -845,6 +849,44 @@ class TagEditorViewModel: BaseViewModel {
             return false
         }
 
+        let fileManager = FileManager.default
+        guard let originalAttributes = try? fileManager.attributesOfItem(atPath: musicURL.path) else {
+            return false
+        }
+        let originalPermissions = (originalAttributes[.posixPermissions] as? NSNumber)?.intValue
+        let wasImmutable = (originalAttributes[.immutable] as? NSNumber)?.boolValue ?? false
+        var writableAttributes: [FileAttributeKey: Any] = [:]
+        if wasImmutable {
+            writableAttributes[.immutable] = false
+        }
+        if let originalPermissions {
+            writableAttributes[.posixPermissions] = originalPermissions | 0o200
+        }
+        if !writableAttributes.isEmpty {
+            do {
+                try fileManager.setAttributes(writableAttributes, ofItemAtPath: musicURL.path)
+            } catch {
+                print(error)
+                return false
+            }
+        }
+        defer {
+            var restoredAttributes: [FileAttributeKey: Any] = [:]
+            if wasImmutable {
+                restoredAttributes[.immutable] = true
+            }
+            if let originalPermissions {
+                restoredAttributes[.posixPermissions] = originalPermissions
+            }
+            if !restoredAttributes.isEmpty {
+                do {
+                    try fileManager.setAttributes(restoredAttributes, ofItemAtPath: musicURL.path)
+                } catch {
+                    print("Falha ao restaurar atributos do arquivo: \(error)")
+                }
+            }
+        }
+
         let id3TagEditor: ID3TagEditor = ID3TagEditor()
         let currentTag = try? id3TagEditor.read(from: musicURL.path)
 
@@ -936,6 +978,9 @@ class TagEditorViewModel: BaseViewModel {
 
             var savedMusic = self.musicSelectedDraft
             savedMusic.hasLyric = !trimmedLyric.isEmpty
+            if selectedMusicIsInLibrary && !updateLibraryMusicRecord(savedMusic) {
+                return false
+            }
             self.musicSelected = savedMusic
             self.musicSelectedDraft = savedMusic
             self.musicLyric = trimmedLyric
@@ -956,6 +1001,55 @@ class TagEditorViewModel: BaseViewModel {
         if let index = musicsLibrary.firstIndex(where: { $0.id == music.id }) {
             musicsLibrary[index] = music
         }
+    }
+
+    private func updateLibraryMusicRecord(_ music: Music) -> Bool {
+        guard music.idServer > 0 else { return false }
+
+        func escaped(_ value: String) -> String {
+            value.replacingOccurrences(of: "'", with: "''")
+        }
+
+        let artist = escaped(music.artist)
+        let album = escaped(music.album)
+        let genre = escaped(music.genre)
+        let title = escaped(music.musicTitle)
+
+        func id(for query: String, column: String) -> Int? {
+            guard let helper,
+                  let rows = try? helper.sql(query: query),
+                  let row = rows.first,
+                  let value = row[column] as? Int else { return nil }
+            return value
+        }
+
+        let artistQuery = "SELECT \(DbConstants.TableArtist.colArtistId) FROM \(DbConstants.TableArtist.tableName) WHERE \(DbConstants.TableArtist.colArtist) = '\(artist)'"
+        let artistInsert = "INSERT OR IGNORE INTO \(DbConstants.TableArtist.tableName) (\(DbConstants.TableArtist.colArtist)) VALUES ('\(artist)')"
+        guard helper?.executeQuery(query: artistInsert) == true,
+              let artistId = id(for: artistQuery, column: DbConstants.TableArtist.colArtistId) else { return false }
+
+        let albumQuery = "SELECT \(DbConstants.TableAlbum.colAlbumId) FROM \(DbConstants.TableAlbum.tableName) WHERE \(DbConstants.TableAlbum.colAlbum) = '\(album)' AND \(DbConstants.TableAlbum.colYear) = \(music.year)"
+        let albumInsert = "INSERT OR IGNORE INTO \(DbConstants.TableAlbum.tableName) (\(DbConstants.TableAlbum.colAlbum), \(DbConstants.TableAlbum.colYear)) VALUES ('\(album)', \(music.year))"
+        guard helper?.executeQuery(query: albumInsert) == true,
+              let albumId = id(for: albumQuery, column: DbConstants.TableAlbum.colAlbumId) else { return false }
+
+        let genreQuery = "SELECT \(DbConstants.TableGenre.colGenreId) FROM \(DbConstants.TableGenre.tableName) WHERE \(DbConstants.TableGenre.colGenre) = '\(genre)'"
+        let genreInsert = "INSERT OR IGNORE INTO \(DbConstants.TableGenre.tableName) (\(DbConstants.TableGenre.colGenre)) VALUES ('\(genre)')"
+        guard helper?.executeQuery(query: genreInsert) == true,
+              let genreId = id(for: genreQuery, column: DbConstants.TableGenre.colGenreId) else { return false }
+
+        let query = """
+            UPDATE \(DbConstants.TableMusic.tableName)
+            SET \(DbConstants.TableMusic.colTitle) = '\(title)',
+                \(DbConstants.TableMusic.colTrack) = \(music.track),
+                \(DbConstants.TableMusic.colIdArtist) = \(artistId),
+                \(DbConstants.TableMusic.colIdAlbum) = \(albumId),
+                \(DbConstants.TableMusic.colIdGenre) = \(genreId),
+                \(DbConstants.TableMusic.colHasLyrics) = \(music.hasLyric ? 1 : 0),
+                \(DbConstants.TableMusic.colLastUpdate) = \(Int(Date().timeIntervalSince1970))
+            WHERE \(DbConstants.TableMusic.colMusicId) = \(music.idServer)
+            """
+        return helper?.executeQuery(query: query) == true
     }
 
     private func refreshCover() {
@@ -1069,6 +1163,9 @@ class TagEditorViewModel: BaseViewModel {
     }
 
     func exportSelectedMusic(to libraryPath: String, deleteOriginal: Bool) async -> MusicExportResult {
+        guard !selectedMusicIsInLibrary else {
+            return .failed
+        }
         guard let sourceURL = fileURL(for: musicSelectedDraft.filePath),
               FileManager.default.fileExists(atPath: sourceURL.path),
               let library = libraryDirectories.first(where: { $0.path == libraryPath }) else {

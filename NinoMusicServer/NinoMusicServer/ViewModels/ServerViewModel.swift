@@ -4,6 +4,8 @@
 //
 //  Created by Luiz Guilherme Machado on 12/03/25.
 //
+// Gerencia a função de servidor do programa permitindo compartilhar músicas através de uma web-app que pode ser acessado por um navegado qualquer ou através
+// do protocolo UPnP que pode ser acessado de um equipamento ou programa compatível (Smart-TV, programas, equipamentos, etc)
 
 import Foundation
 import GCDWebServer
@@ -11,6 +13,7 @@ import ID3TagEditor
 import SQLite3
 import AppKit
 
+//Enumerador que indica qual é o comando da Api excutado
 enum ServerComand: String {
     case playMusic = "playMusic"
     case listMusic = "listMusic"
@@ -19,6 +22,7 @@ enum ServerComand: String {
     case serverInfo = "serverInfo"
 }
 
+//Enumerador que indica qual é o protocolo de servidor a ser executado
 enum MusicSharingProtocol: String, CaseIterable, Identifiable {
     case http = "App Web"
     case upnp = "UPnP"
@@ -26,14 +30,15 @@ enum MusicSharingProtocol: String, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
+
 class ServerViewModel: ObservableObject {
-    @Published var logs: [ServerLog] = []
-    @Published var serverPort: UInt = 8080
-    @Published var sharingProtocol: MusicSharingProtocol = .http
-    @Published private(set) var isRunning = false
+    @Published var logs: [ServerLog] = []                        // Lista com os logs do servidor de música.
+    @Published var serverPort: UInt = 8080                       // Número da porta de rede a ser acessado pelo cliente
+    @Published var sharingProtocol: MusicSharingProtocol = .http // Define o protocolo de compartilhamento da música.
+    @Published private(set) var isRunning = false                // Flag que indica se o servidor está em execução.
     
-    private let webServer = GCDWebServer()
-    private let ssdpService = SSDPService()
+    private let webServer = GCDWebServer()                       // Objeto que gerencia o servidor web.
+    private let ssdpService = SSDPService()                      // Objeto que gerencia o serviço do protocolo UPnP
     private let upnpMediaServer: UPnPMediaServer
     private let coverResponseCache = NSCache<NSString, NSData>()
     private let coverCacheLock = NSLock()
@@ -53,6 +58,10 @@ class ServerViewModel: ObservableObject {
         configureHandlers()
     }
     
+    /// Inicia o servidor de música.
+    ///
+    /// Use este método para iniciar o servidor tanto de aplicativo como para aplicativo.
+    ///
     func startMusicServer() {
         guard !isRunning else { return }
         let started = webServer.start(withPort: serverPort, bonjourName: "Nino Music Server")
